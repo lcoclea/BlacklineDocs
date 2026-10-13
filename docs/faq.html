@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FAQ · Blackline for Unreal Engine</title>
+<meta name="description" content="Answers to what buyers ask before and after buying Blackline: multiplayer, empty screens, Blueprint, the demo, gamepad, performance, limits and licences.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="icon" href="assets/mark.svg" type="image/svg+xml">
+<script>try{var t=localStorage.getItem("bl-theme");if(t)document.documentElement.dataset.theme=t;}catch(e){}</script>
+</head>
+<body class="layout-doc">
+<header class="topbar">
+  <button class="menu-toggle" aria-label="Open navigation">☰</button>
+  <a class="brand" href="index.html"><img src="assets/mark.svg" alt=""><span>Blackline</span><em>v1.0.0</em></a>
+  <button class="search-open" aria-label="Search"><span>Search the docs</span><kbd>/</kbd></button>
+  <nav class="top-links">
+    <a href="getting-started.html">Get started</a>
+    <a href="screens.html">Screens</a>
+    <a href="https://github.com/lcoclea/blackline-docs/issues">Support</a>
+    <button class="theme-toggle" aria-label="Switch light or dark theme">◐</button>
+  </nav>
+</header>
+<div class="shell">
+  <aside class="sidebar"><div class="nav-section"><div class="nav-title">Start here</div>
+<a href="index.html">Blackline</a>
+<a href="getting-started.html">Getting started</a>
+<a href="architecture.html">Architecture</a>
+</div>
+<div class="nav-section"><div class="nav-title">Guides</div>
+<a href="interfaces.html">Connecting your game</a>
+<a href="items.html">Items</a>
+<a href="weapons.html">Weapons</a>
+<a href="placing-weapon-parts.html">Placing weapon parts</a>
+<a href="containers.html">Containers</a>
+<a href="context-menu.html">Context menu</a>
+<a href="drag-and-drop.html">Drag and drop</a>
+<a href="equipment.html">Equipment</a>
+<a href="inspect.html">Inspect</a>
+<a href="character-looks.html">Character looks</a>
+<a href="market-and-trading.html">Market and trading</a>
+<a href="raid-loop.html">The raid loop</a>
+<a href="health-and-vitals.html">Health and vitals</a>
+<a href="hideout-and-crafting.html">Hideout and crafting</a>
+<a href="tasks-and-loadouts.html">Tasks and loadouts</a>
+</div>
+<div class="nav-section"><div class="nav-title">Systems</div>
+<a href="layers-and-screens.html">Layers and screens</a>
+<a href="viewmodels.html">Viewmodels</a>
+<a href="theming.html">Theming</a>
+<a href="settings.html">Settings</a>
+<a href="notifications.html">Notifications</a>
+<a href="rendering.html">Rendering</a>
+</div>
+<div class="nav-section"><div class="nav-title">Reference</div>
+<a href="screens.html">Screens</a>
+<a href="components.html">Components</a>
+<a href="source-interfaces.html">Source interfaces</a>
+<a href="requests.html">Requests</a>
+<a href="project-settings.html">Project settings</a>
+</div>
+<div class="nav-section"><div class="nav-title">Help</div>
+<a href="faq.html" class="active">FAQ</a>
+<a href="troubleshooting.html">Troubleshooting</a>
+</div></aside>
+  <main class="content">
+    <article>
+      <div class="eyebrow">Help</div>
+      <h1>FAQ</h1>
+      <p class="lead">Short answers to the questions people ask about Blackline, taken from what the plugin's code does today. Where a limit exists, the answer says so.</p>
+
+<h2 id="before-you-buy">Before you buy<a class="anchor" href="#before-you-buy" aria-label="Link to this section">#</a></h2>
+
+<h3 id="what-is-in-the-plugin">What is in the plugin?<a class="anchor" href="#what-is-in-the-plugin" aria-label="Link to this section">#</a></h3>
+<p>The <code>NVSBlackline</code> plugin has five modules.</p>
+<ul>
+<li><code>NVSView</code>, runtime. The layer stack, viewmodels, interfaces and built-in sources, the data asset types, the Inventory component, the raid session, deploy queue, request and notification subsystems, the style asset and the gameplay tags.</li>
+<li><code>NVSViewWidgets</code>, runtime. The screens, the components and the screen library.</li>
+<li><code>NVSViewRender</code>, runtime. The icon renderer and the character preview.</li>
+<li><code>NVSViewSettings</code>, runtime. Engine-backed settings, saved settings, key rebinding and the field of view modifier.</li>
+<li><code>NVSViewEditor</code>, editor only.</li>
+</ul>
+<p>Its content folder holds 27 screen and window Widget Blueprints, 48 component Widget Blueprints, the layer table <code>DA_BlacklineLayout</code>, the screen registry <code>DA_BlacklineScreenRegistry</code>, the theme <code>DA_BlacklineStyle</code>, the two setup assets, 17 context menu rows as Item Action Definitions, the JetBrains Mono font, 62 icon textures, the render materials, five character preview profiles, and the sound classes and input actions the settings screen uses. See <a href="screens.html">Screens</a> and <a href="components.html">Components</a>.</p>
+
+<h3 id="does-a-fresh-install-show-anything">Does a fresh install show anything?<a class="anchor" href="#does-a-fresh-install-show-anything" aria-label="Link to this section">#</a></h3>
+<p>The screens work, but your project has no content yet. Screens that list content, such as traders, the hideout or the stash, show an empty state card instead of sample data. It tells the player there is nothing here yet and, outside Shipping builds, tells you which data assets to create. The settings screen works from the start. See <a href="screens.html#empty-states">Empty states</a>.</p>
+
+<h3 id="what-is-the-demo-and-how-do-i-get-it">What is the demo, and how do I get it?<a class="anchor" href="#what-is-the-demo-and-how-do-i-get-it" aria-label="Link to this section">#</a></h3>
+<p>The free Blackline Demo is a small playable raid loop built on the plugin. You pick a map, deploy, loot a crate and a body, extract, then craft, trade, heal and kit up at home. It is built only from Blueprints and data assets. It comes in two downloads.</p>
+<ul>
+<li><code>BlacklineDemo-Win64.zip</code>, a playable Windows build.</li>
+<li><code>BlacklineDemo-Project.zip</code>, the Unreal project, with its Blueprints and data assets for you to open and copy from. It opens on <code>/Game/Maps/L_BlacklineDemo</code>.</li>
+</ul>
+<p>The project zip does not include the free FPS Weapon Bundle from Fab, because its licence does not allow passing it on. Add it from Fab so it lands at <code>/Game/FPS_Weapon_Bundle</code>, or the demo's guns have no model. See <a href="getting-started.html#demo-project">Getting started</a>.</p>
+
+<h3 id="which-engine-version-and-plugins-does-it-need">Which engine version and plugins does it need?<a class="anchor" href="#which-engine-version-and-plugins-does-it-need" aria-label="Link to this section">#</a></h3>
+<p>Unreal Engine 5.8. The plugin builds for Windows and Linux. Its descriptor enables three engine plugins, CommonUI, ModelViewViewModel and EnhancedInput. It needs no other marketplace plugin.</p>
+
+<h3 id="does-it-work-in-multiplayer">Does it work in multiplayer?<a class="anchor" href="#does-it-work-in-multiplayer" aria-label="Link to this section">#</a></h3>
+<p>No, it is a single player kit as shipped. The Inventory component does not replicate, and the plugin declares no replicated properties and no RPCs. Its subsystems belong to a local player (layer stack, viewmodels, requests, notifications, deploy queue, raid session, settings) or to the game instance (icon renderer), and the icon renderer is not created on a dedicated server.</p>
+<p>A networked game can still use the screens if it does the networking itself:</p>
+<ul>
+<li>Supply your own replicated inventory through the <code>NVS View Item Holder</code> interface, which the Inventory component also implements. See <a href="interfaces.html">Interfaces</a>.</li>
+<li>Feed other screens from your replicated state with sources of your own.</li>
+<li>Requests are raised on the local player only. Send the change to your server from your <em>On Request</em> handler, then call <em>Refresh Source</em> when the answer arrives.</li>
+<li>The deploy queue is a local timer. It does not matchmake.</li>
+</ul>
+
+<h3 id="does-it-support-split-screen">Does it support split screen?<a class="anchor" href="#does-it-support-split-screen" aria-label="Link to this section">#</a></h3>
+<p>Each local player gets their own layer stack, viewmodels, requests and notifications, because they are local player subsystems. Call <em>Show Screen By Tag</em> with each player's controller and each gets their own stack.</p>
+
+<h3 id="can-i-use-it-without-c">Can I use it without C++?<a class="anchor" href="#can-i-use-it-without-c" aria-label="Link to this section">#</a></h3>
+<p>Yes. Showing screens, creating content, feeding live values and answering requests all work in Blueprint. The screen library's nodes (<em>Show Screen By Tag</em>, <em>Open Loot Screen</em>, <em>Reveal Hud Group</em>, <em>Set Extract Progress</em>, <em>Refresh Source</em>), the definition library's <em>Set Screen Source</em> and <em>Set Selected Raid Map</em>, the raid session's <em>Begin Raid</em> and <em>End Raid</em>, the request subsystem's <em>On Request</em> and <em>Raise</em>, and the Inventory component's functions are all Blueprint nodes. The demo's game is built from Blueprints and data assets only.</p>
+
+<h3 id="does-it-support-gamepads">Does it support gamepads?<a class="anchor" href="#does-it-support-gamepads" aria-label="Link to this section">#</a></h3>
+<p>Partly. Buttons are CommonUI buttons, so they take focus and follow CommonUI navigation, and the gamepad's right face button closes a screen like Escape does. Many item interactions are written for a mouse, such as dragging between grids, right-clicking for the item menu and the hover shortcut keys. Test the screens you use with a pad before you ship.</p>
+
+<h3 id="what-does-it-cost-at-runtime">What does it cost at runtime?<a class="anchor" href="#what-does-it-cost-at-runtime" aria-label="Link to this section">#</a></h3>
+<ul>
+<li>A screen reads its sources when it opens and when something changes. Widgets update through FieldNotify when a viewmodel field changes.</li>
+<li>The icon renderer captures item icons in an isolated studio world, at most <code>IconsPerFrame</code> per frame (2 by default), and caches them up to <code>IconCacheMegabytes</code> (64 by default). See <a href="project-settings.html">Project settings</a>.</li>
+<li>The market screen reads its source again once a second while it is open.</li>
+<li>Hidden raid HUD groups are collapsed, so they cost nothing to draw.</li>
+</ul>
+
+<h3 id="what-are-the-limits-i-should-know-about">What are the limits I should know about?<a class="anchor" href="#what-are-the-limits-i-should-know-about" aria-label="Link to this section">#</a></h3>
+<ul>
+<li>Single player only, as above.</li>
+<li>The raid HUD's ammo readout shows the fitted magazine's capacity. It does not count shots. See <a href="weapons.html">Weapons</a>.</li>
+<li>Cash, hideout progress, tasks and saved kits last for the play session. Your game saves them if they should survive a restart.</li>
+<li>Blackline pays only a task's cash. Its experience, reward lines and unlocks are text for your game to act on.</li>
+<li>The plugin does not load levels. Your game opens the raid map's level when the raid begins.</li>
+</ul>
+
+<h3 id="what-licence-does-the-bundled-font-have">What licence does the bundled font have?<a class="anchor" href="#what-licence-does-the-bundled-font-have" aria-label="Link to this section">#</a></h3>
+<p>JetBrains Mono, under the SIL Open Font License 1.1. The licence text ships in the plugin at <code>Licenses/JetBrainsMono-OFL.txt</code>, is credited in <code>CREDITS.md</code>, and the plugin's filter keeps both in a packaged copy.</p>
+
+<h3 id="what-licence-do-the-example-characters-have">What licence do the example characters have?<a class="anchor" href="#what-licence-do-the-example-characters-have" aria-label="Link to this section">#</a></h3>
+<p>The example characters, outfits and hair are CC0 packs by Quaternius. They ship only with the Blackline Demo project, so a game built from the plugin alone contains none of them. The demo's own Blueprints and data are yours to copy into your project.</p>
+
+<h2 id="after-you-buy">After you buy<a class="anchor" href="#after-you-buy" aria-label="Link to this section">#</a></h2>
+
+<h3 id="how-do-i-open-a-screen">How do I open a screen?<a class="anchor" href="#how-do-i-open-a-screen" aria-label="Link to this section">#</a></h3>
+<p>Call <em>Show Screen By Tag</em> from <em>NVS View Screen Library</em> with the player controller and a tag such as <code>NVS.View.Screen.StashScreen</code>. It puts the screen on the layer its class declares and builds the layer stack first if there is none. Every screen's tag is listed on <a href="screens.html">Screens</a>.</p>
+
+<h3 id="how-do-i-fill-a-screen-that-shows-its-empty-state">How do I fill a screen that shows its empty state?<a class="anchor" href="#how-do-i-fill-a-screen-that-shows-its-empty-state" aria-label="Link to this section">#</a></h3>
+<p>Create the data assets its setup hint names, such as Trader Definitions for the traders. The plugin finds them by itself. The full list is under <a href="screens.html#empty-states">Empty states</a>.</p>
+
+<h3 id="can-i-edit-the-shipped-screens">Can I edit the shipped screens?<a class="anchor" href="#can-i-edit-the-shipped-screens" aria-label="Link to this section">#</a></h3>
+<p>Yes. Make a Blueprint child of the screen's <code>W_</code> asset, change it, and point the screen's row in your own screen registry at the child. Name that registry on your View Setup Definition. Everything that opens the screen now opens yours. Each screen's C++ class finds widgets by name, so keep the names it uses. When one is missing, the screen logs a warning on <code>LogNVSView</code> naming it.</p>
+
+<h3 id="how-do-i-change-the-colours-and-font">How do I change the colours and font?<a class="anchor" href="#how-do-i-change-the-colours-and-font" aria-label="Link to this section">#</a></h3>
+<p>Duplicate <code>DA_BlacklineStyle</code>, change its tokens and set <code>StyleAsset</code> on your View Setup Definition to your copy. See <a href="theming.html">Theming</a>.</p>
+
+<h3 id="can-i-localise-the-screens">Can I localise the screens?<a class="anchor" href="#can-i-localise-the-screens" aria-label="Link to this section">#</a></h3>
+<p>The screens' own words, including the empty state titles and hints, are localisable text, so they enter the localisation pipeline. The names and descriptions in your data assets are text fields too.</p>
+
+<h3 id="something-does-not-show-where-do-i-start">Something does not show. Where do I start?<a class="anchor" href="#something-does-not-show-where-do-i-start" aria-label="Link to this section">#</a></h3>
+<p>Open the Output Log, filter on <code>LogNVSView</code>, and see <a href="troubleshooting.html">Troubleshooting</a>.</p>
+      <nav class="pager"><a class="prev" href="project-settings.html"><span>Previous</span>Project settings</a><a class="next" href="troubleshooting.html"><span>Next</span>Troubleshooting</a></nav>
+    </article>
+  </main>
+  <aside class="toc"><div class="toc-title">On this page</div><nav></nav></aside>
+</div>
+<div class="search-panel" hidden>
+  <div class="search-box">
+    <input type="search" placeholder="Search guides, screens, classes…" aria-label="Search">
+    <div class="search-results"></div>
+    <div class="search-hint"><kbd>↑</kbd><kbd>↓</kbd> to move, <kbd>Enter</kbd> to open, <kbd>Esc</kbd> to close</div>
+  </div>
+</div>
+<div class="lightbox" hidden><img alt=""><div class="lightbox-caption"></div></div>
+<script src="assets/search-index.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

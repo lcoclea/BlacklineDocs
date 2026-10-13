@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Project settings · Blackline for Unreal Engine</title>
+<meta name="description" content="Where Blackline&#x27;s project-wide choices live: the View Setup and Engine Settings Setup data assets, every field with its default, and the per-player values it saves.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="icon" href="assets/mark.svg" type="image/svg+xml">
+<script>try{var t=localStorage.getItem("bl-theme");if(t)document.documentElement.dataset.theme=t;}catch(e){}</script>
+</head>
+<body class="layout-doc">
+<header class="topbar">
+  <button class="menu-toggle" aria-label="Open navigation">☰</button>
+  <a class="brand" href="index.html"><img src="assets/mark.svg" alt=""><span>Blackline</span><em>v1.0.0</em></a>
+  <button class="search-open" aria-label="Search"><span>Search the docs</span><kbd>/</kbd></button>
+  <nav class="top-links">
+    <a href="getting-started.html">Get started</a>
+    <a href="screens.html">Screens</a>
+    <a href="https://github.com/lcoclea/blackline-docs/issues">Support</a>
+    <button class="theme-toggle" aria-label="Switch light or dark theme">◐</button>
+  </nav>
+</header>
+<div class="shell">
+  <aside class="sidebar"><div class="nav-section"><div class="nav-title">Start here</div>
+<a href="index.html">Blackline</a>
+<a href="getting-started.html">Getting started</a>
+<a href="architecture.html">Architecture</a>
+</div>
+<div class="nav-section"><div class="nav-title">Guides</div>
+<a href="interfaces.html">Connecting your game</a>
+<a href="items.html">Items</a>
+<a href="weapons.html">Weapons</a>
+<a href="placing-weapon-parts.html">Placing weapon parts</a>
+<a href="containers.html">Containers</a>
+<a href="context-menu.html">Context menu</a>
+<a href="drag-and-drop.html">Drag and drop</a>
+<a href="equipment.html">Equipment</a>
+<a href="inspect.html">Inspect</a>
+<a href="character-looks.html">Character looks</a>
+<a href="market-and-trading.html">Market and trading</a>
+<a href="raid-loop.html">The raid loop</a>
+<a href="health-and-vitals.html">Health and vitals</a>
+<a href="hideout-and-crafting.html">Hideout and crafting</a>
+<a href="tasks-and-loadouts.html">Tasks and loadouts</a>
+</div>
+<div class="nav-section"><div class="nav-title">Systems</div>
+<a href="layers-and-screens.html">Layers and screens</a>
+<a href="viewmodels.html">Viewmodels</a>
+<a href="theming.html">Theming</a>
+<a href="settings.html">Settings</a>
+<a href="notifications.html">Notifications</a>
+<a href="rendering.html">Rendering</a>
+</div>
+<div class="nav-section"><div class="nav-title">Reference</div>
+<a href="screens.html">Screens</a>
+<a href="components.html">Components</a>
+<a href="source-interfaces.html">Source interfaces</a>
+<a href="requests.html">Requests</a>
+<a href="project-settings.html" class="active">Project settings</a>
+</div>
+<div class="nav-section"><div class="nav-title">Help</div>
+<a href="faq.html">FAQ</a>
+<a href="troubleshooting.html">Troubleshooting</a>
+</div></aside>
+  <main class="content">
+    <article>
+      <div class="eyebrow">Reference</div>
+      <h1>Project settings</h1>
+      <p class="lead">Blackline keeps its project-wide choices in two data assets instead of a Project Settings page. One sets the theme, the screens, icon rendering, money and load. The other names the sound classes and input assets the settings screen drives. This page lists every field.</p>
+
+<h2 id="setup-assets">The two setup assets<a class="anchor" href="#setup-assets" aria-label="Link to this section">#</a></h2>
+<table>
+<thead><tr><th>Data asset</th><th>Class</th><th>Module</th><th>The plugin's own</th></tr></thead>
+<tbody>
+<tr><td>View Setup Definition</td><td><code>UNVSViewSetupDefinition</code></td><td><code>NVSView</code></td><td><code>/NVSBlackline/Settings/Setup/DA_BlacklineSetup</code></td></tr>
+<tr><td>Engine Settings Setup Definition</td><td><code>UNVSViewEngineSetupDefinition</code></td><td><code>NVSViewSettings</code></td><td><code>/NVSBlackline/Settings/Setup/DA_BlacklineEngineSetup</code></td></tr>
+</tbody>
+</table>
+<p>The plugin's own assets use the defaults below. To make your own choices, create your own setup asset in your project. The plugin looks for it by itself, and a setup in your project always wins over the one the plugin ships. If you make several View Setup Definitions, the one with the highest <em>Sort Order</em> wins.</p>
+<ol class="steps">
+  <li><strong>Create it</strong> In your Content folder, right-click and choose <em>Miscellaneous &gt; Data Asset</em>, then pick <em>View Setup Definition</em>. Name it, for example <code>PDA_MySetup</code>.</li>
+  <li><strong>Change what you need</strong> A new asset starts with the same defaults as the plugin's, which point at the plugin's own style, layout and screen registry. Change only the fields you care about.</li>
+  <li><strong>Press Play</strong> The screens use your setup from then on. There is nothing to register.</li>
+</ol>
+<p>Do the same with an Engine Settings Setup Definition when you want to change the audio or input assets.</p>
+<div class="callout tip">One engine setting does belong in Project Settings. CommonUI routes its input through its own viewport client, so set <em>Project Settings &gt; Engine &gt; General Settings &gt; Game Viewport Client Class</em> to <code>CommonGameViewportClient</code>. The demo project is set up this way.</div>
+
+<h2 id="view-setup">View Setup Definition<a class="anchor" href="#view-setup" aria-label="Link to this section">#</a></h2>
+<h3 id="game">Game<a class="anchor" href="#game" aria-label="Link to this section">#</a></h3>
+<table>
+<thead><tr><th>Field</th><th>Default</th><th>What it does</th></tr></thead>
+<tbody>
+<tr><td><code>GameTitle</code></td><td>Empty</td><td>The wordmark on the hub. Empty uses the project's name.</td></tr>
+<tr><td><code>KeyArt</code></td><td>Empty</td><td>The picture beside the hub. Empty shows no picture.</td></tr>
+<tr><td><code>RegionImage</code></td><td>Empty</td><td>The picture of the whole region on the location screen, under one point per raid map. Empty draws a plain grid.</td></tr>
+</tbody>
+</table>
+
+<h3 id="style-and-layers">Style and layers<a class="anchor" href="#style-and-layers" aria-label="Link to this section">#</a></h3>
+<table>
+<thead><tr><th>Field</th><th>Default</th><th>What it does</th></tr></thead>
+<tbody>
+<tr><td><code>StyleAsset</code></td><td><code>/NVSBlackline/DA_BlacklineStyle</code></td><td>The theme every component uses unless its own <code>Style</code> property overrides it. If it cannot load, components fall back to built-in colours with no font, and <code>LogNVSView</code> warns. See <a href="theming.html">Theming</a>.</td></tr>
+<tr><td><code>LayoutAsset</code></td><td><code>/NVSBlackline/DA_BlacklineLayout</code></td><td>The layer table the layer stack is built from.</td></tr>
+<tr><td><code>ScreenRegistry</code></td><td><code>/NVSBlackline/DA_BlacklineScreenRegistry</code></td><td>The screens <em>Show Screen By Tag</em> can open, and the widget each screen tag opens. Point a row at your own Widget Blueprint to replace a screen everywhere.</td></tr>
+</tbody>
+</table>
+
+<h3 id="render">Render<a class="anchor" href="#render" aria-label="Link to this section">#</a></h3>
+<table>
+<thead><tr><th>Field</th><th>Default</th><th>What it does</th></tr></thead>
+<tbody>
+<tr><td><code>IconsPerFrame</code></td><td>2 (1 to 16)</td><td>The most item icons rendered in one frame. The rest wait in a queue.</td></tr>
+<tr><td><code>IconCacheMegabytes</code></td><td>64 (at least 8)</td><td>Above this size, icons nobody is showing are dropped, oldest first.</td></tr>
+<tr><td><code>IconMaxPixels</code></td><td>512 (64 to 4096)</td><td>The largest an item icon is drawn, along its long side. Raise it for sharp icons in big tiles at 4K.</td></tr>
+<tr><td><code>IconMargin</code></td><td>1.08 (0.5 to 3)</td><td>How much room is left around an item in its icon. 1 fits it edge to edge.</td></tr>
+<tr><td><code>IconCutoutMaterial</code></td><td><code>/NVSBlackline/Render/M_IconCutout</code></td><td>The UI material that cuts a capture out of its background. It takes the capture as its <code>Render</code> parameter.</td></tr>
+<tr><td><code>KeyLightIntensity</code>, <code>FillLightIntensity</code>, <code>RimLightIntensity</code>, <code>SkyLightIntensity</code></td><td>6, 2, 4, 1</td><td>The brightness of the lights item icons and figure previews are captured under.</td></tr>
+<tr><td><code>KeyLightDirection</code>, <code>FillLightDirection</code>, <code>RimLightDirection</code></td><td>(-40, -35, 0), (-15, 145, 0), (-25, 180, 0)</td><td>Where the main light, the softer fill light and the edge light come from, as pitch, yaw and roll.</td></tr>
+</tbody>
+</table>
+<p>See <a href="rendering.html">Rendering</a>.</p>
+
+<h3 id="money">Money<a class="anchor" href="#money" aria-label="Link to this section">#</a></h3>
+<table>
+<thead><tr><th>Field</th><th>Default</th><th>What it does</th></tr></thead>
+<tbody>
+<tr><td><code>CurrencySymbol</code></td><td><code>€</code></td><td>Written before every amount.</td></tr>
+<tr><td><code>bSymbolAfterAmount</code></td><td>false</td><td>Puts the symbol after the amount with a space, as in 5,200 kr.</td></tr>
+<tr><td><code>ThousandsSeparator</code></td><td><code>,</code></td><td>Goes between each group of three digits.</td></tr>
+</tbody>
+</table>
+
+<h3 id="load">Load<a class="anchor" href="#load" aria-label="Link to this section">#</a></h3>
+<table>
+<thead><tr><th>Field</th><th>Default</th><th>What it does</th></tr></thead>
+<tbody>
+<tr><td><code>LoadTiers</code></td><td>SPRINT to 12 kg, JOG to 18 kg, WALK to 24 kg</td><td>The load track's tiers, fastest first, each with its word and the weight it ends at. <em>Get Load Tier</em> returns the tier the player's carried weight falls in, from 0 for the lightest, or -1 when over the last one. Your movement code decides what each tier allows. An empty list draws no track.</td></tr>
+<tr><td><code>HeavyBootsKg</code></td><td>1.2</td><td>Boots at or above this weight count as loud on the noise signature. 0 never does.</td></tr>
+<tr><td><code>NoisyLoadKg</code></td><td>18</td><td>A load above this adds a step to the noise signature. 0 never does.</td></tr>
+</tbody>
+</table>
+<p>The demo project sets its tiers to SPRINT 20, JOG 28 and WALK 36 kg.</p>
+
+<h3 id="words-and-slots">Words and slots<a class="anchor" href="#words-and-slots" aria-label="Link to this section">#</a></h3>
+<table>
+<thead><tr><th>Field</th><th>Default</th><th>What it does</th></tr></thead>
+<tbody>
+<tr><td><code>TagNames</code></td><td>Empty</td><td>The word shown for a tag, such as a slot (<code>NVS.View.Slot.Primary</code>), a kind of item or a calibre. A tag not listed shows the last part of its name in capitals.</td></tr>
+<tr><td><code>AllFilterIcon</code></td><td><code>all</code></td><td>The icon on the filter tab that shows every item.</td></tr>
+<tr><td><code>SlotBodyZones</code></td><td>Head, ears, eyes and face to <code>head</code>. Armour, rig and pack to <code>chest</code>. Gloves and watch to <code>arms</code>. Legs, boots and sidearm to <code>legs</code>.</td><td>The part of the body the character preview turns to when the player points at a slot's gear. A slot not listed gets no turn.</td></tr>
+</tbody>
+</table>
+
+<h3 id="loot">Loot<a class="anchor" href="#loot" aria-label="Link to this section">#</a></h3>
+<table>
+<thead><tr><th>Field</th><th>Default</th><th>What it does</th></tr></thead>
+<tbody>
+<tr><td><code>SearchBaseSeconds</code></td><td>0.8</td><td>Seconds every search takes before the container's size counts.</td></tr>
+<tr><td><code>SearchSecondsPerCell</code></td><td>0.12</td><td>Seconds each cell of a container adds to its search.</td></tr>
+<tr><td><code>SearchBodyFactor</code></td><td>0.6</td><td>Searching a body's gear takes this share of the time a crate of the same size would.</td></tr>
+</tbody>
+</table>
+
+<h2 id="engine-setup">Engine Settings Setup Definition<a class="anchor" href="#engine-setup" aria-label="Link to this section">#</a></h2>
+<p>These name the assets the settings screen's engine-backed rows drive. The audio defaults point at assets in <code>/NVSBlackline/Settings/Audio/</code>. Replace them with your own, or parent your game's sound classes under the shipped ones. See <a href="settings.html">Settings</a>.</p>
+<table>
+<thead><tr><th>Field</th><th>Default</th><th>What it does</th></tr></thead>
+<tbody>
+<tr><td><code>SoundMix</code></td><td><code>SCM_NVSSettings</code></td><td>The sound mix the volume rows adjust.</td></tr>
+<tr><td><code>MasterClass</code>, <code>MusicClass</code>, <code>EffectsClass</code>, <code>VoiceClass</code>, <code>InterfaceClass</code></td><td><code>SC_NVSMaster</code>, <code>SC_NVSMusic</code>, <code>SC_NVSEffects</code>, <code>SC_NVSVoice</code>, <code>SC_NVSInterface</code></td><td>The sound class each volume row drives.</td></tr>
+<tr><td><code>NightModeEffect</code></td><td><code>SFX_NVSNightMode</code></td><td>Added to the master submix while dynamic range is set to Night.</td></tr>
+<tr><td><code>bDriveFieldOfView</code></td><td>true</td><td>Scales each player's camera field of view by their saved value. Turn it off if your game sets the field of view itself.</td></tr>
+<tr><td><code>AuthoredFieldOfView</code></td><td>90 (5 to 170)</td><td>The field of view your cameras are built with. A player who picks this value sees your cameras unchanged.</td></tr>
+<tr><td><code>RevertWindowSeconds</code></td><td>15</td><td>How long a display change, such as a new resolution, waits for the player to keep it before it goes back.</td></tr>
+<tr><td><code>MaxVisibleNotifications</code></td><td>4</td><td>The most toasts on screen at once.</td></tr>
+<tr><td><code>MaxHeldNotifications</code></td><td>4</td><td>The most toasts held back while a menu is open, shown once it closes.</td></tr>
+<tr><td><code>BackKeys</code></td><td>Escape and the gamepad's right face button</td><td>The keys that close the topmost screen.</td></tr>
+<tr><td><code>ActionSet</code></td><td>Empty</td><td>The input actions the Controls tab lists for rebinding. Set it to an action set of your game's actions.</td></tr>
+<tr><td><code>ContextPriority</code></td><td>100</td><td>The priority of the input mapping context that holds the player's rebound keys. Keep it above your game's own contexts so a rebound key wins.</td></tr>
+</tbody>
+</table>
+
+<h2 id="per-player">Per-player values<a class="anchor" href="#per-player" aria-label="Link to this section">#</a></h2>
+<p><code>UNVSViewSavedSettings</code> holds the setting values the engine does not store itself, per player, in <code>GameUserSettings.ini</code>. Your game reads them through its getters from C++.</p>
+<pre><code class="lang-cpp">#include "Settings/NVSViewSavedSettings.h"
+
+const UNVSViewSavedSettings&amp; Saved = UNVSViewSavedSettings::Get();
+const float Sensitivity = Saved.GetMouseSensitivity();
+const bool bInvert = Saved.IsInvertY();</code></pre>
+<table>
+<thead><tr><th>Getter</th><th>Setting id</th></tr></thead>
+<tbody>
+<tr><td><code>GetFieldOfView()</code></td><td><code>Video.FieldOfView</code></td></tr>
+<tr><td><code>GetMouseSensitivity()</code></td><td><code>Controls.MouseSensitivity</code></td></tr>
+<tr><td><code>GetAimSensitivity()</code></td><td><code>Controls.AimSensitivity</code></td></tr>
+<tr><td><code>IsInvertY()</code></td><td><code>Controls.InvertY</code></td></tr>
+<tr><td><code>IsAutoReload()</code></td><td><code>Gameplay.AutoReload</code></td></tr>
+<tr><td><code>GetHoldToLootSeconds()</code></td><td><code>Gameplay.HoldToLoot</code></td></tr>
+<tr><td><code>ShowsCorpseMarkers()</code></td><td><code>Gameplay.CorpseMarkers</code></td></tr>
+<tr><td><code>WarnsCarryWeight()</code></td><td><code>Gameplay.CarryWeightWarnings</code></td></tr>
+<tr><td><code>GetDynamicRange()</code></td><td><code>Audio.DynamicRange</code> (0 wide, 1 night)</td></tr>
+<tr><td><code>GetSubtitleSize()</code></td><td><code>Accessibility.SubtitleSize</code> (0 small, 1 medium, 2 large)</td></tr>
+<tr><td><code>IsHighContrastHud()</code></td><td><code>Accessibility.HighContrastHud</code></td></tr>
+<tr><td><code>ReducesScreenShake()</code></td><td><code>Accessibility.ReduceScreenShake</code></td></tr>
+</tbody>
+</table>
+<p>The class also keeps the player's key bindings, and its <code>OnValueChanged</code> fires with the setting id when a value changes.</p>
+
+<h2 id="other-config">Other config<a class="anchor" href="#other-config" aria-label="Link to this section">#</a></h2>
+<p>The plugin's <code>Config/FilterPlugin.ini</code> keeps <code>CREDITS.md</code>, <code>README.md</code> and the <code>Licenses</code> folder in a packaged copy of the plugin, so the font licence travels with it.</p>
+      <nav class="pager"><a class="prev" href="requests.html"><span>Previous</span>Requests</a><a class="next" href="faq.html"><span>Next</span>FAQ</a></nav>
+    </article>
+  </main>
+  <aside class="toc"><div class="toc-title">On this page</div><nav></nav></aside>
+</div>
+<div class="search-panel" hidden>
+  <div class="search-box">
+    <input type="search" placeholder="Search guides, screens, classes…" aria-label="Search">
+    <div class="search-results"></div>
+    <div class="search-hint"><kbd>↑</kbd><kbd>↓</kbd> to move, <kbd>Enter</kbd> to open, <kbd>Esc</kbd> to close</div>
+  </div>
+</div>
+<div class="lightbox" hidden><img alt=""><div class="lightbox-caption"></div></div>
+<script src="assets/search-index.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

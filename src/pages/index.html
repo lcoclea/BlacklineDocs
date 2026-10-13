@@ -1,0 +1,67 @@
+<!--meta {"title": "Blackline", "section": "Start here", "order": 0, "layout": "home", "summary": "A complete extraction-shooter interface for Unreal Engine 5.8: twenty-one CommonUI screens that you fill with data assets and Blueprints."} -->
+<div class="hero">
+  <div class="eyebrow">UI plugin for Unreal Engine 5.8</div>
+  <h2>The whole game UI.<br><em>Already built.</em></h2>
+  <p>Blackline is twenty-one screens on CommonUI, from the hub to the raid debrief, with the stash, raid inventory, traders, market, hideout crafting, health and raid HUD in between. You fill them with data assets, one asset per item, trader, task, station and raid map. Most of it needs no C++.</p>
+  <div class="actions">
+    <a class="btn primary" href="getting-started.html">Get started</a>
+    <a class="btn" href="screens.html">See every screen</a>
+    <a class="btn" href="architecture.html">How it fits together</a>
+  </div>
+  <div class="hero-shot"><img src="img/features/context-menu.png" alt="The stash screen with an item's context menu open"></div>
+</div>
+
+<div class="stats">
+  <div><b>21</b><span>screens</span></div>
+  <div><b>48</b><span>widget components</span></div>
+  <div><b>16</b><span>kinds of data asset</span></div>
+  <div><b>58</b><span>request tags your game can answer</span></div>
+</div>
+
+<h2>What you get</h2>
+<div class="gallery">
+  <figure><img src="img/screens/stash.png" alt="Stash"><figcaption>Stash and paper doll</figcaption></figure>
+  <figure><img src="img/screens/raid-inventory.png" alt="Raid inventory"><figcaption>Looting in a raid</figcaption></figure>
+  <figure><img src="img/screens/workbench.png" alt="Workbench"><figcaption>Hideout crafting</figcaption></figure>
+  <figure><img src="img/screens/trade.png" alt="Trade"><figcaption>Trading</figcaption></figure>
+  <figure><img src="img/screens/raid-hud.png" alt="Raid HUD"><figcaption>Raid HUD</figcaption></figure>
+  <figure><img src="img/screens/lobby.png" alt="Lobby"><figcaption>Lobby and deploy queue</figcaption></figure>
+</div>
+
+<h2 id="see-it-filled">See it filled first</h2>
+<p>A fresh install has no game content in it. Screens that list items, traders or stations show a short <a href="screens.html#empty-states">empty state</a> card until you add some. To see every screen working, get the free Blackline Demo. It comes in three downloads.</p>
+<ul>
+  <li><strong>BlacklineDemo-Win64.zip</strong> is a playable Windows build. Unzip it and run <code>BlacklineDemo.exe</code>.</li>
+  <li><strong>BlacklineDemo-Linux.zip</strong> is a playable Linux build. Unzip it and run <code>BlacklineDemo.sh</code>.</li>
+  <li><strong>BlacklineDemo-Project.zip</strong> is the Unreal project with all its Blueprints and data assets, ready to open with the plugin and copy from. Add the free FPS Weapon Bundle from Fab first, as <a href="getting-started.html#demo-project">Getting started</a> explains.</li>
+</ul>
+<p>The demo is a small playable raid loop. You pick a map, deploy, loot a crate and a body, extract, then craft, trade, heal and kit up at home. It is built only from Blueprints and data assets.</p>
+
+<h2>Start with a guide</h2>
+<div class="cards">
+  <a class="card" href="getting-started.html"><span class="card-tag">Start here</span><strong>Getting started</strong>Enable the plugin, put the hub on screen from Blueprint and add your first data asset.</a>
+  <a class="card" href="items.html"><span class="card-tag">Guide</span><strong>Items</strong>Item definitions with their types, traits, footprints and prices.</a>
+  <a class="card" href="weapons.html"><span class="card-tag">Guide</span><strong>Weapons</strong>Attachment slots, magazines and the HUD's ammo readout.</a>
+  <a class="card" href="containers.html"><span class="card-tag">Guide</span><strong>Containers</strong>Bags, rigs and crates as grids that open in their own windows.</a>
+  <a class="card" href="context-menu.html"><span class="card-tag">Guide</span><strong>Context menu</strong>The right-click rows, each one a data asset with its click and key.</a>
+  <a class="card" href="character-looks.html"><span class="card-tag">Guide</span><strong>Character looks</strong>The wardrobe, try-on and buying.</a>
+  <a class="card" href="theming.html"><span class="card-tag">System</span><strong>Theming</strong>Colour roles, type steps and fonts on one style asset.</a>
+  <a class="card" href="requests.html"><span class="card-tag">Reference</span><strong>Requests</strong>Every request a screen raises and who answers it.</a>
+</div>
+
+<h2>How it plugs into your game</h2>
+<p>Screens read your content from data assets and your live game state from sources, such as a Blueprint component on the player. When the player presses something that changes the game, the screen raises a request your game can answer. The plugin answers the common ones itself, such as cash, crafting, healing and tasks, so a game can get far without writing any request code.</p>
+<div class="plug">
+  <div class="plug-box"><span class="card-tag">Your game</span><strong>Data assets and Blueprints</strong>Items, traders, tasks and maps as data assets. Live values such as health from a Blueprint component.</div>
+  <div class="plug-arrows"><span>values in &rarr;</span><span>&larr; requests out</span></div>
+  <div class="plug-box plug-mid"><span class="card-tag">Blackline</span><strong>Screens</strong>Twenty-one screens that show your values and turn the player's clicks into requests.</div>
+  <div class="plug-arrows"><span>draws &rarr;</span><span>&larr; clicks</span></div>
+  <div class="plug-box"><span class="card-tag">The player</span><strong>Mouse and keyboard</strong>Drags, clicks and keys on the screen.</div>
+</div>
+
+<h2>Know the limits</h2>
+<ul>
+  <li>It is single player. The Inventory component does not replicate.</li>
+  <li>The raid HUD's ammo readout shows the fitted magazine's capacity. It does not count shots.</li>
+</ul>
+<p>The <a href="faq.html">FAQ</a> covers the rest.</p>

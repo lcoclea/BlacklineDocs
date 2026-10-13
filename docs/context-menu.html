@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Context menu · Blackline for Unreal Engine</title>
+<meta name="description" content="Every row of the item menu is an Item Action Definition data asset with its own label, gesture, key and rules. Add, change or hide rows without code.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="icon" href="assets/mark.svg" type="image/svg+xml">
+<script>try{var t=localStorage.getItem("bl-theme");if(t)document.documentElement.dataset.theme=t;}catch(e){}</script>
+</head>
+<body class="layout-doc">
+<header class="topbar">
+  <button class="menu-toggle" aria-label="Open navigation">☰</button>
+  <a class="brand" href="index.html"><img src="assets/mark.svg" alt=""><span>Blackline</span><em>v1.0.0</em></a>
+  <button class="search-open" aria-label="Search"><span>Search the docs</span><kbd>/</kbd></button>
+  <nav class="top-links">
+    <a href="getting-started.html">Get started</a>
+    <a href="screens.html">Screens</a>
+    <a href="https://github.com/lcoclea/blackline-docs/issues">Support</a>
+    <button class="theme-toggle" aria-label="Switch light or dark theme">◐</button>
+  </nav>
+</header>
+<div class="shell">
+  <aside class="sidebar"><div class="nav-section"><div class="nav-title">Start here</div>
+<a href="index.html">Blackline</a>
+<a href="getting-started.html">Getting started</a>
+<a href="architecture.html">Architecture</a>
+</div>
+<div class="nav-section"><div class="nav-title">Guides</div>
+<a href="interfaces.html">Connecting your game</a>
+<a href="items.html">Items</a>
+<a href="weapons.html">Weapons</a>
+<a href="placing-weapon-parts.html">Placing weapon parts</a>
+<a href="containers.html">Containers</a>
+<a href="context-menu.html" class="active">Context menu</a>
+<a href="drag-and-drop.html">Drag and drop</a>
+<a href="equipment.html">Equipment</a>
+<a href="inspect.html">Inspect</a>
+<a href="character-looks.html">Character looks</a>
+<a href="market-and-trading.html">Market and trading</a>
+<a href="raid-loop.html">The raid loop</a>
+<a href="health-and-vitals.html">Health and vitals</a>
+<a href="hideout-and-crafting.html">Hideout and crafting</a>
+<a href="tasks-and-loadouts.html">Tasks and loadouts</a>
+</div>
+<div class="nav-section"><div class="nav-title">Systems</div>
+<a href="layers-and-screens.html">Layers and screens</a>
+<a href="viewmodels.html">Viewmodels</a>
+<a href="theming.html">Theming</a>
+<a href="settings.html">Settings</a>
+<a href="notifications.html">Notifications</a>
+<a href="rendering.html">Rendering</a>
+</div>
+<div class="nav-section"><div class="nav-title">Reference</div>
+<a href="screens.html">Screens</a>
+<a href="components.html">Components</a>
+<a href="source-interfaces.html">Source interfaces</a>
+<a href="requests.html">Requests</a>
+<a href="project-settings.html">Project settings</a>
+</div>
+<div class="nav-section"><div class="nav-title">Help</div>
+<a href="faq.html">FAQ</a>
+<a href="troubleshooting.html">Troubleshooting</a>
+</div></aside>
+  <main class="content">
+    <article>
+      <div class="eyebrow">Guides</div>
+      <h1>Context menu</h1>
+      <p class="lead">Right-clicking an item opens a menu of what the player can do with it where it sits. Each row is an <strong>Item Action Definition</strong> data asset, so you add a row, change a shortcut or hide a row by making an asset. No code is needed.</p>
+
+<figure class="shot"><img src="img/features/context-menu.png" alt="The item menu open over a stash tile, with Inspect, Equip, Move, Sell, Rotate, Split stack and Drop rows"><figcaption>The item menu. Greyed rows are actions that cannot happen right now, such as an equip with the slot already taken.</figcaption></figure>
+
+<h2 id="how-it-opens">How it opens<a class="anchor" href="#how-it-opens" aria-label="Link to this section">#</a></h2>
+<ul>
+<li>Right-click a tile in a grid, a filled doll slot or a worn container block.</li>
+<li>The menu opens at the pointer above every window, and it stays inside the screen edges.</li>
+<li>Any click outside closes it. Choosing a row closes it and does the action.</li>
+</ul>
+<p>Rows can also be chosen without the menu, by their gesture: Ctrl-click, Alt-click, Shift-click, double-click or a key over the item. That is how every shortcut on the <a href="drag-and-drop.html">Drag and drop</a> page works.</p>
+
+<h2 id="the-rows-that-ship">The rows that ship<a class="anchor" href="#the-rows-that-ship" aria-label="Link to this section">#</a></h2>
+<p>The plugin ships seventeen rows in <code>Content/Settings/ItemActions</code>, listed here in their sort order. A row shows only when the item matches its <em>Offered When</em>.</p>
+<dl class="api">
+<dt>Open (double-click)</dt><dd>A bag or crate lying in a grid, or a worn container with a pop-out. Opens its grids in a window. Not on a trader's shelf or a teammate's gear.</dd>
+<dt>Use</dt><dd>A consumable lying in a grid. Not on a trader's shelf or a teammate's gear.</dd>
+<dt>Detach</dt><dd>An attachment fitted to a weapon. Moves it to the first place with room.</dd>
+<dt>Inspect (double-click)</dt><dd>Every item. Opens the inspect window. An item that opens a container keeps double-click for Open, because the first row to claim a gesture keeps it.</dd>
+<dt>Equip · SLOT (Alt-click)</dt><dd>An item in a grid that names a slot. Greyed out when the slot is taken.</dd>
+<dt>Move to WINDOW (Ctrl-click)</dt><dd>An item in a grid while a container window is open in front. Moves it into that window.</dd>
+<dt>Move to your gear (Ctrl-click)</dt><dd>An item in the stash. Moves it to the rig's pouches, the pockets or the pack, the first with room. Shown only when no earlier row took Ctrl-click.</dd>
+<dt>Move to stash (Ctrl-click)</dt><dd>An item in the pack, rig or pockets. Shown only on a screen with a stash, and only when no earlier row took Ctrl-click.</dd>
+<dt>Unequip (E)</dt><dd>A worn item that is not fixed. Greyed out when the stash has no room.</dd>
+<dt>Take into GEAR (Ctrl-click)</dt><dd>Loot from a crate or body. Moves it into your gear.</dd>
+<dt>Move to rig, Move to pack</dt><dd>Between the worn pack and rig.</dd>
+<dt>Buy · PRICE</dt><dd>An item on a trader's shelf.</dd>
+<dt>Sell · OFFER</dt><dd>An item in the stash.</dd>
+<dt>Rotate (R)</dt><dd>The player's own loose items. Greyed out unless the item lies in a grid.</dd>
+<dt>Split stack (Shift-click)</dt><dd>The player's own loose items. Greyed out unless there is more than one in the stack.</dd>
+<dt>Drop (Delete)</dt><dd>The player's own items that are not worn, fixed or fitted.</dd>
+</dl>
+<div class="callout tip">Edits to the plugin's own assets are replaced when you update the plugin. To change a shipped row, make your own asset that replaces it, as shown below.</div>
+
+<h2 id="what-a-row-holds">What a row holds<a class="anchor" href="#what-a-row-holds" aria-label="Link to this section">#</a></h2>
+<p>Open any of the shipped rows to see these fields in the Details panel.</p>
+<dl class="api">
+<dt>Action</dt><dd>The request the row raises, as a gameplay tag, such as <code>NVS.View.Request.Item.Drop</code>. Two tags are handled by the screen itself: <code>NVS.View.Action.Inspect</code> opens the inspect window and <code>NVS.View.Action.Open</code> opens a container. Any other tag, including one of your own, is raised as a request.</dd>
+<dt>Label</dt><dd>The row's text. It may name <code>{Target}</code>, <code>{Slot}</code>, <code>{Price}</code> (the shelf price) and <code>{Offer}</code> (what a sale fetches).</dd>
+<dt>Short Label</dt><dd>Shown instead when a name in the label has nothing to fill it, such as <em>Move to your gear</em> when there is no target name.</dd>
+<dt>Key Hint</dt><dd>The text at the right of the row, such as <code>CTRL CLICK</code>.</dd>
+<dt>Gesture, Key</dt><dd>The shortcut that picks the row: None, Double Click, Ctrl Click, Shift Click, Alt Click, or Key with a <em>Key</em> such as R.</dd>
+<dt>Only When Gesture Free</dt><dd>Hides the row when an earlier row already took its gesture. Otherwise the row stays and loses its shortcut and hint.</dd>
+<dt>Role</dt><dd>The row's colour from the theme, such as Danger for Drop or Success for Sell.</dd>
+<dt>Offered When</dt><dd>A gameplay tag query. Empty offers the row for every item.</dd>
+<dt>Enabled When</dt><dd>A second query. When it does not match, the row shows greyed out.</dd>
+<dt>Target, Target Place</dt><dd>What the row acts on, which also decides when it has room. See below.</dd>
+<dt>Hidden Without Place</dt><dd>Hides the row on a screen that has no grid in <em>Target Place</em>.</dd>
+<dt>Replaces</dt><dd>A row this one stands in for. Leave <em>Action</em> empty to hide that row.</dd>
+<dt>Sort Order</dt><dd>Lower comes first. The shipped rows use 10 to 170 in steps of 10.</dd>
+</dl>
+
+<h3 id="what-the-queries-match">What the queries match<a class="anchor" href="#what-the-queries-match" aria-label="Link to this section">#</a></h3>
+<p><em>Offered When</em> and <em>Enabled When</em> are matched against the item's own <em>Tags</em> plus two kinds of tag the screen adds:</p>
+<dl class="api">
+<dt>NVS.View.Place</dt><dd>Where the item is: <code>Stash</code>, <code>Pack</code>, <code>Rig</code>, <code>Pockets</code>, <code>Secure</code>, <code>Loot</code>, <code>Trader</code>, <code>Worn</code>, <code>Crew</code> (a teammate's gear, view only), <code>Attached</code> or <code>Wardrobe</code>.</dd>
+<dt>NVS.View.ItemState</dt><dd>What it is like now: <code>InGrid</code>, <code>Stack</code>, <code>Usable</code>, <code>Opens</code>, <code>Fixed</code>, <code>Equippable</code> or <code>Attachable</code>.</dd>
+</dl>
+<p><strong>Get Item Tag Set</strong> on <em>NVS View Screen Library</em> returns this combined set for an item, which helps when testing a query.</p>
+
+<h3 id="targets">Targets<a class="anchor" href="#targets" aria-label="Link to this section">#</a></h3>
+<dl class="api">
+<dt>None</dt><dd>The item itself.</dd>
+<dt>Fits Slot</dt><dd>The doll slot the item fits. Acts when that slot can take it.</dd>
+<dt>Worn Slot</dt><dd>The slot the item is worn in. Acts when <em>Target Place</em>, if set, has room.</dd>
+<dt>Open</dt><dd>What the item opens. Not offered when it opens nothing.</dd>
+<dt>Front Window</dt><dd>The container window in front. Not offered without one, or when it shows the item's own container.</dd>
+<dt>Gear</dt><dd>The first of the rig, the pockets and the pack with room. Not offered on a screen without a pack.</dd>
+<dt>Place</dt><dd><em>Target Place</em>. Acts when it has room.</dd>
+<dt>Detach</dt><dd>The first place with room for a fitted attachment.</dd>
+</dl>
+
+<h2 id="add-your-own-row">Add your own row<a class="anchor" href="#add-your-own-row" aria-label="Link to this section">#</a></h2>
+<p>This example adds a Repair row for weapons in the stash.</p>
+<ol class="steps">
+<li><strong>Make a tag</strong> In <em>Project Settings &gt; Gameplay Tags</em>, add <code>Game.Item.Repair</code>.</li>
+<li><strong>Create the asset</strong> Make a Data Asset of class <code>Item Action Definition</code>, such as <code>DA_ItemAction_Repair</code>, anywhere in your Content folder. The plugin finds it by itself.</li>
+<li><strong>Fill it</strong> Set <em>Action</em> to <code>Game.Item.Repair</code>, <em>Label</em> to <code>Repair</code> and <em>Sort Order</em> to 145, so it sits between Sell and Rotate. Set <em>Offered When</em> to a query that needs all of <code>Item.Weapon</code> and <code>NVS.View.Place.Stash</code>.</li>
+<li><strong>Give it a key if you like</strong> Set <em>Gesture</em> to Key, <em>Key</em> to a free key and <em>Key Hint</em> to its name.</li>
+<li><strong>Answer it</strong> In your player controller, get the <em>NVS View Request Subsystem</em> with <strong>Get Local Player Subsystem</strong>, bind <strong>On Request</strong>, and check whether the request's <em>Request Id</em> matches <code>Game.Item.Repair</code>.</li>
+</ol>
+<p>The request carries the item. <em>Item Id</em> is the item's definition and its instance joined by <code>@</code>, such as <code>NVSViewItem:PDA_AR4@I3</code>. The part after <code>@</code> is the instance id the Inventory component's calls take. <em>Item Name</em> and <em>Item Tags</em> are filled too.</p>
+
+<h3 id="change-or-hide-a-shipped-row">Change or hide a shipped row<a class="anchor" href="#change-or-hide-a-shipped-row" aria-label="Link to this section">#</a></h3>
+<ol class="steps">
+<li><strong>Create your row</strong> Make a new Item Action Definition and set <em>Replaces</em> to the shipped row, such as <code>DA_ItemAction_Drop</code>.</li>
+<li><strong>Change it</strong> Copy the fields you want to keep and change the rest, such as the <em>Key</em>. Your row now shows instead of the shipped one.</li>
+<li><strong>Or hide it</strong> Leave <em>Action</em> empty. The shipped row disappears and yours shows nothing.</li>
+</ol>
+
+<h2 id="result">Result<a class="anchor" href="#result" aria-label="Link to this section">#</a></h2>
+<p>With the Repair row in place, press Play, open the stash and right-click a rifle. Repair appears between Sell and Rotate. Choosing it raises <code>Game.Item.Repair</code>, and your On Request handler receives the rifle's id. Right-click a bandage and Repair does not appear.</p>
+
+<div class="cards">
+<a class="card" href="drag-and-drop.html"><span class="card-tag">Guide</span><strong>Drag and drop</strong>Every gesture, and what decides it.</a>
+<a class="card" href="inspect.html"><span class="card-tag">Guide</span><strong>Inspect</strong>What the Inspect row opens.</a>
+<a class="card" href="requests.html"><span class="card-tag">Reference</span><strong>Requests</strong>Every request tag and its fields.</a>
+</div>
+      <nav class="pager"><a class="prev" href="containers.html"><span>Previous</span>Containers</a><a class="next" href="drag-and-drop.html"><span>Next</span>Drag and drop</a></nav>
+    </article>
+  </main>
+  <aside class="toc"><div class="toc-title">On this page</div><nav></nav></aside>
+</div>
+<div class="search-panel" hidden>
+  <div class="search-box">
+    <input type="search" placeholder="Search guides, screens, classes…" aria-label="Search">
+    <div class="search-results"></div>
+    <div class="search-hint"><kbd>↑</kbd><kbd>↓</kbd> to move, <kbd>Enter</kbd> to open, <kbd>Esc</kbd> to close</div>
+  </div>
+</div>
+<div class="lightbox" hidden><img alt=""><div class="lightbox-caption"></div></div>
+<script src="assets/search-index.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

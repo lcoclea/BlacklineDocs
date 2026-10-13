@@ -1,0 +1,532 @@
+<!--meta {"title": "Screens", "section": "Reference", "order": 10, "summary": "All twenty-one screens with their codes, assets, layers and tags, what fills each one, and how empty states work."} -->
+<p class="lead">Blackline ships 21 screens as Widget Blueprints in <code>/NVSBlackline/Screens</code>. This page lists each one with what it is for, what fills it, and the empty state it shows before your project has that content.</p>
+<h2 id="all-screens">All screens</h2>
+<p>The code is the number this site and the Blackline Demo use for each screen. Open any of them from Blueprint with <em>Show Screen By Tag</em> and the tag in the last column.</p>
+<table><thead><tr><th>Code</th><th>Screen</th><th>Asset</th><th>Layer</th><th>Screen tag</th><th>Empty state</th></tr></thead><tbody>
+<tr><td>01</td><td><a href="#hub">Hub</a></td><td><code>W_MainMenu</code></td><td>Menu</td><td><code>NVS.View.Screen.MainMenu</code></td><td>No</td></tr>
+<tr><td>02</td><td><a href="#insertion">Location select</a></td><td><code>W_InsertionSelect</code></td><td>Menu</td><td><code>NVS.View.Screen.InsertionSelect</code></td><td>Yes</td></tr>
+<tr><td>03</td><td><a href="#raid-hud">Raid HUD</a></td><td><code>W_RaidHUD</code></td><td>Game</td><td><code>NVS.View.Screen.RaidHUD</code></td><td>No</td></tr>
+<tr><td>04</td><td><a href="#skills">Skills</a></td><td><code>W_SkillsScreen</code></td><td>Menu</td><td><code>NVS.View.Screen.SkillsScreen</code></td><td>Yes</td></tr>
+<tr><td>04B</td><td><a href="#skill-tree">Skill tree</a></td><td><code>W_SkillTree</code></td><td>Menu</td><td><code>NVS.View.Screen.SkillTree</code></td><td>Yes</td></tr>
+<tr><td>04C</td><td><a href="#character">Character</a></td><td><code>W_CharacterScreen</code></td><td>Menu</td><td><code>NVS.View.Screen.CharacterScreen</code></td><td>Yes</td></tr>
+<tr><td>04D</td><td><a href="#health">Health</a></td><td><code>W_HealthScreen</code></td><td>Menu</td><td><code>NVS.View.Screen.HealthScreen</code></td><td>No</td></tr>
+<tr><td>05</td><td><a href="#stash">Stash</a></td><td><code>W_StashScreen</code></td><td>Menu</td><td><code>NVS.View.Screen.StashScreen</code></td><td>Yes</td></tr>
+<tr><td>06</td><td><a href="#loadouts">Loadouts</a></td><td><code>W_LoadoutLibrary</code></td><td>Menu</td><td><code>NVS.View.Screen.LoadoutLibrary</code></td><td>Yes</td></tr>
+<tr><td>07</td><td><a href="#raid-inventory">Raid inventory</a></td><td><code>W_RaidInventory</code></td><td>GameMenu</td><td><code>NVS.View.Screen.RaidInventory</code></td><td>No</td></tr>
+<tr><td>08</td><td><a href="#traders">Traders</a></td><td><code>W_TraderList</code></td><td>Menu</td><td><code>NVS.View.Screen.TraderList</code></td><td>Yes</td></tr>
+<tr><td>09</td><td><a href="#trade">Trade</a></td><td><code>W_TradeScreen</code></td><td>Menu</td><td><code>NVS.View.Screen.TradeScreen</code></td><td>Yes</td></tr>
+<tr><td>09B</td><td><a href="#market">Market</a></td><td><code>W_MarketScreen</code></td><td>Menu</td><td><code>NVS.View.Screen.MarketScreen</code></td><td>Yes</td></tr>
+<tr><td>10</td><td><a href="#tasks">Task log</a></td><td><code>W_TaskLog</code></td><td>GameMenu</td><td><code>NVS.View.Screen.TaskLog</code></td><td>Yes</td></tr>
+<tr><td>11</td><td><a href="#lobby">Lobby</a></td><td><code>W_PartyLobby</code></td><td>Menu</td><td><code>NVS.View.Screen.PartyLobby</code></td><td>No</td></tr>
+<tr><td>12</td><td><a href="#settings">Settings</a></td><td><code>W_SettingsScreen</code></td><td>Menu</td><td><code>NVS.View.Screen.SettingsScreen</code></td><td>No</td></tr>
+<tr><td>13</td><td><a href="#notifications">Notifications</a></td><td><code>W_NotificationStack</code></td><td>Notification</td><td><code>NVS.View.Screen.NotificationStack</code></td><td>No</td></tr>
+<tr><td>14</td><td><a href="#debrief">Debrief</a></td><td><code>W_RaidSummary</code></td><td>Modal</td><td><code>NVS.View.Screen.RaidSummary</code></td><td>Yes</td></tr>
+<tr><td>15</td><td><a href="#hideout">Hideout</a></td><td><code>W_Hideout</code></td><td>Menu</td><td><code>NVS.View.Screen.Hideout</code></td><td>Yes</td></tr>
+<tr><td>15B</td><td><a href="#workbench">Workbench</a></td><td><code>W_BenchScreen</code></td><td>Menu</td><td><code>NVS.View.Screen.BenchScreen</code></td><td>Yes</td></tr>
+<tr><td>15C</td><td><a href="#generator">Generator</a></td><td><code>W_PowerStation</code></td><td>Menu</td><td><code>NVS.View.Screen.PowerStation</code></td><td>Yes</td></tr>
+</tbody></table>
+<p>Menu screens share a bottom bar that moves between Hub, Stash, Hideout, Traders, Market and Lobby. Every screen closes with Escape except the raid HUD and the notifications, which Escape passes over.</p>
+<h2 id="how-a-screen-is-filled">How a screen is filled</h2>
+<p>Each screen has a list of bindings in its class defaults, <code>ViewModelBindings</code>. Every binding has an id, a viewmodel class and a built-in source class. The built-in sources read your data assets, the player's Inventory component and the plugin's own subsystems, so most screens fill as soon as the matching data assets exist.</p>
+<p>Screens without a matching kind of data asset, such as the health zones, the lobby crew or the HUD compass, read sources whose rows you fill in yourself. You can do that with no code at all. Create a data asset whose class is the built-in source, such as <code>NVSViewBodyZones</code>, fill in its rows, then create a Screen Source Definition with <em>Replaces</em> set to that class and <em>Asset</em> set to your data asset. The demo does this for every such screen, with pairs such as <code>Demo/Data/DA_PlayerBody</code> and <code>Demo/Sources/PDA_PlayerBodySource</code>.</p>
+<p>To feed a binding from live game state instead, make a Blueprint component that implements the binding's interface, pass it to <em>Set Screen Source</em> naming the built-in source it replaces, and call <em>Refresh Source</em> when its values change. The full order a screen picks its sources in is on <a href="architecture.html#sources">Architecture</a>, and the interfaces a source can answer are on <a href="interfaces.html">Interfaces</a>.</p>
+<p>Buttons that change game data raise a request on the request subsystem. See <a href="requests.html">Requests</a>.</p>
+<h2 id="empty-states">Empty states</h2>
+<p>A fresh install has no content, so a screen that lists content would open blank. Instead, fourteen screens show an empty state card in the middle of the screen. It has three lines:</p>
+<ul><li>A title, such as <em>No traders yet</em>.</li><li>One or two sentences for the player.</li><li>A setup hint for you, in the accent colour, naming what to create. It ends by saying the demo project shows the screen filled. The hint appears in the editor and in Development builds. A Shipping build never draws it.</li></ul>
+<p>The card shows when every binding the screen lists in <code>EmptyWhenBindings</code> comes up empty, such as a list with no rows or a set of worn slots with nothing in them. It goes away by itself as soon as one of them has content. The screen is still there underneath and clicks pass through the card, so anything the screen can still do keeps working.</p>
+<table><thead><tr><th>Screen</th><th>Shows when these are empty</th><th>Title</th><th>For the player</th><th>Setup hint</th></tr></thead><tbody>
+<tr><td><a href="#insertion">02 Location select</a></td><td><code>Markers</code></td><td>No locations</td><td>There is nowhere to deploy to yet.</td><td>Create Raid Map Definition data assets, each with its level, exits and a point on the region map.</td></tr>
+<tr><td><a href="#skills">04 Skills</a></td><td><code>Skills</code></td><td>No skills yet</td><td>Skills you raise by playing will appear here.</td><td>Create Skill Definition and Branch Definition data assets.</td></tr>
+<tr><td><a href="#skill-tree">04B Skill tree</a></td><td><code>PerkTree</code></td><td>No perks yet</td><td>Perks you can take will appear here.</td><td>Create Perk Definition and Branch Definition data assets.</td></tr>
+<tr><td><a href="#character">04C Character</a></td><td><code>Wardrobe</code></td><td>Nothing to wear yet</td><td>Outfits and gear for your character will appear here.</td><td>Create Wardrobe Piece Definition data assets, including a body piece.</td></tr>
+<tr><td><a href="#stash">05 Stash</a></td><td><code>Figure</code>, <code>Stash</code></td><td>Nothing in your stash</td><td>What you own and wear will appear here.</td><td>Add an Inventory component to the player's pawn and give it starting items.</td></tr>
+<tr><td><a href="#loadouts">06 Loadouts</a></td><td><code>Library</code></td><td>No saved kits</td><td>Kits you save will appear here.</td><td>Create Loadout Definition data assets, or let players save their own from the stash.</td></tr>
+<tr><td><a href="#traders">08 Traders</a></td><td><code>Roster</code></td><td>No traders yet</td><td>Traders you can deal with will appear here.</td><td>Create Trader Definition data assets.</td></tr>
+<tr><td><a href="#trade">09 Trade</a></td><td><code>Vendor</code>, <code>Stock</code></td><td>No trader to deal with</td><td>This trader has nothing on the shelf yet.</td><td>Create Trader Definition data assets and list what each one sells.</td></tr>
+<tr><td><a href="#market">09B Market</a></td><td><code>Market</code></td><td>The market is empty</td><td>Nobody is selling anything right now.</td><td>The market lists Item Definition data assets that have a price, or your own market source.</td></tr>
+<tr><td><a href="#tasks">10 Task log</a></td><td><code>Tasks</code></td><td>No tasks</td><td>Tasks from traders will appear here once you take them.</td><td>Create Task Definition data assets and give them to a trader.</td></tr>
+<tr><td><a href="#debrief">14 Debrief</a></td><td><code>RaidReport</code></td><td>No raid to report</td><td>Your last raid's result will appear here.</td><td>Call End Raid on the raid session when a raid finishes.</td></tr>
+<tr><td><a href="#hideout">15 Hideout</a></td><td><code>Stations</code></td><td>No stations built</td><td>Your hideout's stations will appear here.</td><td>Create Station Definition data assets, such as a workbench or a generator.</td></tr>
+<tr><td><a href="#workbench">15B Workbench</a></td><td><code>Bench</code>, <code>Recipes</code></td><td>Nothing to make here</td><td>This station has no recipes yet.</td><td>Create Station Definition data assets with levels and recipes.</td></tr>
+<tr><td><a href="#generator">15C Generator</a></td><td><code>Generator</code>, <code>PowerLoads</code></td><td>No generator</td><td>There is no generator to fuel yet.</td><td>Create a Station Definition data asset for the generator, and the stations that draw power from it.</td></tr>
+</tbody></table>
+<p>The hub, raid HUD, health, raid inventory, lobby, settings and notifications have no empty state.</p>
+<h3 id="change-an-empty-state">Set or change an empty state</h3>
+<p>The empty state is four properties in the <em>Empty State</em> category of a screen's class defaults. Change them on your own child of the screen, so a plugin update does not undo your work.</p>
+<ol class="steps">
+<li><strong>Make a child of the screen</strong> In the Content Browser, open <code>/NVSBlackline/Screens/</code>, right-click the screen's Widget Blueprint, such as <code>W_TraderList</code>, and choose <em>Create Child Blueprint Class</em>. Save it in your own folder.</li>
+<li><strong>Point the registry at it</strong> Every screen opens through the screen registry. Make your own copy of <code>DA_BlacklineScreenRegistry</code>, set the row for the screen's tag to your child, then name your registry in <em>Screen Registry</em> on your View Setup Definition. Your setup wins over the plugin's. See <a href="project-settings.html">Project settings</a>.</li>
+<li><strong>Edit the words</strong> Open your child, click <em>Class Defaults</em> and find the <em>Empty State</em> section in the Details panel. Change <em>Empty Title</em>, <em>Empty Body</em> and <em>Empty Setup Hint</em>. All three are text, so they localise like any other.</li>
+<li><strong>Choose what counts as empty</strong> <em>Empty When Bindings</em> lists binding ids from the same screen's <em>View Model Bindings</em>, such as <code>Roster</code>. The card shows only when all of them are empty. Clear the list to turn the empty state off.</li>
+<li><strong>Check it</strong> Press Play and open the screen in a project without that content. The card shows over the screen. It is not drawn in the Widget Blueprint designer.</li>
+</ol>
+<p>You can give an empty state to a screen that has none, such as your own screen class, the same way. Two things to know:</p>
+<ul><li>The card is built inside the screen's <code>CompositionBox</code> size box. A Widget Blueprint without one cannot show an empty state.</li><li>A binding id in <em>Empty When Bindings</em> that the screen does not hold is logged as a warning on <code>LogNVSView</code>, and the screen never shows its card. See <a href="troubleshooting.html#empty-state">Troubleshooting</a>.</li></ul>
+<p>From C++, <code>UNVSViewScreen::IsShowingEmptyState()</code> tells you whether the card is up. It is not exposed to Blueprint.</p>
+<h2 id="hub">01 Hub</h2>
+<figure class="shot"><img src="img/screens/hub.png" alt="The hub screen"><figcaption>W_MainMenu, filled from the demo project's content.</figcaption></figure>
+<p>The front end. It shows the operator card, the last raid and career figures, and numbered rows for deploying, the stash, traders, the hideout, settings and quitting. The deploy row shows where the crew is headed, the stash row shows carried weight, and the hideout row says whether the generator is out of fuel or what the benches are doing.</p>
+<table><tbody>
+<tr><th>Asset</th><td><code>/NVSBlackline/Screens/W_MainMenu</code></td></tr>
+<tr><th>Class</th><td><code>UNVSViewMainMenu</code></td></tr>
+<tr><th>Layer</th><td><code>NVS.View.Layer.Menu</code></td></tr>
+<tr><th>Screen tag</th><td><code>NVS.View.Screen.MainMenu</code></td></tr>
+<tr><th>Empty state</th><td>None</td></tr>
+</tbody></table>
+<h3 id="hub-fills">What fills it</h3>
+<p>The wordmark is <em>Game Title</em> on your View Setup Definition, or the project's name when that is empty. The picture beside the menu is its <em>Key Art</em>. The kit summary shows what the player wears.</p>
+<h3 id="hub-bindings">Bindings</h3>
+<table><thead><tr><th>Binding</th><th>Viewmodel</th><th>Built-in source</th></tr></thead><tbody>
+<tr><td><code>Profile</code></td><td><code>UNVSViewRecordViewModel</code></td><td><code>UNVSViewPlayerProfile</code></td></tr>
+<tr><td><code>Standings</code></td><td><code>UNVSViewRecordListViewModel</code></td><td><code>UNVSViewPlayerProfile</code></td></tr>
+<tr><td><code>Lobby</code></td><td><code>UNVSViewRecordViewModel</code></td><td><code>UNVSViewCrewLobby</code></td></tr>
+<tr><td><code>Kit</code></td><td><code>UNVSViewSlotSetViewModel</code></td><td><code>UNVSViewWornSlots</code></td></tr>
+<tr><td><code>Load</code></td><td><code>UNVSViewMeterSetViewModel</code></td><td><code>UNVSViewVitals</code></td></tr>
+<tr><td><code>Generator</code></td><td><code>UNVSViewMeterSetViewModel</code></td><td><code>UNVSViewGeneratorMeters</code></td></tr>
+</tbody></table>
+<h2 id="insertion">02 Location select</h2>
+<figure class="shot"><img src="img/screens/insertion.png" alt="The location select screen"><figcaption>W_InsertionSelect, filled from the demo project's content.</figcaption></figure>
+<p>A region map with one point per raid map. Picking a point makes it the map the raid goes to, by calling <em>Set Selected Raid Map</em>, and shows its briefing, conditions, insertion points and exits. Its queue button starts and cancels the deploy queue, the same as the lobby's Move out.</p>
+<table><tbody>
+<tr><th>Asset</th><td><code>/NVSBlackline/Screens/W_InsertionSelect</code></td></tr>
+<tr><th>Class</th><td><code>UNVSViewInsertionSelect</code></td></tr>
+<tr><th>Layer</th><td><code>NVS.View.Layer.Menu</code></td></tr>
+<tr><th>Screen tag</th><td><code>NVS.View.Screen.InsertionSelect</code></td></tr>
+<tr><th>Empty state</th><td><em>No locations</em><br>There is nowhere to deploy to yet.<br>Create Raid Map Definition data assets, each with its level, exits and a point on the region map. The demo project shows this screen filled.</td></tr>
+</tbody></table>
+<h3 id="insertion-fills">What fills it</h3>
+<p>Raid Map Definitions. Each one places its point with <em>Region Position</em> and names its briefing, stats, insertion points, exits and level. The picture under the points is <em>Region Image</em> on your View Setup Definition, or a plain grid when that is empty. The carried kit rows read the player's Inventory component.</p>
+<h3 id="insertion-bindings">Bindings</h3>
+<table><thead><tr><th>Binding</th><th>Viewmodel</th><th>Built-in source</th></tr></thead><tbody>
+<tr><td><code>Markers</code></td><td><code>UNVSViewMapMarkerListViewModel</code></td><td><code>UNVSViewMapMarkers</code></td></tr>
+<tr><td><code>Map</code></td><td><code>UNVSViewRecordViewModel</code></td><td><code>UNVSViewRaidMapInfo</code></td></tr>
+<tr><td><code>Insertion</code></td><td><code>UNVSViewRecordViewModel</code></td><td><code>UNVSViewInsertionBriefings</code></td></tr>
+<tr><td><code>InsertionStats</code></td><td><code>UNVSViewRecordListViewModel</code></td><td><code>UNVSViewInsertionBriefings</code></td></tr>
+<tr><td><code>Carrying</code></td><td><code>UNVSViewRecordListViewModel</code></td><td><code>UNVSViewCarriedKit</code></td></tr>
+<tr><td><code>CrewRules</code></td><td><code>UNVSViewRecordListViewModel</code></td><td><code>UNVSViewCrewRules</code></td></tr>
+</tbody></table>
+<h2 id="raid-hud">03 Raid HUD</h2>
+<figure class="shot"><img src="img/screens/raid-hud.png" alt="The raid hud screen"><figcaption>W_RaidHUD, filled from the demo project's content.</figcaption></figure>
+<p>The in-raid HUD: compass, weapon readout, vitals, limbs, the tracked task, exits, the raid clock, the crew and the newest toast. The weapon readout reads the gun worn in the primary slot, with its name, fire mode, the rounds in the fitted magazine (such as 30/30) and the spare magazines of that kind. Escape passes over the HUD to the screen below.</p>
+<table><tbody>
+<tr><th>Asset</th><td><code>/NVSBlackline/Screens/W_RaidHUD</code></td></tr>
+<tr><th>Class</th><td><code>UNVSViewRaidHUD</code></td></tr>
+<tr><th>Layer</th><td><code>NVS.View.Layer.Game</code></td></tr>
+<tr><th>Screen tag</th><td><code>NVS.View.Screen.RaidHUD</code></td></tr>
+<tr><th>Empty state</th><td>None</td></tr>
+</tbody></table>
+<h3 id="raid-hud-fills">What fills it</h3>
+<p>Three groups stay hidden until your game shows them with <em>Reveal Hud Group</em>: Nav (compass, tracked task and exits), Vitals (body, limbs, conditions and weapon) and Crew. The HUD reads no keys itself, so your controller decides when to reveal them. While the player stands in an exit, call <em>Set Extract Progress</em> each frame to fill the extract bar, and pass a value below 0 to hide it. The raid clock reads the raid session, which times the raid from the raid map's <em>Raid Seconds</em>. The demo feeds vitals from its <code>BPC_Vitals</code> component.</p>
+<h3 id="raid-hud-bindings">Bindings</h3>
+<table><thead><tr><th>Binding</th><th>Viewmodel</th><th>Built-in source</th></tr></thead><tbody>
+<tr><td><code>Vitals</code></td><td><code>UNVSViewMeterSetViewModel</code></td><td><code>UNVSViewVitals</code></td></tr>
+<tr><td><code>Limbs</code></td><td><code>UNVSViewRecordListViewModel</code></td><td><code>UNVSViewLimbStates</code></td></tr>
+<tr><td><code>Weapon</code></td><td><code>UNVSViewRecordViewModel</code></td><td><code>UNVSViewHeldWeapon</code></td></tr>
+<tr><td><code>Compass</code></td><td><code>UNVSViewRecordListViewModel</code></td><td><code>UNVSViewCompassMarks</code></td></tr>
+<tr><td><code>TrackedTask</code></td><td><code>UNVSViewRecordViewModel</code></td><td><code>UNVSViewTrackedTask</code></td></tr>
+<tr><td><code>TrackedSteps</code></td><td><code>UNVSViewRecordListViewModel</code></td><td><code>UNVSViewTaskObjectives</code></td></tr>
+<tr><td><code>Exfils</code></td><td><code>UNVSViewRecordListViewModel</code></td><td><code>UNVSViewExfils</code></td></tr>
+<tr><td><code>RaidClock</code></td><td><code>UNVSViewMeterSetViewModel</code></td><td><code>UNVSViewRaidClock</code></td></tr>
+<tr><td><code>RaidCrew</code></td><td><code>UNVSViewRecordListViewModel</code></td><td><code>UNVSViewCrewVitals</code></td></tr>
+<tr><td><code>Toasts</code></td><td><code>UNVSViewNotifyQueueViewModel</code></td><td>None. The screen hands it the notification queue.</td></tr>
+</tbody></table>
+<h2 id="skills">04 Skills</h2>
+<figure class="shot"><img src="img/screens/skills.png" alt="The skills screen"><figcaption>W_SkillsScreen, filled from the demo project's content.</figcaption></figure>
+<p>Skills raised by use, laid out in columns, each with what its current level gives, what the next gives and a progress bar. Career figures and the operator's condition sit beside them.</p>
+<table><tbody>
+<tr><th>Asset</th><td><code>/NVSBlackline/Screens/W_SkillsScreen</code></td></tr>
+<tr><th>Class</th><td><code>UNVSViewSkillsScreen</code></td></tr>
+<tr><th>Layer</th><td><code>NVS.View.Layer.Menu</code></td></tr>
+<tr><th>Screen tag</th><td><code>NVS.View.Screen.SkillsScreen</code></td></tr>
+<tr><th>Empty state</th><td><em>No skills yet</em><br>Skills you raise by playing will appear here.<br>Create Skill Definition and Branch Definition data assets. The demo project shows this screen filled.</td></tr>
+</tbody></table>
+<h3 id="skills-fills">What fills it</h3>
+<p>Skill Definitions, grouped into columns by Perk Branch Definitions.</p>
+<h3 id="skills-bindings">Bindings</h3>
+<table><thead><tr><th>Binding</th><th>Viewmodel</th><th>Built-in source</th></tr></thead><tbody>
+<tr><td><code>Profile</code></td><td><code>UNVSViewRecordViewModel</code></td><td><code>UNVSViewPlayerProfile</code></td></tr>
+<tr><td><code>ProfileMeters</code></td><td><code>UNVSViewMeterSetViewModel</code></td><td><code>UNVSViewPlayerProfile</code></td></tr>
+<tr><td><code>Skills</code></td><td><code>UNVSViewRecordListViewModel</code></td><td><code>UNVSViewSkillList</code></td></tr>
+<tr><td><code>SkillProgress</code></td><td><code>UNVSViewMeterSetViewModel</code></td><td><code>UNVSViewSkillProgress</code></td></tr>
+<tr><td><code>Career</code></td><td><code>UNVSViewMeterSetViewModel</code></td><td><code>UNVSViewCareer</code></td></tr>
+<tr><td><code>Limbs</code></td><td><code>UNVSViewRecordListViewModel</code></td><td><code>UNVSViewLimbStates</code></td></tr>
+</tbody></table>
+<h2 id="skill-tree">04B Skill tree</h2>
+<figure class="shot"><img src="img/screens/skill-tree.png" alt="The skill tree screen"><figcaption>W_SkillTree, filled from the demo project's content.</figcaption></figure>
+<p>Perks in tiers, one column per branch. Each card says what the perk does and what it costs, and whether it is taken, available or out of reach. Taking one spends points.</p>
+<table><tbody>
+<tr><th>Asset</th><td><code>/NVSBlackline/Screens/W_SkillTree</code></td></tr>
+<tr><th>Class</th><td><code>UNVSViewSkillTree</code></td></tr>
+<tr><th>Layer</th><td><code>NVS.View.Layer.Menu</code></td></tr>
+<tr><th>Screen tag</th><td><code>NVS.View.Screen.SkillTree</code></td></tr>
+<tr><th>Empty state</th><td><em>No perks yet</em><br>Perks you can take will appear here.<br>Create Perk Definition and Branch Definition data assets. The demo project shows this screen filled.</td></tr>
+</tbody></table>
+<h3 id="skill-tree-fills">What fills it</h3>
+<p>Perk Definitions, grouped by Perk Branch Definitions.</p>
+<h3 id="skill-tree-bindings">Bindings</h3>
+<table><thead><tr><th>Binding</th><th>Viewmodel</th><th>Built-in source</th></tr></thead><tbody>
+<tr><td><code>Profile</code></td><td><code>UNVSViewRecordViewModel</code></td><td><code>UNVSViewPlayerProfile</code></td></tr>
+<tr><td><code>PerkTree</code></td><td><code>UNVSViewRecordListViewModel</code></td><td><code>UNVSViewPerkTree</code></td></tr>
+</tbody></table>
+<h2 id="character">04C Character</h2>
+<figure class="shot"><img src="img/screens/character.png" alt="The character screen"><figcaption>W_CharacterScreen, filled from the demo project's content.</figcaption></figure>
+<p>The wardrobe. The player tries pieces on the live figure and buys them, filtered by category. This is the only screen whose figure animates. No preview anywhere zooms or swoops.</p>
+<table><tbody>
+<tr><th>Asset</th><td><code>/NVSBlackline/Screens/W_CharacterScreen</code></td></tr>
+<tr><th>Class</th><td><code>UNVSViewCharacterScreen</code></td></tr>
+<tr><th>Layer</th><td><code>NVS.View.Layer.Menu</code></td></tr>
+<tr><th>Screen tag</th><td><code>NVS.View.Screen.CharacterScreen</code></td></tr>
+<tr><th>Empty state</th><td><em>Nothing to wear yet</em><br>Outfits and gear for your character will appear here.<br>Create Wardrobe Piece Definition data assets, including a body piece. The demo project shows this screen filled.</td></tr>
+</tbody></table>
+<h3 id="character-fills">What fills it</h3>
+<p>Wardrobe Piece Definitions, including at least one body piece. Without them the figure is a mannequin of basic shapes. See <a href="character-looks.html">Character looks</a>.</p>
+<h3 id="character-bindings">Bindings</h3>
+<table><thead><tr><th>Binding</th><th>Viewmodel</th><th>Built-in source</th></tr></thead><tbody>
+<tr><td><code>Operator</code></td><td><code>UNVSViewRecordViewModel</code></td><td><code>UNVSViewOperator</code></td></tr>
+<tr><td><code>Wardrobe</code></td><td><code>UNVSViewRecordListViewModel</code></td><td><code>UNVSViewWardrobe</code></td></tr>
+<tr><td><code>WardrobeFilter</code></td><td><code>UNVSViewFilterViewModel</code></td><td><code>UNVSViewWardrobeFilter</code></td></tr>
+</tbody></table>
+<h2 id="health">04D Health</h2>
+<figure class="shot"><img src="img/screens/health.png" alt="The health screen"><figcaption>W_HealthScreen, filled from the demo project's content.</figcaption></figure>
+<p>Body zones with their hit points and conditions. The player picks a zone and treats it with a med from the stash. The zone's card lists which meds treat it, marked IN THE STASH or NONE IN THE STASH. A zone at 0 needs a med that heals. Heal all fixes everything for cash.</p>
+<table><tbody>
+<tr><th>Asset</th><td><code>/NVSBlackline/Screens/W_HealthScreen</code></td></tr>
+<tr><th>Class</th><td><code>UNVSViewHealthScreen</code></td></tr>
+<tr><th>Layer</th><td><code>NVS.View.Layer.Menu</code></td></tr>
+<tr><th>Screen tag</th><td><code>NVS.View.Screen.HealthScreen</code></td></tr>
+<tr><th>Empty state</th><td>None</td></tr>
+</tbody></table>
+<h3 id="health-fills">What fills it</h3>
+<p>The zones are the <em>Zones</em> list of the built-in <code>UNVSViewBodyZones</code> source. Fill it with a data asset made from that class and a Screen Source Definition that replaces it, as the demo's <code>DA_PlayerBody</code> and <code>PDA_PlayerBodySource</code> do. Meds are Item Definitions with the Consumable type, and <em>Heals</em> sets the hit points one gives back. Heal all costs <code>HealPricePerPoint</code> (10) for each missing hit point plus <code>TreatmentPrice</code> (150) for each untreated zone, both set on the same data asset. <em>Get Body Health</em> and <em>Hurt Body</em> on <em>NVS View Screen Library</em> read and lower the same zones.</p>
+<h3 id="health-bindings">Bindings</h3>
+<table><thead><tr><th>Binding</th><th>Viewmodel</th><th>Built-in source</th></tr></thead><tbody>
+<tr><td><code>Operator</code></td><td><code>UNVSViewRecordViewModel</code></td><td><code>UNVSViewOperator</code></td></tr>
+<tr><td><code>BodyZones</code></td><td><code>UNVSViewRecordListViewModel</code></td><td><code>UNVSViewBodyZones</code></td></tr>
+<tr><td><code>BodyZoneMeters</code></td><td><code>UNVSViewMeterSetViewModel</code></td><td><code>UNVSViewBodyZones</code></td></tr>
+<tr><td><code>ZoneFixes</code></td><td><code>UNVSViewRecordListViewModel</code></td><td><code>UNVSViewZoneTreatments</code></td></tr>
+<tr><td><code>Stash</code></td><td><code>UNVSViewContainerViewModel</code></td><td><code>UNVSViewStashGrid</code></td></tr>
+</tbody></table>
+<h2 id="stash">05 Stash</h2>
+<figure class="shot"><img src="img/screens/stash.png" alt="The stash screen"><figcaption>W_StashScreen, filled from the demo project's content.</figcaption></figure>
+<p>What the player wears on the paper doll, what they carry in the rig pouches, pockets, pack and secure case, and the stash grid with category filters and a search field. Rigs draw the same way everywhere, with the first grid on top and the other pouches in a row under it. This is the only screen whose bottom bar shows Deploy.</p>
+<table><tbody>
+<tr><th>Asset</th><td><code>/NVSBlackline/Screens/W_StashScreen</code></td></tr>
+<tr><th>Class</th><td><code>UNVSViewStashScreen</code></td></tr>
+<tr><th>Layer</th><td><code>NVS.View.Layer.Menu</code></td></tr>
+<tr><th>Screen tag</th><td><code>NVS.View.Screen.StashScreen</code></td></tr>
+<tr><th>Empty state</th><td><em>Nothing in your stash</em><br>What you own and wear will appear here.<br>Add an Inventory component to the player's pawn and give it starting items. The demo project shows this screen filled.</td></tr>
+</tbody></table>
+<h3 id="stash-fills">What fills it</h3>
+<p>The Inventory component on the player's pawn, which the screen finds by itself. Its <em>Starting Items</em> and <em>Starting Loadout</em> stock a new player. The filter tabs are Item Category Definitions. See <a href="containers.html">Containers</a> and <a href="drag-and-drop.html">Drag and drop</a>.</p>
+<h3 id="stash-bindings">Bindings</h3>
+<table><thead><tr><th>Binding</th><th>Viewmodel</th><th>Built-in source</th></tr></thead><tbody>
+<tr><td><code>Figure</code></td><td><code>UNVSViewSlotSetViewModel</code></td><td><code>UNVSViewWornSlots</code></td></tr>
+<tr><td><code>Stash</code></td><td><code>UNVSViewContainerViewModel</code></td><td><code>UNVSViewStashGrid</code></td></tr>
+<tr><td><code>Wallet</code></td><td><code>UNVSViewMeterSetViewModel</code></td><td><code>UNVSViewWallet</code></td></tr>
+<tr><td><code>Load</code></td><td><code>UNVSViewMeterSetViewModel</code></td><td><code>UNVSViewVitals</code></td></tr>
+<tr><td><code>Filter</code></td><td><code>UNVSViewFilterViewModel</code></td><td><code>UNVSViewFilterOptions</code></td></tr>
+<tr><td><code>RigMag</code></td><td><code>UNVSViewContainerViewModel</code></td><td><code>UNVSViewRigMagPouch</code></td></tr>
+<tr><td><code>RigAdmin</code></td><td><code>UNVSViewContainerViewModel</code></td><td><code>UNVSViewRigAdminPouch</code></td></tr>
+<tr><td><code>RigMed</code></td><td><code>UNVSViewContainerViewModel</code></td><td><code>UNVSViewRigMedPouch</code></td></tr>
+<tr><td><code>Pockets</code></td><td><code>UNVSViewContainerViewModel</code></td><td><code>UNVSViewPocketsGrid</code></td></tr>
+<tr><td><code>Pack</code></td><td><code>UNVSViewContainerViewModel</code></td><td><code>UNVSViewPackGrid</code></td></tr>
+<tr><td><code>Secure</code></td><td><code>UNVSViewContainerViewModel</code></td><td><code>UNVSViewSecureCase</code></td></tr>
+</tbody></table>
+<h2 id="loadouts">06 Loadouts</h2>
+<figure class="shot"><img src="img/screens/loadouts.png" alt="The loadouts screen"><figcaption>W_LoadoutLibrary, filled from the demo project's content.</figcaption></figure>
+<p>Saved kits, with what each wears, fits to its guns and packs, and what it weighs. Kit up wears, fits and packs the chosen kit from what the player owns, then shows a toast naming anything that was missing.</p>
+<table><tbody>
+<tr><th>Asset</th><td><code>/NVSBlackline/Screens/W_LoadoutLibrary</code></td></tr>
+<tr><th>Class</th><td><code>UNVSViewLoadoutLibrary</code></td></tr>
+<tr><th>Layer</th><td><code>NVS.View.Layer.Menu</code></td></tr>
+<tr><th>Screen tag</th><td><code>NVS.View.Screen.LoadoutLibrary</code></td></tr>
+<tr><th>Empty state</th><td><em>No saved kits</em><br>Kits you save will appear here.<br>Create Loadout Definition data assets, or let players save their own from the stash. The demo project shows this screen filled.</td></tr>
+</tbody></table>
+<h3 id="loadouts-fills">What fills it</h3>
+<p>Loadout Definitions. Kit up calls <code>KitUp</code> on the player's Inventory component.</p>
+<h3 id="loadouts-bindings">Bindings</h3>
+<table><thead><tr><th>Binding</th><th>Viewmodel</th><th>Built-in source</th></tr></thead><tbody>
+<tr><td><code>Library</code></td><td><code>UNVSViewRecordListViewModel</code></td><td><code>UNVSViewSavedLoadouts</code></td></tr>
+<tr><td><code>Loadout</code></td><td><code>UNVSViewRecordViewModel</code></td><td><code>UNVSViewSavedLoadouts</code></td></tr>
+<tr><td><code>Weight</code></td><td><code>UNVSViewMeterSetViewModel</code></td><td><code>UNVSViewSavedLoadouts</code></td></tr>
+<tr><td><code>Vitals</code></td><td><code>UNVSViewMeterSetViewModel</code></td><td><code>UNVSViewVitals</code></td></tr>
+<tr><td><code>Manifest</code></td><td><code>UNVSViewSlotSetViewModel</code></td><td><code>UNVSViewWornSlots</code></td></tr>
+<tr><td><code>Pack</code></td><td><code>UNVSViewContainerViewModel</code></td><td><code>UNVSViewLoadoutPack</code></td></tr>
+<tr><td><code>RigMag</code></td><td><code>UNVSViewContainerViewModel</code></td><td><code>UNVSViewLoadoutRigMagPouch</code></td></tr>
+<tr><td><code>RigAdmin</code></td><td><code>UNVSViewContainerViewModel</code></td><td><code>UNVSViewLoadoutRigAdminPouch</code></td></tr>
+<tr><td><code>RigMed</code></td><td><code>UNVSViewContainerViewModel</code></td><td><code>UNVSViewLoadoutRigMedPouch</code></td></tr>
+</tbody></table>
+<h2 id="raid-inventory">07 Raid inventory</h2>
+<figure class="shot"><img src="img/screens/raid-inventory.png" alt="The raid inventory screen"><figcaption>W_RaidInventory, filled from the demo project's content.</figcaption></figure>
+<p>The player's gear beside whatever they are looting. A crate and a body each get a tab, and the pane heading names what is being looted. A body's worn gear counts as loot, so it offers Take into your gear rather than Unequip. Grids stay veiled until searched when the owner needs a search. With nothing in reach, the loot pane is hidden.</p>
+<table><tbody>
+<tr><th>Asset</th><td><code>/NVSBlackline/Screens/W_RaidInventory</code></td></tr>
+<tr><th>Class</th><td><code>UNVSViewRaidInventory</code></td></tr>
+<tr><th>Layer</th><td><code>NVS.View.Layer.GameMenu</code></td></tr>
+<tr><th>Screen tag</th><td><code>NVS.View.Screen.RaidInventory</code></td></tr>
+<tr><th>Empty state</th><td>None</td></tr>
+</tbody></table>
+<h3 id="raid-inventory-fills">What fills it</h3>
+<p>Call <em>Open Loot Screen</em> with the crate or body actor when the player interacts with it. That actor needs an Inventory component. Set <em>Needs Search</em> on it to veil its grids until searched, and <em>Applies Loot Rules</em> on a body so clothes stay on it and a secure case stays sealed. The screen also closes on the keys listed in its <em>Close Keys</em>.</p>
+<h3 id="raid-inventory-bindings">Bindings</h3>
+<table><thead><tr><th>Binding</th><th>Viewmodel</th><th>Built-in source</th></tr></thead><tbody>
+<tr><td><code>Figure</code></td><td><code>UNVSViewSlotSetViewModel</code></td><td><code>UNVSViewWornSlots</code></td></tr>
+<tr><td><code>Carried</code></td><td><code>UNVSViewContainerViewModel</code></td><td><code>UNVSViewItemGrid</code></td></tr>
+<tr><td><code>Loot</code></td><td><code>UNVSViewContainerViewModel</code></td><td><code>UNVSViewLootCrate</code></td></tr>
+<tr><td><code>Vitals</code></td><td><code>UNVSViewMeterSetViewModel</code></td><td><code>UNVSViewVitals</code></td></tr>
+<tr><td><code>Map</code></td><td><code>UNVSViewRecordViewModel</code></td><td><code>UNVSViewRaidMapInfo</code></td></tr>
+<tr><td><code>Raid</code></td><td><code>UNVSViewMeterSetViewModel</code></td><td><code>UNVSViewRaidClock</code></td></tr>
+<tr><td><code>RigMag</code></td><td><code>UNVSViewContainerViewModel</code></td><td><code>UNVSViewRigMagPouch</code></td></tr>
+<tr><td><code>RigAdmin</code></td><td><code>UNVSViewContainerViewModel</code></td><td><code>UNVSViewRigAdminPouch</code></td></tr>
+<tr><td><code>RigMed</code></td><td><code>UNVSViewContainerViewModel</code></td><td><code>UNVSViewRigMedPouch</code></td></tr>
+<tr><td><code>Pockets</code></td><td><code>UNVSViewContainerViewModel</code></td><td><code>UNVSViewPocketsGrid</code></td></tr>
+<tr><td><code>Secure</code></td><td><code>UNVSViewContainerViewModel</code></td><td><code>UNVSViewSecureCase</code></td></tr>
+<tr><td><code>Body</code></td><td><code>UNVSViewSlotSetViewModel</code></td><td><code>UNVSViewLootBody</code></td></tr>
+<tr><td><code>BodyRig</code></td><td><code>UNVSViewContainerViewModel</code></td><td><code>UNVSViewLootBodyRig</code></td></tr>
+<tr><td><code>BodyPockets</code></td><td><code>UNVSViewContainerViewModel</code></td><td><code>UNVSViewLootBodyPockets</code></td></tr>
+<tr><td><code>BodyPack</code></td><td><code>UNVSViewContainerViewModel</code></td><td><code>UNVSViewLootBodyPack</code></td></tr>
+<tr><td><code>BodySecure</code></td><td><code>UNVSViewContainerViewModel</code></td><td><code>UNVSViewLootBodySecure</code></td></tr>
+<tr><td><code>BodyRigAdmin</code></td><td><code>UNVSViewContainerViewModel</code></td><td><code>UNVSViewLootBodyRigAdmin</code></td></tr>
+<tr><td><code>BodyRigMed</code></td><td><code>UNVSViewContainerViewModel</code></td><td><code>UNVSViewLootBodyRigMed</code></td></tr>
+<tr><td><code>LootTabs</code></td><td><code>UNVSViewFilterViewModel</code></td><td><code>UNVSViewLootTabs</code></td></tr>
+</tbody></table>
+<h2 id="traders">08 Traders</h2>
+<figure class="shot"><img src="img/screens/traders.png" alt="The traders screen"><figcaption>W_TraderList, filled from the demo project's content.</figcaption></figure>
+<p>The trader roster as cards, with standing and jobs. Choosing a card opens the trade screen on that trader.</p>
+<table><tbody>
+<tr><th>Asset</th><td><code>/NVSBlackline/Screens/W_TraderList</code></td></tr>
+<tr><th>Class</th><td><code>UNVSViewTraderList</code></td></tr>
+<tr><th>Layer</th><td><code>NVS.View.Layer.Menu</code></td></tr>
+<tr><th>Screen tag</th><td><code>NVS.View.Screen.TraderList</code></td></tr>
+<tr><th>Empty state</th><td><em>No traders yet</em><br>Traders you can deal with will appear here.<br>Create Trader Definition data assets. The demo project shows this screen filled.</td></tr>
+</tbody></table>
+<h3 id="traders-fills">What fills it</h3>
+<p>Trader Definitions.</p>
+<h3 id="traders-bindings">Bindings</h3>
+<table><thead><tr><th>Binding</th><th>Viewmodel</th><th>Built-in source</th></tr></thead><tbody>
+<tr><td><code>Roster</code></td><td><code>UNVSViewRecordListViewModel</code></td><td><code>UNVSViewTraderRoster</code></td></tr>
+<tr><td><code>Operator</code></td><td><code>UNVSViewRecordViewModel</code></td><td><code>UNVSViewOperator</code></td></tr>
+</tbody></table>
+<h2 id="trade">09 Trade</h2>
+<figure class="shot"><img src="img/screens/trade.png" alt="The trade screen"><figcaption>W_TradeScreen, filled from the demo project's content.</figcaption></figure>
+<p>One trader's shelf with category chips, a deal column for buying and selling, and the stash. A second view lists the trader's jobs. Taking a job adds it to the task log, and handing it in takes the items and pays once, after which it reads HANDED IN.</p>
+<table><tbody>
+<tr><th>Asset</th><td><code>/NVSBlackline/Screens/W_TradeScreen</code></td></tr>
+<tr><th>Class</th><td><code>UNVSViewTradeScreen</code></td></tr>
+<tr><th>Layer</th><td><code>NVS.View.Layer.Menu</code></td></tr>
+<tr><th>Screen tag</th><td><code>NVS.View.Screen.TradeScreen</code></td></tr>
+<tr><th>Empty state</th><td><em>No trader to deal with</em><br>This trader has nothing on the shelf yet.<br>Create Trader Definition data assets and list what each one sells. The demo project shows this screen filled.</td></tr>
+</tbody></table>
+<h3 id="trade-fills">What fills it</h3>
+<p>The trader's <em>Shelf</em>, prices, barter costs and <em>Buy Rate</em> on its Trader Definition, and the Task Definitions it gives. Cash comes from the session wallet. See <a href="market-and-trading.html">Market and trading</a>.</p>
+<h3 id="trade-bindings">Bindings</h3>
+<table><thead><tr><th>Binding</th><th>Viewmodel</th><th>Built-in source</th></tr></thead><tbody>
+<tr><td><code>Vendor</code></td><td><code>UNVSViewRecordViewModel</code></td><td><code>UNVSViewTraderRoster</code></td></tr>
+<tr><td><code>Stock</code></td><td><code>UNVSViewContainerViewModel</code></td><td><code>UNVSViewTraderShelf</code></td></tr>
+<tr><td><code>Stash</code></td><td><code>UNVSViewContainerViewModel</code></td><td><code>UNVSViewStashGrid</code></td></tr>
+<tr><td><code>Tray</code></td><td><code>UNVSViewContainerViewModel</code></td><td><code>UNVSViewTradeCounter</code></td></tr>
+<tr><td><code>Basket</code></td><td><code>UNVSViewRecordListViewModel</code></td><td><code>UNVSViewTradeBasket</code></td></tr>
+<tr><td><code>Wallet</code></td><td><code>UNVSViewMeterSetViewModel</code></td><td><code>UNVSViewWallet</code></td></tr>
+<tr><td><code>ShelfPick</code></td><td><code>UNVSViewRecordViewModel</code></td><td><code>UNVSViewShelfDetails</code></td></tr>
+<tr><td><code>ShelfSwap</code></td><td><code>UNVSViewRecordListViewModel</code></td><td><code>UNVSViewShelfDetails</code></td></tr>
+<tr><td><code>StockFilter</code></td><td><code>UNVSViewFilterViewModel</code></td><td><code>UNVSViewFilterOptions</code></td></tr>
+<tr><td><code>StashFilter</code></td><td><code>UNVSViewFilterViewModel</code></td><td><code>UNVSViewFilterOptions</code></td></tr>
+<tr><td><code>TraderJobs</code></td><td><code>UNVSViewRecordListViewModel</code></td><td><code>UNVSViewTraderJobs</code></td></tr>
+<tr><td><code>TraderJobProgress</code></td><td><code>UNVSViewMeterSetViewModel</code></td><td><code>UNVSViewTraderJobs</code></td></tr>
+<tr><td><code>Operator</code></td><td><code>UNVSViewRecordViewModel</code></td><td><code>UNVSViewOperator</code></td></tr>
+</tbody></table>
+<h2 id="market">09B Market</h2>
+<figure class="shot"><img src="img/screens/market.png" alt="The market screen"><figcaption>W_MarketScreen, filled from the demo project's content.</figcaption></figure>
+<p>The player market, with listings by category, the player's own listings, a watchlist and a sell box. It reads its source again every few seconds while it is open.</p>
+<table><tbody>
+<tr><th>Asset</th><td><code>/NVSBlackline/Screens/W_MarketScreen</code></td></tr>
+<tr><th>Class</th><td><code>UNVSViewMarketScreen</code></td></tr>
+<tr><th>Layer</th><td><code>NVS.View.Layer.Menu</code></td></tr>
+<tr><th>Screen tag</th><td><code>NVS.View.Screen.MarketScreen</code></td></tr>
+<tr><th>Empty state</th><td><em>The market is empty</em><br>Nobody is selling anything right now.<br>The market lists Item Definition data assets that have a price, or your own market source. The demo project shows this screen filled.</td></tr>
+</tbody></table>
+<h3 id="market-fills">What fills it</h3>
+<p>The built-in market runs offline and lists Item Definitions that have a price. A game with a real market supplies its own market source.</p>
+<h3 id="market-bindings">Bindings</h3>
+<table><thead><tr><th>Binding</th><th>Viewmodel</th><th>Built-in source</th></tr></thead><tbody>
+<tr><td><code>Market</code></td><td><code>UNVSViewMarketViewModel</code></td><td><code>UNVSViewMarketBoard</code></td></tr>
+<tr><td><code>Stash</code></td><td><code>UNVSViewContainerViewModel</code></td><td><code>UNVSViewStashGrid</code></td></tr>
+<tr><td><code>SellBox</code></td><td><code>UNVSViewContainerViewModel</code></td><td><code>UNVSViewMarketSellBox</code></td></tr>
+<tr><td><code>StashFilter</code></td><td><code>UNVSViewFilterViewModel</code></td><td><code>UNVSViewFilterOptions</code></td></tr>
+</tbody></table>
+<h2 id="tasks">10 Task log</h2>
+<figure class="shot"><img src="img/screens/tasks.png" alt="The task log screen"><figcaption>W_TaskLog, filled from the demo project's content.</figcaption></figure>
+<p>Taken, ready and handed in tasks, with the chosen task's objectives, giver, rewards, unlocks and fail conditions.</p>
+<table><tbody>
+<tr><th>Asset</th><td><code>/NVSBlackline/Screens/W_TaskLog</code></td></tr>
+<tr><th>Class</th><td><code>UNVSViewTaskLog</code></td></tr>
+<tr><th>Layer</th><td><code>NVS.View.Layer.GameMenu</code></td></tr>
+<tr><th>Screen tag</th><td><code>NVS.View.Screen.TaskLog</code></td></tr>
+<tr><th>Empty state</th><td><em>No tasks</em><br>Tasks from traders will appear here once you take them.<br>Create Task Definition data assets and give them to a trader. The demo project shows this screen filled.</td></tr>
+</tbody></table>
+<h3 id="tasks-fills">What fills it</h3>
+<p>Task Definitions given to a trader. A task shows here once the player takes it on the trade screen.</p>
+<h3 id="tasks-bindings">Bindings</h3>
+<table><thead><tr><th>Binding</th><th>Viewmodel</th><th>Built-in source</th></tr></thead><tbody>
+<tr><td><code>Tasks</code></td><td><code>UNVSViewRecordListViewModel</code></td><td><code>UNVSViewTaskList</code></td></tr>
+<tr><td><code>Objectives</code></td><td><code>UNVSViewRecordListViewModel</code></td><td><code>UNVSViewTaskObjectives</code></td></tr>
+<tr><td><code>TaskSheet</code></td><td><code>UNVSViewRecordListViewModel</code></td><td><code>UNVSViewTaskSheet</code></td></tr>
+</tbody></table>
+<h2 id="lobby">11 Lobby</h2>
+<figure class="shot"><img src="img/screens/lobby.png" alt="The lobby screen"><figcaption>W_PartyLobby, filled from the demo project's content.</figcaption></figure>
+<p>The crew, the chosen raid map and Move out. The Map button opens the location screen and is captioned with the chosen map. Move out starts the deploy queue, which searches, finds a match while the crew cards lock in, counts down, then pushes the raid HUD and begins the raid. Pressing Move out while searching cancels. A quick switch changes the loadout in use.</p>
+<table><tbody>
+<tr><th>Asset</th><td><code>/NVSBlackline/Screens/W_PartyLobby</code></td></tr>
+<tr><th>Class</th><td><code>UNVSViewPartyLobby</code></td></tr>
+<tr><th>Layer</th><td><code>NVS.View.Layer.Menu</code></td></tr>
+<tr><th>Screen tag</th><td><code>NVS.View.Screen.PartyLobby</code></td></tr>
+<tr><th>Empty state</th><td>None</td></tr>
+</tbody></table>
+<h3 id="lobby-fills">What fills it</h3>
+<p>The deploy queue (<code>UNVSViewDeployQueueSubsystem</code>) and the raid session (<code>UNVSViewRaidSessionSubsystem</code>). The queue is a local timer. It does not matchmake. The crew, chat and lobby details come from the built-in sources in the table below. The demo fills them with source data assets such as <code>DA_Party</code> and <code>DA_PartyChat</code>, and a multiplayer game would feed them from its own party system.</p>
+<h3 id="lobby-bindings">Bindings</h3>
+<table><thead><tr><th>Binding</th><th>Viewmodel</th><th>Built-in source</th></tr></thead><tbody>
+<tr><td><code>Lobby</code></td><td><code>UNVSViewRecordViewModel</code></td><td><code>UNVSViewCrewLobby</code></td></tr>
+<tr><td><code>Crew</code></td><td><code>UNVSViewRecordListViewModel</code></td><td><code>UNVSViewParty</code></td></tr>
+<tr><td><code>SeatKit</code></td><td><code>UNVSViewRecordListViewModel</code></td><td><code>UNVSViewCrewKits</code></td></tr>
+<tr><td><code>Chat</code></td><td><code>UNVSViewRecordListViewModel</code></td><td><code>UNVSViewPartyChat</code></td></tr>
+<tr><td><code>CrewWorn</code></td><td><code>UNVSViewSlotSetViewModel</code></td><td><code>UNVSViewCrewGear</code></td></tr>
+<tr><td><code>CrewWeight</code></td><td><code>UNVSViewMeterSetViewModel</code></td><td><code>UNVSViewCrewGear</code></td></tr>
+<tr><td><code>Loadouts</code></td><td><code>UNVSViewRecordListViewModel</code></td><td><code>UNVSViewSavedLoadouts</code></td></tr>
+<tr><td><code>CrewRigMag</code></td><td><code>UNVSViewContainerViewModel</code></td><td><code>UNVSViewCrewRigMag</code></td></tr>
+<tr><td><code>CrewRigAdmin</code></td><td><code>UNVSViewContainerViewModel</code></td><td><code>UNVSViewCrewRigAdmin</code></td></tr>
+<tr><td><code>CrewRigMed</code></td><td><code>UNVSViewContainerViewModel</code></td><td><code>UNVSViewCrewRigMed</code></td></tr>
+<tr><td><code>CrewPockets</code></td><td><code>UNVSViewContainerViewModel</code></td><td><code>UNVSViewCrewPockets</code></td></tr>
+<tr><td><code>CrewPack</code></td><td><code>UNVSViewContainerViewModel</code></td><td><code>UNVSViewCrewPack</code></td></tr>
+<tr><td><code>CrewSecure</code></td><td><code>UNVSViewContainerViewModel</code></td><td><code>UNVSViewCrewSecure</code></td></tr>
+</tbody></table>
+<h2 id="settings">12 Settings</h2>
+<figure class="shot"><img src="img/screens/settings.png" alt="The settings screen"><figcaption>W_SettingsScreen, filled from the demo project's content.</figcaption></figure>
+<p>Video, audio, controls and the rest, with Apply. A display change such as a new resolution asks the player to keep it and goes back by itself if they do not.</p>
+<table><tbody>
+<tr><th>Asset</th><td><code>/NVSBlackline/Screens/W_SettingsScreen</code></td></tr>
+<tr><th>Class</th><td><code>UNVSViewSettingsScreen</code></td></tr>
+<tr><th>Layer</th><td><code>NVS.View.Layer.Menu</code></td></tr>
+<tr><th>Screen tag</th><td><code>NVS.View.Screen.SettingsScreen</code></td></tr>
+<tr><th>Empty state</th><td>None</td></tr>
+</tbody></table>
+<h3 id="settings-fills">What fills it</h3>
+<p>The engine-backed settings work from the start. The revert wait is <em>Revert Window Seconds</em> (15) on the Engine Settings Setup Definition. See <a href="settings.html">Settings</a>.</p>
+<h3 id="settings-bindings">Bindings</h3>
+<table><thead><tr><th>Binding</th><th>Viewmodel</th><th>Built-in source</th></tr></thead><tbody>
+<tr><td><code>SettingCategories</code></td><td><code>UNVSViewRecordListViewModel</code></td><td><code>UNVSViewSettingCategories</code></td></tr>
+<tr><td><code>SettingRows</code></td><td><code>UNVSViewSettingListViewModel</code></td><td><code>UNVSViewSettingValues</code></td></tr>
+</tbody></table>
+<h2 id="notifications">13 Notifications</h2>
+<figure class="shot"><img src="img/screens/notifications.png" alt="The notifications screen"><figcaption>W_NotificationStack, filled from the demo project's content.</figcaption></figure>
+<p>Toasts, bottom right. Escape passes over them.</p>
+<table><tbody>
+<tr><th>Asset</th><td><code>/NVSBlackline/Screens/W_NotificationStack</code></td></tr>
+<tr><th>Class</th><td><code>UNVSViewNotificationStack</code></td></tr>
+<tr><th>Layer</th><td><code>NVS.View.Layer.Notification</code></td></tr>
+<tr><th>Screen tag</th><td><code>NVS.View.Screen.NotificationStack</code></td></tr>
+<tr><th>Empty state</th><td>None</td></tr>
+</tbody></table>
+<h3 id="notifications-fills">What fills it</h3>
+<p>Push a toast with <em>Push</em> or <em>Push Kind</em> on the notification subsystem, and remove one with <em>Dismiss</em> or <em>Dismiss All</em>. Notification Kind Definitions set a toast's colour and how long it stays. See <a href="notifications.html">Notifications</a>.</p>
+<h3 id="notifications-bindings">Bindings</h3>
+<table><thead><tr><th>Binding</th><th>Viewmodel</th><th>Built-in source</th></tr></thead><tbody>
+<tr><td><code>NotifyQueue</code></td><td><code>UNVSViewNotifyQueueViewModel</code></td><td>None. The screen hands it the notification queue.</td></tr>
+</tbody></table>
+<h2 id="debrief">14 Debrief</h2>
+<figure class="shot"><img src="img/screens/debrief.png" alt="The debrief screen"><figcaption>W_RaidSummary, filled from the demo project's content.</figcaption></figure>
+<p>The raid's result and value, its figures, what was extracted and what was lost, and how each crew member ended the raid.</p>
+<table><tbody>
+<tr><th>Asset</th><td><code>/NVSBlackline/Screens/W_RaidSummary</code></td></tr>
+<tr><th>Class</th><td><code>UNVSViewRaidSummary</code></td></tr>
+<tr><th>Layer</th><td><code>NVS.View.Layer.Modal</code></td></tr>
+<tr><th>Screen tag</th><td><code>NVS.View.Screen.RaidSummary</code></td></tr>
+<tr><th>Empty state</th><td><em>No raid to report</em><br>Your last raid's result will appear here.<br>Call End Raid on the raid session when a raid finishes. The demo project shows this screen filled.</td></tr>
+</tbody></table>
+<h3 id="debrief-fills">What fills it</h3>
+<p><em>End Raid</em> on the raid session fills it. Missing in action forfeits everything carried except what the Inventory component's <em>Kept On Death</em> slots hold. Extracted items stay where they were packed.</p>
+<h3 id="debrief-bindings">Bindings</h3>
+<table><thead><tr><th>Binding</th><th>Viewmodel</th><th>Built-in source</th></tr></thead><tbody>
+<tr><td><code>RaidReport</code></td><td><code>UNVSViewRecordViewModel</code></td><td><code>UNVSViewRaidResult</code></td></tr>
+<tr><td><code>RaidFigures</code></td><td><code>UNVSViewRecordListViewModel</code></td><td><code>UNVSViewRaidResult</code></td></tr>
+<tr><td><code>Haul</code></td><td><code>UNVSViewRecordListViewModel</code></td><td><code>UNVSViewRaidHaul</code></td></tr>
+<tr><td><code>RaidCrew</code></td><td><code>UNVSViewRecordListViewModel</code></td><td><code>UNVSViewRaidCrew</code></td></tr>
+</tbody></table>
+<h2 id="hideout">15 Hideout</h2>
+<figure class="shot"><img src="img/screens/hideout.png" alt="The hideout screen"><figcaption>W_Hideout, filled from the demo project's content.</figcaption></figure>
+<p>Every station as a card, sorted so the ones that need attention come first, under a generator header. Collect all takes every finished craft at once.</p>
+<table><tbody>
+<tr><th>Asset</th><td><code>/NVSBlackline/Screens/W_Hideout</code></td></tr>
+<tr><th>Class</th><td><code>UNVSViewHideout</code></td></tr>
+<tr><th>Layer</th><td><code>NVS.View.Layer.Menu</code></td></tr>
+<tr><th>Screen tag</th><td><code>NVS.View.Screen.Hideout</code></td></tr>
+<tr><th>Empty state</th><td><em>No stations built</em><br>Your hideout's stations will appear here.<br>Create Station Definition data assets, such as a workbench or a generator. The demo project shows this screen filled.</td></tr>
+</tbody></table>
+<h3 id="hideout-fills">What fills it</h3>
+<p>Station Definitions.</p>
+<h3 id="hideout-bindings">Bindings</h3>
+<table><thead><tr><th>Binding</th><th>Viewmodel</th><th>Built-in source</th></tr></thead><tbody>
+<tr><td><code>Stations</code></td><td><code>UNVSViewRecordListViewModel</code></td><td><code>UNVSViewHideoutStations</code></td></tr>
+<tr><td><code>StationProgress</code></td><td><code>UNVSViewMeterSetViewModel</code></td><td><code>UNVSViewStationProgress</code></td></tr>
+<tr><td><code>Generator</code></td><td><code>UNVSViewMeterSetViewModel</code></td><td><code>UNVSViewGeneratorMeters</code></td></tr>
+<tr><td><code>Benches</code></td><td><code>UNVSViewRecordListViewModel</code></td><td><code>UNVSViewBenches</code></td></tr>
+</tbody></table>
+<h2 id="workbench">15B Workbench</h2>
+<figure class="shot"><img src="img/screens/workbench.png" alt="The workbench screen"><figcaption>W_BenchScreen, filled from the demo project's content.</figcaption></figure>
+<p>One station with its recipes. The player drags parts from the stash into the recipe's drop slots, each showing the item it wants, then starts the craft. It runs on a timer and waits to be collected. A second view shows the station's levels and upgrades.</p>
+<table><tbody>
+<tr><th>Asset</th><td><code>/NVSBlackline/Screens/W_BenchScreen</code></td></tr>
+<tr><th>Class</th><td><code>UNVSViewBenchScreen</code></td></tr>
+<tr><th>Layer</th><td><code>NVS.View.Layer.Menu</code></td></tr>
+<tr><th>Screen tag</th><td><code>NVS.View.Screen.BenchScreen</code></td></tr>
+<tr><th>Empty state</th><td><em>Nothing to make here</em><br>This station has no recipes yet.<br>Create Station Definition data assets with levels and recipes. The demo project shows this screen filled.</td></tr>
+</tbody></table>
+<h3 id="workbench-fills">What fills it</h3>
+<p>Station Definitions with levels and recipes. An upgrade takes the next level's cash <em>Cost</em> and the items in its <em>Parts</em>, which the player drags from the stash into the upgrade's slots. A craft starts only while the generator has fuel. See <a href="hideout-and-crafting.html">Hideout and crafting</a>.</p>
+<h3 id="workbench-bindings">Bindings</h3>
+<table><thead><tr><th>Binding</th><th>Viewmodel</th><th>Built-in source</th></tr></thead><tbody>
+<tr><td><code>Bench</code></td><td><code>UNVSViewRecordViewModel</code></td><td><code>UNVSViewBenches</code></td></tr>
+<tr><td><code>Recipes</code></td><td><code>UNVSViewRecordListViewModel</code></td><td><code>UNVSViewRecipes</code></td></tr>
+<tr><td><code>RecipeParts</code></td><td><code>UNVSViewRecordListViewModel</code></td><td><code>UNVSViewRecipePartSlots</code></td></tr>
+<tr><td><code>BenchLevels</code></td><td><code>UNVSViewRecordListViewModel</code></td><td><code>UNVSViewBenchLevels</code></td></tr>
+<tr><td><code>UpgradeParts</code></td><td><code>UNVSViewRecordListViewModel</code></td><td><code>UNVSViewRecipePartSlots</code></td></tr>
+<tr><td><code>Generator</code></td><td><code>UNVSViewMeterSetViewModel</code></td><td><code>UNVSViewGeneratorMeters</code></td></tr>
+<tr><td><code>Stash</code></td><td><code>UNVSViewContainerViewModel</code></td><td><code>UNVSViewStashGrid</code></td></tr>
+</tbody></table>
+<h2 id="generator">15C Generator</h2>
+<figure class="shot"><img src="img/screens/generator.png" alt="The generator screen"><figcaption>W_PowerStation, filled from the demo project's content.</figcaption></figure>
+<p>The generator station: fuel cans loaded from the stash, the power each station draws against the generator's ceiling, and the generator's levels.</p>
+<table><tbody>
+<tr><th>Asset</th><td><code>/NVSBlackline/Screens/W_PowerStation</code></td></tr>
+<tr><th>Class</th><td><code>UNVSViewPowerStation</code></td></tr>
+<tr><th>Layer</th><td><code>NVS.View.Layer.Menu</code></td></tr>
+<tr><th>Screen tag</th><td><code>NVS.View.Screen.PowerStation</code></td></tr>
+<tr><th>Empty state</th><td><em>No generator</em><br>There is no generator to fuel yet.<br>Create a Station Definition data asset for the generator, and the stations that draw power from it. The demo project shows this screen filled.</td></tr>
+</tbody></table>
+<h3 id="generator-fills">What fills it</h3>
+<p>A Station Definition for the generator, with <em>Hours Per Can</em>, <em>Starting Fuel</em> and <em>Fuel Item</em> set, and the stations that draw power from it. The tank follows the generator's level and cans as fuel burns during crafts and as the player feeds it from the stash. See <a href="hideout-and-crafting.html#the-generator">The generator</a>.</p>
+<h3 id="generator-bindings">Bindings</h3>
+<table><thead><tr><th>Binding</th><th>Viewmodel</th><th>Built-in source</th></tr></thead><tbody>
+<tr><td><code>Generator</code></td><td><code>UNVSViewMeterSetViewModel</code></td><td><code>UNVSViewGeneratorMeters</code></td></tr>
+<tr><td><code>PowerLoads</code></td><td><code>UNVSViewRecordListViewModel</code></td><td><code>UNVSViewPowerLoads</code></td></tr>
+<tr><td><code>GeneratorLevels</code></td><td><code>UNVSViewRecordListViewModel</code></td><td><code>UNVSViewGeneratorLevels</code></td></tr>
+<tr><td><code>Stash</code></td><td><code>UNVSViewContainerViewModel</code></td><td><code>UNVSViewStashGrid</code></td></tr>
+<tr><td><code>UpgradeParts</code></td><td><code>UNVSViewRecordListViewModel</code></td><td><code>UNVSViewRecipePartSlots</code></td></tr>
+</tbody></table>
+<h2 id="windows">Windows and overlays</h2>
+<p>Six more Widget Blueprints in the same folder support the screens above. The screens open them, so you rarely push them yourself.</p>
+<table><thead><tr><th>Asset</th><th>Class</th><th>Layer</th><th>Opened by</th></tr></thead><tbody>
+<tr><td><code>W_ItemMenu</code></td><td><code>UNVSViewItemMenu</code></td><td><code>NVS.View.Layer.Notification</code></td><td>Right-clicking an item. Its rows are Item Action Definitions.</td></tr>
+<tr><td><code>W_InspectWindow</code></td><td><code>UNVSViewInspectWindow</code></td><td><code>NVS.View.Layer.Modal</code></td><td>Inspect in the item menu, or a double-click on an item.</td></tr>
+<tr><td><code>W_ContainerWindow</code></td><td><code>UNVSViewContainerWindow</code></td><td><code>NVS.View.Layer.Modal</code></td><td>Opening a bag or a worn container.</td></tr>
+<tr><td><code>W_WindowDesk</code></td><td><code>UNVSViewWindowDesk</code></td><td><code>NVS.View.Layer.Modal</code></td><td>The first window opened. Windows sit on the desk.</td></tr>
+<tr><td><code>W_MatchFound</code></td><td><code>UNVSViewMatchFoundBanner</code></td><td><code>NVS.View.Layer.Modal</code></td><td>The deploy queue when a match is found.</td></tr>
+<tr><td><code>W_Countdown</code></td><td><code>UNVSViewCountdownOverlay</code></td><td><code>NVS.View.Layer.Modal</code></td><td>The deploy queue before the raid HUD is pushed.</td></tr>
+</tbody></table>
+<div class="shots">
+<figure class="shot"><img src="img/features/context-menu.png" alt="The item menu open over the stash"><figcaption>W_ItemMenu over the stash.</figcaption></figure>
+<figure class="shot"><img src="img/features/inspect.png" alt="The inspect window"><figcaption>W_InspectWindow.</figcaption></figure>
+<figure class="shot"><img src="img/features/container-window.png" alt="A container window on the desk"><figcaption>W_ContainerWindow on the desk.</figcaption></figure>
+</div>
+<p>See <a href="context-menu.html">Context menu</a>, <a href="inspect.html">Inspect</a> and <a href="containers.html">Containers</a>.</p>

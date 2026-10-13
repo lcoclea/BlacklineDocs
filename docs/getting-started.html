@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Getting started · Blackline for Unreal Engine</title>
+<meta name="description" content="Enable Blackline, put the hub on screen from Blueprint, add your first data asset and get the demo project.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="icon" href="assets/mark.svg" type="image/svg+xml">
+<script>try{var t=localStorage.getItem("bl-theme");if(t)document.documentElement.dataset.theme=t;}catch(e){}</script>
+</head>
+<body class="layout-doc">
+<header class="topbar">
+  <button class="menu-toggle" aria-label="Open navigation">☰</button>
+  <a class="brand" href="index.html"><img src="assets/mark.svg" alt=""><span>Blackline</span><em>v1.0.0</em></a>
+  <button class="search-open" aria-label="Search"><span>Search the docs</span><kbd>/</kbd></button>
+  <nav class="top-links">
+    <a href="getting-started.html">Get started</a>
+    <a href="screens.html">Screens</a>
+    <a href="https://github.com/lcoclea/blackline-docs/issues">Support</a>
+    <button class="theme-toggle" aria-label="Switch light or dark theme">◐</button>
+  </nav>
+</header>
+<div class="shell">
+  <aside class="sidebar"><div class="nav-section"><div class="nav-title">Start here</div>
+<a href="index.html">Blackline</a>
+<a href="getting-started.html" class="active">Getting started</a>
+<a href="architecture.html">Architecture</a>
+</div>
+<div class="nav-section"><div class="nav-title">Guides</div>
+<a href="interfaces.html">Connecting your game</a>
+<a href="items.html">Items</a>
+<a href="weapons.html">Weapons</a>
+<a href="placing-weapon-parts.html">Placing weapon parts</a>
+<a href="containers.html">Containers</a>
+<a href="context-menu.html">Context menu</a>
+<a href="drag-and-drop.html">Drag and drop</a>
+<a href="equipment.html">Equipment</a>
+<a href="inspect.html">Inspect</a>
+<a href="character-looks.html">Character looks</a>
+<a href="market-and-trading.html">Market and trading</a>
+<a href="raid-loop.html">The raid loop</a>
+<a href="health-and-vitals.html">Health and vitals</a>
+<a href="hideout-and-crafting.html">Hideout and crafting</a>
+<a href="tasks-and-loadouts.html">Tasks and loadouts</a>
+</div>
+<div class="nav-section"><div class="nav-title">Systems</div>
+<a href="layers-and-screens.html">Layers and screens</a>
+<a href="viewmodels.html">Viewmodels</a>
+<a href="theming.html">Theming</a>
+<a href="settings.html">Settings</a>
+<a href="notifications.html">Notifications</a>
+<a href="rendering.html">Rendering</a>
+</div>
+<div class="nav-section"><div class="nav-title">Reference</div>
+<a href="screens.html">Screens</a>
+<a href="components.html">Components</a>
+<a href="source-interfaces.html">Source interfaces</a>
+<a href="requests.html">Requests</a>
+<a href="project-settings.html">Project settings</a>
+</div>
+<div class="nav-section"><div class="nav-title">Help</div>
+<a href="faq.html">FAQ</a>
+<a href="troubleshooting.html">Troubleshooting</a>
+</div></aside>
+  <main class="content">
+    <article>
+      <div class="eyebrow">Start here</div>
+      <h1>Getting started</h1>
+      <p class="lead">This page takes you from a fresh install to a working hub screen, then to your first piece of content. Everything here is done in the editor and in Blueprint. You do not need C++.</p>
+
+<h2 id="requirements">Requirements<a class="anchor" href="#requirements" aria-label="Link to this section">#</a></h2>
+<ul>
+  <li>Unreal Engine 5.8. The plugin builds for Windows and Linux.</li>
+  <li>A Blueprint or C++ project. Blackline works in both.</li>
+  <li>Three engine plugins, which Blackline enables for you: CommonUI, ModelViewViewModel and EnhancedInput.</li>
+</ul>
+<p>Blackline needs no other plugin from its author. Its player subsystems are not created on a dedicated server.</p>
+
+<h2 id="install-and-enable">Install and enable<a class="anchor" href="#install-and-enable" aria-label="Link to this section">#</a></h2>
+<ol class="steps">
+  <li><strong>Install from Fab</strong> Add Blackline to your library on Fab, then install it to your 5.8 engine from the Epic Games Launcher.</li>
+  <li><strong>Enable it</strong> Open your project, go to <em>Edit &gt; Plugins</em>, find <em>Blackline</em> in the UI category and tick it. The editor enables CommonUI, ModelViewViewModel and EnhancedInput with it. Restart when asked.</li>
+  <li><strong>Use the CommonUI viewport</strong> In <em>Project Settings &gt; Engine &gt; General Settings</em>, set <em>Game Viewport Client Class</em> to <code>CommonGameViewportClient</code>. CommonUI routes its input through that class, and the demo project is set up the same way.</li>
+</ol>
+<p>The plugin's content mounts under <code>/NVSBlackline/</code>. The screens are Widget Blueprints in <code>/NVSBlackline/Screens/</code>, such as <code>W_MainMenu</code> and <code>W_StashScreen</code>.</p>
+
+<h2 id="show-the-hub">Show the hub<a class="anchor" href="#show-the-hub" aria-label="Link to this section">#</a></h2>
+<p>One Blueprint node puts a screen on the viewport. It builds the layer stack for the player the first time it runs, so there is nothing to set up first.</p>
+<ol class="steps">
+  <li><strong>Open your player controller Blueprint</strong> Any Blueprint that knows the player controller works, such as your HUD or game mode.</li>
+  <li><strong>Add Show Screen By Tag on Begin Play</strong> Drag from <em>Event BeginPlay</em> and add <em>Show Screen By Tag</em> from <em>NVS View Screen Library</em>. Plug <em>Self</em> into <em>Player</em> and pick <code>NVS.View.Screen.MainMenu</code> as the <em>Screen Tag</em>.</li>
+  <li><strong>Press Play</strong> The hub opens over your level.</li>
+</ol>
+<p>Each screen class names the layer it belongs on, so the node never asks for one. The screen registry <code>DA_BlacklineScreenRegistry</code> maps every <code>NVS.View.Screen.*</code> tag to the Widget Blueprint that opens for it.</p>
+<p>A few more nodes on <em>NVS View Screen Library</em> cover most of what a game does with screens:</p>
+<dl class="api">
+  <dt>Show Screen(Player, Screen)</dt>
+  <dd>Opens a screen by its class instead of its tag.</dd>
+  <dt>Close Screen By Tag(Player, ScreenTag) and Close Top Screen(Player)</dt>
+  <dd>Closes one screen, or the topmost one as Escape does.</dd>
+  <dt>Is Screen Open(Player, ScreenTag)</dt>
+  <dd>True while that screen is showing.</dd>
+  <dt>Open Loot Screen(Player, LootOwner)</dt>
+  <dd>Opens the raid inventory with a crate's or a body's items beside the player's.</dd>
+  <dt>Refresh Source(Player, Source)</dt>
+  <dd>Redraws every open screen that reads a source, after its values change.</dd>
+</dl>
+
+<div class="callout tip">If you prefer C++, the same functions are static members of <code>UNVSViewScreenLibrary</code> in the <code>NVSViewWidgets</code> module, such as <code>UNVSViewScreenLibrary::ShowScreenByTag(PlayerController, ScreenTag)</code>. Add <code>"NVSView"</code> and <code>"NVSViewWidgets"</code> to your Build.cs to call them.</div>
+
+<h2 id="what-you-see">What you see<a class="anchor" href="#what-you-see" aria-label="Link to this section">#</a></h2>
+<figure class="shot"><img src="img/screens/hub.png" alt="The Blackline hub screen"><figcaption>The hub, as it looks with the demo's content in place.</figcaption></figure>
+<p>The hub opens on the Menu layer, so the cursor is free and gameplay input stops. Press Escape and it closes, because Escape removes the topmost screen.</p>
+<p>Your project has no content yet, so screens that list content tell you so. Open the traders from the hub and you see an empty state card titled <em>No traders yet</em>. Under it, outside a Shipping build, a line in the accent colour names what to create, here Trader Definition data assets. See <a href="screens.html#empty-states">Empty states</a> for the full list.</p>
+
+<div class="callout important">When the last screen closes, the plugin does not restore game input for you. Keep a HUD screen such as <code>W_RaidHUD</code> on the Game layer, or set your own input mode when you close the last menu.</div>
+
+<h2 id="first-data-asset">Add your first data asset<a class="anchor" href="#first-data-asset" aria-label="Link to this section">#</a></h2>
+<p>Content in Blackline is data. Each item, trader, task, station or raid map is its own data asset, and the plugin finds them by itself. Here is a trader.</p>
+<ol class="steps">
+  <li><strong>Create the asset</strong> In the Content Browser, right-click and choose <em>Miscellaneous &gt; Data Asset</em>. Pick <em>Trader Definition</em> and name it, for example <code>PDA_Quartermaster</code>.</li>
+  <li><strong>Fill it in</strong> Open it and set <em>Display Name</em>, <em>Trade</em> and <em>Blurb</em>. To give the trader a shelf, add rows to <em>Shelf</em>, each naming an Item Definition and its stock.</li>
+  <li><strong>Press Play and open the traders</strong> The empty state is gone and your trader has a card. There is nothing to register and no list to edit.</li>
+</ol>
+<p>Every field has a tooltip. The other kinds of data asset are listed on <a href="architecture.html#content">Architecture</a>, and each has its own guide, starting with <a href="items.html">Items</a>.</p>
+
+<h2 id="demo-project">The demo project<a class="anchor" href="#demo-project" aria-label="Link to this section">#</a></h2>
+<p>The quickest way to see what a finished setup looks like is the free Blackline Demo. It is a small playable raid loop built only from Blueprints and data assets, so you can open any part of it and copy it into your game.</p>
+<ul>
+  <li><strong>BlacklineDemo-Win64.zip</strong> is a playable Windows build. Unzip it and run <code>BlacklineDemo.exe</code>.</li>
+  <li><strong>BlacklineDemo-Linux.zip</strong> is a playable Linux build. Unzip it and run <code>BlacklineDemo.sh</code>.</li>
+  <li><strong>BlacklineDemo-Project.zip</strong> is the project itself.</li>
+</ul>
+<ol class="steps">
+  <li><strong>Install Blackline</strong> The project lists the plugin, so install it into your 5.8 engine first.</li>
+  <li><strong>Add the FPS Weapon Bundle</strong> The demo's guns use the free FPS Weapon Bundle from Fab. It is not in the zip, because its licence does not allow passing it on. Add it to the project from Fab so it lands at <code>/Game/FPS_Weapon_Bundle</code>.</li>
+  <li><strong>Open and play</strong> Open <code>BlacklineDemo.uproject</code>. It opens on <code>/Game/Maps/L_BlacklineDemo</code>. Press Play and the hub opens.</li>
+</ol>
+<p>The demo also carries the example characters, outfits and hair (CC0 packs by Quaternius) as Wardrobe Piece Definitions. They are not part of the plugin. Without wardrobe pieces of your own, the character screens draw a mannequin of basic shapes.</p>
+<p>The places worth opening first:</p>
+<table>
+  <thead><tr><th>Folder</th><th>What it shows</th></tr></thead>
+  <tbody>
+    <tr><td><code>Items</code>, <code>Traders</code>, <code>Tasks</code>, <code>Hideout</code>, <code>Wardrobe</code>, <code>RaidMaps</code></td><td>One data asset per item, trader, task, station, outfit piece and raid map</td></tr>
+    <tr><td><code>Demo/Sources</code></td><td><code>BPC_Vitals</code> and <code>BPC_RaidClock</code>, Blueprint components that feed live values to the screens</td></tr>
+    <tr><td><code>Demo/Raid</code></td><td>The crate, the dead operator, a loose item and the exit zone</td></tr>
+    <tr><td><code>Demo</code></td><td>The character, controller and game mode, with the raid flow in the controller's graph</td></tr>
+  </tbody>
+</table>
+
+<h2 id="next">Next<a class="anchor" href="#next" aria-label="Link to this section">#</a></h2>
+<div class="cards">
+  <a class="card" href="architecture.html"><span class="card-tag">Start here</span><strong>Architecture</strong>How layers, screens, data assets, sources and requests fit together.</a>
+  <a class="card" href="screens.html"><span class="card-tag">Reference</span><strong>Screens</strong>All twenty-one screens, what fills each one and its empty state.</a>
+  <a class="card" href="items.html"><span class="card-tag">Guide</span><strong>Items</strong>Make the items your stash, traders and crates hold.</a>
+</div>
+      <nav class="pager"><a class="prev" href="index.html"><span>Previous</span>Blackline</a><a class="next" href="architecture.html"><span>Next</span>Architecture</a></nav>
+    </article>
+  </main>
+  <aside class="toc"><div class="toc-title">On this page</div><nav></nav></aside>
+</div>
+<div class="search-panel" hidden>
+  <div class="search-box">
+    <input type="search" placeholder="Search guides, screens, classes…" aria-label="Search">
+    <div class="search-results"></div>
+    <div class="search-hint"><kbd>↑</kbd><kbd>↓</kbd> to move, <kbd>Enter</kbd> to open, <kbd>Esc</kbd> to close</div>
+  </div>
+</div>
+<div class="lightbox" hidden><img alt=""><div class="lightbox-caption"></div></div>
+<script src="assets/search-index.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

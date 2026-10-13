@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Inspect · Blackline for Unreal Engine</title>
+<meta name="description" content="What the inspect window shows, where each line comes from in the Item Definition, and how the preview turns, zooms and frames the item.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="icon" href="assets/mark.svg" type="image/svg+xml">
+<script>try{var t=localStorage.getItem("bl-theme");if(t)document.documentElement.dataset.theme=t;}catch(e){}</script>
+</head>
+<body class="layout-doc">
+<header class="topbar">
+  <button class="menu-toggle" aria-label="Open navigation">☰</button>
+  <a class="brand" href="index.html"><img src="assets/mark.svg" alt=""><span>Blackline</span><em>v1.0.0</em></a>
+  <button class="search-open" aria-label="Search"><span>Search the docs</span><kbd>/</kbd></button>
+  <nav class="top-links">
+    <a href="getting-started.html">Get started</a>
+    <a href="screens.html">Screens</a>
+    <a href="https://github.com/lcoclea/blackline-docs/issues">Support</a>
+    <button class="theme-toggle" aria-label="Switch light or dark theme">◐</button>
+  </nav>
+</header>
+<div class="shell">
+  <aside class="sidebar"><div class="nav-section"><div class="nav-title">Start here</div>
+<a href="index.html">Blackline</a>
+<a href="getting-started.html">Getting started</a>
+<a href="architecture.html">Architecture</a>
+</div>
+<div class="nav-section"><div class="nav-title">Guides</div>
+<a href="interfaces.html">Connecting your game</a>
+<a href="items.html">Items</a>
+<a href="weapons.html">Weapons</a>
+<a href="placing-weapon-parts.html">Placing weapon parts</a>
+<a href="containers.html">Containers</a>
+<a href="context-menu.html">Context menu</a>
+<a href="drag-and-drop.html">Drag and drop</a>
+<a href="equipment.html">Equipment</a>
+<a href="inspect.html" class="active">Inspect</a>
+<a href="character-looks.html">Character looks</a>
+<a href="market-and-trading.html">Market and trading</a>
+<a href="raid-loop.html">The raid loop</a>
+<a href="health-and-vitals.html">Health and vitals</a>
+<a href="hideout-and-crafting.html">Hideout and crafting</a>
+<a href="tasks-and-loadouts.html">Tasks and loadouts</a>
+</div>
+<div class="nav-section"><div class="nav-title">Systems</div>
+<a href="layers-and-screens.html">Layers and screens</a>
+<a href="viewmodels.html">Viewmodels</a>
+<a href="theming.html">Theming</a>
+<a href="settings.html">Settings</a>
+<a href="notifications.html">Notifications</a>
+<a href="rendering.html">Rendering</a>
+</div>
+<div class="nav-section"><div class="nav-title">Reference</div>
+<a href="screens.html">Screens</a>
+<a href="components.html">Components</a>
+<a href="source-interfaces.html">Source interfaces</a>
+<a href="requests.html">Requests</a>
+<a href="project-settings.html">Project settings</a>
+</div>
+<div class="nav-section"><div class="nav-title">Help</div>
+<a href="faq.html">FAQ</a>
+<a href="troubleshooting.html">Troubleshooting</a>
+</div></aside>
+  <main class="content">
+    <article>
+      <div class="eyebrow">Guides</div>
+      <h1>Inspect</h1>
+      <p class="lead">The inspect window is an item's full sheet: a 3D view the player can turn and zoom, its description and numbers, its attachment slots and the actions it allows. Everything on it is read from the item's Item Definition, so there is nothing to set up beyond the item itself.</p>
+
+<figure class="shot"><img src="img/features/inspect.png" alt="The inspect window with a turnable weapon on the left and its description, numbers, condition, slots and actions on the right"><figcaption>The inspect window, open over the stash.</figcaption></figure>
+
+<h2 id="how-it-opens">How it opens<a class="anchor" href="#how-it-opens" aria-label="Link to this section">#</a></h2>
+<ul>
+<li><strong>Double-click</strong> an item tile, a filled doll slot or a worn container block. An item that opens a container opens that instead, and offers Inspect in its menu.</li>
+<li><strong>Inspect</strong> in the item menu.</li>
+<li><strong>From C++</strong>, with <code>OpenInspect</code> on the screen that owns the item. It takes an <code>FNVSViewItemSubject</code> built the way a tile builds one.</li>
+</ul>
+<p>The window can be moved and resized, nothing dims behind it, and inspecting the same item again brings its window to the front.</p>
+
+<h2 id="what-the-sheet-shows">What the sheet shows<a class="anchor" href="#what-the-sheet-shows" aria-label="Link to this section">#</a></h2>
+<dl class="api">
+<dt>Tag, name and where</dt><dd>The tile's word and the item's <em>Display Name</em>, then where it is: EQUIPPED with the slot, IN THE STASH, ON THE SHELF, IN THE WARDROBE, CREW KIT · READ ONLY or IN A CONTAINER.</dd>
+<dt>What it takes up</dt><dd>The <em>Footprint</em> in cells.</dd>
+<dt>Description</dt><dd>The item's <em>Description</em>.</dd>
+<dt>Weight</dt><dd>The item's <em>Weight</em>, such as <code>3.4 KG</code>.</dd>
+<dt>Value</dt><dd>The item's <em>Value</em>, in the setup's money format.</dd>
+<dt>Fits slot</dt><dd>The slot from the type's <em>Equip Slot</em>, or NOT EQUIPPABLE.</dd>
+<dt>Stack</dt><dd>The count, such as ×3, or SINGLE.</dd>
+<dt>Condition</dt><dd>The type's word, such as WEAPON or AMMO, with a note that condition is checked on extraction.</dd>
+<dt>Slots</dt><dd>A weapon's attachment slots, each empty or showing the part fitted in it. Hidden for items with none.</dd>
+<dt>Actions</dt><dd>A main button, Rotate and Drop. The main button is <em>Unequip</em> for a worn item, <em>Equip · SLOT</em> for an item that can be worn (enabled when the slot is free), and <em>Sell</em> with the value for anything else worth something. Rotate is enabled for an item lying in a grid, and the window stays open to show the new footprint.</dd>
+</dl>
+<p>A teammate's gear and a wardrobe piece hide the actions and show a note that the sheet is view only.</p>
+
+<h3 id="fitting-parts-from-the-sheet">Fitting parts from the sheet<a class="anchor" href="#fitting-parts-from-the-sheet" aria-label="Link to this section">#</a></h3>
+<p>Drag an attachment onto one of the slots, or anywhere on the window, and it fits into the free slot of its kind. Drag a fitted part out of its slot onto a grid to take it off. See <a href="weapons.html">Weapons</a> for attachment slots.</p>
+
+<h2 id="the-picture">The picture<a class="anchor" href="#the-picture" aria-label="Link to this section">#</a></h2>
+<p>The window uses the first of these that exists:</p>
+<ol class="steps">
+<li><strong>The item's Icon</strong> When the definition sets <em>Icon</em>, that texture is shown.</li>
+<li><strong>A live 3D view</strong> When the definition has a <em>Look</em> with a base, the item is built live in the window so the player can turn it. Fitted parts show on it.</li>
+<li><strong>A rendered icon</strong> If the live view is not available, a captured picture of the look.</li>
+<li><strong>The tag glyph</strong> The tile's outline glyph, tinted.</li>
+</ol>
+<p>A worn item is looked up by the item in the slot, so inspecting a slot shows what is in it.</p>
+
+<h2 id="how-it-frames-and-turns-the-item">How it frames and turns the item<a class="anchor" href="#how-it-frames-and-turns-the-item" aria-label="Link to this section">#</a></h2>
+<p>The live view opens at the item's icon angle, so it looks the way its tile does. That angle is yaw -35 and pitch -20 unless the item's look overrides it. The camera fits the mesh's bounds.</p>
+<ul>
+<li><strong>Drag</strong> turns the item, half a degree per pixel.</li>
+<li><strong>Scroll</strong> zooms between 0.8 and 2.0.</li>
+<li>Showing a different item resets the turn and the zoom.</li>
+</ul>
+<p>To change the starting angle for one item, open its Item Definition, expand <em>Look &gt; Framing</em>, tick <em>Override</em> and set:</p>
+<dl class="api">
+<dt>Yaw, Pitch</dt><dd>The angle in degrees. Yaw -90 shows the item side on.</dd>
+<dt>Zoom</dt><dd>Above 1 fills more of the frame.</dd>
+<dt>Offset</dt><dd>A shift as a fraction of the frame, so it works at every size.</dd>
+</dl>
+<p>The same framing is used for the item's tile pictures, so the tile and the window stay consistent.</p>
+
+<h2 id="preview-profiles">Preview profiles<a class="anchor" href="#preview-profiles" aria-label="Link to this section">#</a></h2>
+<p>How a 3D view behaves in one place is a <strong>Preview Profile</strong> data asset. The plugin ships four in <code>Content/Render</code>. Only the character screen animates its figure, and none of them swoops the camera.</p>
+<dl class="api">
+<dt>PP_Inspect</dt><dd>The inspect window. Still pose, turn and zoom on, zoom up to 2.0, redraws only when the item changes.</dd>
+<dt>PP_Doll</dt><dd>The paper doll's figure. Still pose, no turning, redraws live.</dd>
+<dt>PP_Character</dt><dd>The character screen. Animated idle, turn on, redraws live.</dd>
+<dt>PP_Portrait</dt><dd>Crew portraits. Still and fixed, redraws on change.</dd>
+</dl>
+<p>The fields you can change on a profile:</p>
+<dl class="api">
+<dt>Pose</dt><dd>Animated Idle loops the look's Character Preview Animation. Static holds its first frame.</dd>
+<dt>Framing, Framing Zone</dt><dd>Full Body, Upper Body, or Zone with a body zone such as head or chest.</dd>
+<dt>Rotate, Rotate Button, Degrees Per Pixel</dt><dd>Whether dragging turns the subject, with which mouse button, and how fast.</dd>
+<dt>Ease Back To Front, Ease Back Speed</dt><dd>After a drag, the subject turns back to face the camera.</dd>
+<dt>Zoom, Min Zoom, Max Zoom, Zoom Step</dt><dd>Whether scrolling zooms, its range and its step.</dd>
+<dt>Focus</dt><dd>Hovering a doll slot eases the camera to that slot's body zone.</dd>
+<dt>Gamepad Turn Axis, Gamepad Tilt Axis, Gamepad Degrees Per Second, Gamepad Dead Zone</dt><dd>Turning with a stick.</dd>
+<dt>Redraw</dt><dd>Live captures every frame while animating or dragged. On Change captures only when the look changes, so a still preview costs nothing per frame.</dd>
+</dl>
+<p>To change the inspect window's behaviour, duplicate <code>PP_Inspect</code> into your own folder, edit the copy, and set it as <em>Profile</em> on the <code>ItemPreview</code> widget in your own copy of <code>W_InspectWindow</code>. Plugin assets are replaced when you update the plugin.</p>
+
+<h2 id="result">Result<a class="anchor" href="#result" aria-label="Link to this section">#</a></h2>
+<p>Double-click a weapon in your stash. The inspect window opens with the weapon at its icon angle. Drag to turn it and scroll to zoom. The sheet shows your description, weight and value, and dropping a scope on the window fits it to the gun in front of you.</p>
+
+<div class="cards">
+<a class="card" href="items.html"><span class="card-tag">Guide</span><strong>Items</strong>The definition every line of the sheet comes from.</a>
+<a class="card" href="weapons.html"><span class="card-tag">Guide</span><strong>Weapons</strong>Attachment slots the sheet shows.</a>
+<a class="card" href="rendering.html"><span class="card-tag">Systems</span><strong>Rendering</strong>Icons and live previews.</a>
+</div>
+      <nav class="pager"><a class="prev" href="equipment.html"><span>Previous</span>Equipment</a><a class="next" href="character-looks.html"><span>Next</span>Character looks</a></nav>
+    </article>
+  </main>
+  <aside class="toc"><div class="toc-title">On this page</div><nav></nav></aside>
+</div>
+<div class="search-panel" hidden>
+  <div class="search-box">
+    <input type="search" placeholder="Search guides, screens, classes…" aria-label="Search">
+    <div class="search-results"></div>
+    <div class="search-hint"><kbd>↑</kbd><kbd>↓</kbd> to move, <kbd>Enter</kbd> to open, <kbd>Esc</kbd> to close</div>
+  </div>
+</div>
+<div class="lightbox" hidden><img alt=""><div class="lightbox-caption"></div></div>
+<script src="assets/search-index.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

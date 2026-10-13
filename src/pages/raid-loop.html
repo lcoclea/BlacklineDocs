@@ -1,0 +1,105 @@
+<!--meta {"title": "The raid loop", "section": "Guides", "order": 100, "summary": "Run a raid from the lobby to the debrief: pick a map, deploy through the queue, loot crates and bodies, extract or go missing in action."} -->
+<p class="lead">Blackline runs the whole raid loop: the lobby, the location screen, the deploy queue, the raid HUD, looting, the extract bar and the debrief. Your game loads the level and says when the raid ends. This guide wires that up in Blueprint, the way the Blackline Demo does.</p>
+
+<h2>The loop at a glance</h2>
+<ol class="flow">
+<li data-title="Lobby">The player opens the lobby (<code>W_PartyLobby</code>). The map button names the chosen raid map.</li>
+<li data-title="Pick a map">The location screen (<code>W_InsertionSelect</code>) shows one point per raid map. Picking a point calls <strong>Set Selected Raid Map</strong>.</li>
+<li data-title="Queue">Move out starts the deploy queue: searching, match found, countdown.</li>
+<li data-title="Deploy">The queue pushes the raid HUD, calls <strong>Begin Raid</strong> and raises <code>Raid.Deploy</code>. Your game loads the map's level.</li>
+<li data-title="Loot">Interacting with a crate or a body calls <strong>Open Loot Screen</strong> with that actor.</li>
+<li data-title="Extract">Standing in an exit fills the HUD's extract bar. At the end your game calls <strong>End Raid</strong> with Extracted.</li>
+<li data-title="Or not">If the raid clock runs out, the raid ends as missing in action and everything carried is lost except the secure case.</li>
+<li data-title="Debrief">Your game opens the debrief (<code>W_RaidSummary</code>), which shows the result, the haul and the time.</li>
+</ol>
+
+<h2>Make the raid maps</h2>
+<p>Each raid map is a <em>Raid Map Definition</em> data asset. The lobby, the location screen, the raid HUD's exits and the raid clock all read it.</p>
+<dl class="api">
+<dt>Display Name, Conditions</dt><dd>The map's name and a line such as <code>DUSK · DRY · 15 MIN RAID</code>.</dd>
+<dt>Region Position</dt><dd>Where its point sits on the location screen, from 0 to 1 across and down, over the <em>Region Image</em> of your View Setup Definition.</dd>
+<dt>Briefing, Stats</dt><dd>What the location screen says when the point is picked, and the figures under it. Empty uses the first insertion point's.</dd>
+<dt>Map Image</dt><dd>The picture of the map itself, drawn under its markers.</dd>
+<dt>Insertions, Exfils, Exfil Rule</dt><dd>Start points and exits with their positions on the map image. An exfil has a <em>Cost</em> such as Free, can be shut with a reason, and the rule line sits under the exit list on the HUD.</dd>
+<dt>Level</dt><dd>The level your game loads when the player deploys.</dd>
+<dt>Raid Seconds</dt><dd>How long the raid lasts before the player is missing in action. Default 1800. Zero means no clock.</dd>
+</dl>
+<p>The demo has two maps, Silt Yards and Pump Station, each with one insertion point, one exit and a <em>Raid Seconds</em> of 900. Until the player picks one, the first map by <em>Sort Order</em> is the selected map.</p>
+<figure class="shot"><img src="img/screens/insertion.png" alt="The location screen with a region map, a point per raid map and the briefing pane"><figcaption>The location screen. Each point is a Raid Map Definition.</figcaption></figure>
+
+<h2>The lobby and the deploy queue</h2>
+<figure class="shot"><img src="img/screens/lobby.png" alt="The crew lobby with crew cards, the map button and Move out"><figcaption>The lobby. Move out starts the queue, and the map button opens the location screen.</figcaption></figure>
+<p>The lobby's map button opens the screen set in its <em>Insertion Destination</em>. Leave that unset to hide the button. The location screen has its own queue button, so the player can deploy from either screen.</p>
+<p>Pressing Move out starts the deploy queue (<code>UNVSViewDeployQueueSubsystem</code>). It lives on the local player, so it keeps running when the lobby closes. It runs three phases, timed by <em>Queue Timings</em> on the screen that started it:</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Phase</th><th>Default</th><th>What the player sees</th></tr></thead>
+<tbody>
+<tr><td>Searching</td><td>9 s</td><td>The queue button shows the search. Pressing it again cancels.</td></tr>
+<tr><td>Found</td><td>3 s</td><td>The match found screen, and the crew cards lock in. It can no longer be cancelled.</td></tr>
+<tr><td>Countdown</td><td>6 s</td><td>The drop countdown.</td></tr>
+</tbody></table></div>
+<p>The screens it pushes at each phase are the screen's <em>Match Found Overlay</em>, <em>Countdown Overlay</em> and <em>Raid Destination</em>. When the countdown ends, the queue pushes the raid HUD, calls <strong>Begin Raid</strong> on the <em>NVS View Raid Session Subsystem</em> with the selected map, and raises the request <code>NVS.View.Request.Raid.Deploy</code> with the map's name as <em>Subject Id</em>.</p>
+
+<h3>Load the level on Raid.Deploy</h3>
+<ol class="steps">
+<li><strong>Bind On Request</strong> In your player controller, get the <em>NVSViewRequestSubsystem</em> and bind <em>On Request</em>.</li>
+<li><strong>Find the map</strong> When <em>Request Id</em> is <code>NVS.View.Request.Raid.Deploy</code>, call <strong>Get Raid Map Definition</strong> with the request's <em>Subject Id</em>.</li>
+<li><strong>Load its level</strong> Load the definition's <em>Level</em>. The demo streams it in with <em>Load Level Instance by Object Reference</em>, moves the pawn to the level's start point, and adds the raid input mapping.</li>
+</ol>
+
+<h2>In the raid</h2>
+<figure class="shot"><img src="img/screens/raid-hud.png" alt="The raid HUD with compass, weapon readout, clock and exits"><figcaption>The raid HUD. The navigation, vitals and crew groups stay hidden until revealed.</figcaption></figure>
+<p>The raid session keeps the clock. In Blueprint, get the subsystem from the player controller and read:</p>
+<dl class="api">
+<dt>Is In Raid</dt><dd>True between Begin Raid and End Raid.</dd>
+<dt>Get Seconds Left</dt><dd>Until the map's clock runs out. Zero with no raid or no clock.</dd>
+<dt>Get Seconds In Raid</dt><dd>Since the raid began. After it ends, how long it lasted.</dd>
+<dt>Get Map Id</dt><dd>The map of the current or last raid.</dd>
+</dl>
+<p>The clock uses world time, so pausing the game stops it. The demo's <code>BPC_RaidClock</code> component turns it into the HUD's two clocks, meters <code>Raid.Clock</code> and <code>Raid.Exfil</code>, the same way <code>BPC_Vitals</code> feeds the vitals (see <a href="health-and-vitals.html">Health and vitals</a>).</p>
+
+<h3>Crates and bodies</h3>
+<p>Anything the player can loot is an actor with an <em>Inventory</em> component. Set these on it:</p>
+<dl class="api">
+<dt>Base Containers</dt><dd>Its grids. The demo's crate has one 6 by 4 grid called <code>Crate</code>. Its body has a 4 by 1 <code>Pockets</code> grid.</dd>
+<dt>Starting Items</dt><dd>What is inside, and for a body what it wears. A body can wear a rig and a pack with items packed in them.</dd>
+<dt>Display Name</dt><dd>The heading of the loot pane, such as <code>SUPPLY CRATE</code> or <code>DEAD OPERATOR</code>.</dd>
+<dt>Needs Search</dt><dd>Hides each container's contents behind a search veil until the player searches it. The time comes from the setup's <em>Search Base Seconds</em> and <em>Search Seconds Per Cell</em>, and a body searches faster by <em>Search Body Factor</em>.</dd>
+<dt>Applies Loot Rules</dt><dd>Makes the items' loot rules count, as for a body. Clothes with the <em>Stays On Body</em> rule cannot be taken, and a secure case with the <em>Sealed</em> rule cannot be opened.</dd>
+</dl>
+<p>When the player interacts with it, call <strong>Open Loot Screen</strong> with the player controller and the actor. The raid inventory opens with the player's gear on one side and the loot on the other. A body's worn gear counts as loot, so the player takes it into their own gear. The loot pane has Crate and Body tabs. Calling it again while the screen is open changes only the loot side. Call it with no actor to open the player's own gear alone, and the loot pane is hidden.</p>
+<figure class="shot"><img src="img/screens/raid-inventory.png" alt="The raid inventory with the player's gear beside a looted container"><figcaption>The raid inventory. The loot pane's heading names what is being looted.</figcaption></figure>
+<p>The demo's character traces forward when F is pressed. A loose pickup goes in with <strong>Pick Up Item</strong>, which fills the pack, then the rig, then the pockets, and a toast says so when there is no room. An actor tagged <code>Lootable</code> opens with Open Loot Screen.</p>
+
+<h3>Extract</h3>
+<p>While the player stands in an exit, call <strong>Set Extract Progress</strong> with a fraction from 0 to 1 to fill the HUD's extract bar. A value below 0 hides it. The demo's <code>BP_ExtractZone</code> counts 5 seconds while the player overlaps it, hides the bar and shows a toast if they leave, and when the count reaches zero calls <strong>End Raid</strong> with <em>Extracted</em>.</p>
+
+<h2>Missing in action</h2>
+<p>When the map's clock runs out, the raid session ends the raid as <em>Missing In Action</em> by itself and raises <code>NVS.View.Request.Raid.TimeOut</code> with the map's name. Answer it by taking the player out of the raid. Your game can also call <strong>End Raid</strong> with Missing In Action itself, for example when the player dies.</p>
+<p>Missing in action takes everything the player carries. Two things stay: whatever is worn in the slots listed in the player inventory's <em>Kept On Death</em>, with what is inside it, and the base containers whose place is the stash. <em>Kept On Death</em> holds <code>NVS.View.Slot.Secure</code> by default, so the secure case and its contents come home. After an extract, every item stays where it was packed.</p>
+
+<h2>The debrief</h2>
+<p><strong>End Raid</strong> writes the raid report and hands it to the screens. It holds:</p>
+<ul>
+<li>The result, You got out or Missing in action, with the map, the date and the time in raid.</li>
+<li>The haul, one row per item carried out, marked <code>FOUND IN RAID</code> when the player came back with more of it than they took in, or <code>BROUGHT BACK</code>. Lost items read <code>LOST</code>.</li>
+<li>Figures for value found, items found, time in raid and items lost.</li>
+</ul>
+<p>It also updates the last raid line on the hub. End Raid does not open a screen, so your game opens the debrief afterwards with <strong>Show Screen By Tag</strong> and <code>NVS.View.Screen.RaidSummary</code>. The demo does this once it has brought the player home.</p>
+<figure class="shot"><img src="img/screens/debrief.png" alt="The raid debrief with the outcome, the haul and the figures"><figcaption>The debrief, filled from the raid that has ended.</figcaption></figure>
+
+<h2>Limits</h2>
+<ul>
+<li>Single player. The Inventory component does not replicate, so looting and the raid report are for one local player.</li>
+<li>The crew cards and crew vitals in the lobby and on the HUD are samples. Blackline has no matchmaking, and the queue's search is a timer.</li>
+<li>The raid report and the selected map last for the play session.</li>
+</ul>
+
+<h2>Result</h2>
+<p>In the demo, open the lobby, press the map button and pick Pump Station. Press Move out. After the search and the countdown you stand in the pump house with the raid HUD up. Press F on the crate, search it, and drag something into your pack. Walk into the south gate and wait five seconds. The debrief opens with You got out and the item marked <code>FOUND IN RAID</code>.</p>
+
+<div class="cards">
+<a class="card" href="health-and-vitals.html"><span class="card-tag">Guide</span><strong>Health and vitals</strong>Body zones, food, water, load and the HUD groups.</a>
+<a class="card" href="containers.html"><span class="card-tag">Guide</span><strong>Containers</strong>Grids, bags inside bags and container windows.</a>
+<a class="card" href="requests.html"><span class="card-tag">Reference</span><strong>Requests</strong>Every request tag and its fields.</a>
+</div>

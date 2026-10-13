@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Items · Blackline for Unreal Engine</title>
+<meta name="description" content="Make one Item Definition data asset per item, pick its type and traits, and it shows up in every grid, menu and inspect window.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="icon" href="assets/mark.svg" type="image/svg+xml">
+<script>try{var t=localStorage.getItem("bl-theme");if(t)document.documentElement.dataset.theme=t;}catch(e){}</script>
+</head>
+<body class="layout-doc">
+<header class="topbar">
+  <button class="menu-toggle" aria-label="Open navigation">☰</button>
+  <a class="brand" href="index.html"><img src="assets/mark.svg" alt=""><span>Blackline</span><em>v1.0.0</em></a>
+  <button class="search-open" aria-label="Search"><span>Search the docs</span><kbd>/</kbd></button>
+  <nav class="top-links">
+    <a href="getting-started.html">Get started</a>
+    <a href="screens.html">Screens</a>
+    <a href="https://github.com/lcoclea/blackline-docs/issues">Support</a>
+    <button class="theme-toggle" aria-label="Switch light or dark theme">◐</button>
+  </nav>
+</header>
+<div class="shell">
+  <aside class="sidebar"><div class="nav-section"><div class="nav-title">Start here</div>
+<a href="index.html">Blackline</a>
+<a href="getting-started.html">Getting started</a>
+<a href="architecture.html">Architecture</a>
+</div>
+<div class="nav-section"><div class="nav-title">Guides</div>
+<a href="interfaces.html">Connecting your game</a>
+<a href="items.html" class="active">Items</a>
+<a href="weapons.html">Weapons</a>
+<a href="placing-weapon-parts.html">Placing weapon parts</a>
+<a href="containers.html">Containers</a>
+<a href="context-menu.html">Context menu</a>
+<a href="drag-and-drop.html">Drag and drop</a>
+<a href="equipment.html">Equipment</a>
+<a href="inspect.html">Inspect</a>
+<a href="character-looks.html">Character looks</a>
+<a href="market-and-trading.html">Market and trading</a>
+<a href="raid-loop.html">The raid loop</a>
+<a href="health-and-vitals.html">Health and vitals</a>
+<a href="hideout-and-crafting.html">Hideout and crafting</a>
+<a href="tasks-and-loadouts.html">Tasks and loadouts</a>
+</div>
+<div class="nav-section"><div class="nav-title">Systems</div>
+<a href="layers-and-screens.html">Layers and screens</a>
+<a href="viewmodels.html">Viewmodels</a>
+<a href="theming.html">Theming</a>
+<a href="settings.html">Settings</a>
+<a href="notifications.html">Notifications</a>
+<a href="rendering.html">Rendering</a>
+</div>
+<div class="nav-section"><div class="nav-title">Reference</div>
+<a href="screens.html">Screens</a>
+<a href="components.html">Components</a>
+<a href="source-interfaces.html">Source interfaces</a>
+<a href="requests.html">Requests</a>
+<a href="project-settings.html">Project settings</a>
+</div>
+<div class="nav-section"><div class="nav-title">Help</div>
+<a href="faq.html">FAQ</a>
+<a href="troubleshooting.html">Troubleshooting</a>
+</div></aside>
+  <main class="content">
+    <article>
+      <div class="eyebrow">Guides</div>
+      <h1>Items</h1>
+      <p class="lead">Every item in Blackline is one data asset, an <strong>Item Definition</strong>. You create it in the Content Browser, fill its fields in the Details panel, and the stash, the traders, the loot screens and the inspect window all read it. No code is needed.</p>
+
+<h2 id="make-your-first-item">Make your first item<a class="anchor" href="#make-your-first-item" aria-label="Link to this section">#</a></h2>
+<ol class="steps">
+<li><strong>Create the asset</strong> In the Content Browser, right-click and choose <em>Miscellaneous &gt; Data Asset</em>. Pick <code>Item Definition</code> as the class. Give it a name that is unique in your project, such as <code>PDA_AR4</code>. The name becomes the item's id.</li>
+<li><strong>Fill the basics</strong> Set <em>Display Name</em>, <em>Description</em>, <em>Footprint</em> (cells wide by cells high), <em>Value</em> and <em>Weight</em> in kilograms.</li>
+<li><strong>Tag it</strong> Add a gameplay tag to <em>Tags</em> that says what it is, such as <code>Item.Weapon.Rifle</code>. You make these tags yourself in <em>Project Settings &gt; Gameplay Tags</em>. Categories, container rules and menu rows all read them.</li>
+<li><strong>Pick a type</strong> Open the <em>Type</em> dropdown and choose one, such as <code>Weapon</code>. That type's own fields appear underneath.</li>
+<li><strong>Give it a look</strong> Under <em>Look</em>, set <em>Static Mesh</em> to the item's mesh. The tile and the inspect window render it. Or set <em>Icon</em> to a texture if you already have a picture.</li>
+<li><strong>Save</strong> The item now exists for every screen. You do not register it anywhere.</li>
+</ol>
+
+<figure class="shot"><img src="img/features/item-tiles.png" alt="Item tiles in a stash grid, showing names, category words, weights and rendered pictures"><figcaption>Item tiles. The name, the category word, the weight and the rendered picture all come from the item's definition.</figcaption></figure>
+
+<h3 id="the-asset-is-found-for-you">The asset is found for you<a class="anchor" href="#the-asset-is-found-for-you" aria-label="Link to this section">#</a></h3>
+<p>The plugin registers the Item Definition type with the Asset Manager when it starts. It scans every content root in the project, including game feature plugins, and marks the assets to always be cooked, because nothing references an item directly. You do not edit <code>DefaultGame.ini</code>.</p>
+<p>Everything else refers to an item by its <strong>primary asset id</strong>, which is the type <code>NVSViewItem</code> and the asset name, such as <code>NVSViewItem:PDA_AR4</code>. Fields that take an item, such as a starting item or a trader's stock, show a picker that lists only items. Nothing loads until a tile shows it.</p>
+<div class="callout tip">Run <em>Asset Actions &gt; Validate Assets</em> on your items. The definition reports mistakes such as a missing type, a weapon with no equip slot, an attachment with no kind or a trait listed twice.</div>
+
+<h2 id="the-fields-every-item-has">The fields every item has<a class="anchor" href="#the-fields-every-item-has" aria-label="Link to this section">#</a></h2>
+<dl class="api">
+<dt>Display Name, Description</dt><dd>The name on the tile and the paragraph in the inspect window.</dd>
+<dt>Footprint</dt><dd>Cells it covers, width by height, before rotation. A 4 by 1 rifle lies flat.</dd>
+<dt>Value</dt><dd>The price in whole currency units. The inspect window shows it as VALUE, and traders and the market use it.</dd>
+<dt>Weight</dt><dd>Kilograms. Tiles show it times the stack count, and it counts toward carried weight while the item is worn or carried.</dd>
+<dt>Tags</dt><dd>What the item is. Category tabs, container accept rules and menu rows match against these.</dd>
+<dt>Rarity</dt><dd>A gameplay tag stored on the item for your game to read. The shipped screens do not use it yet.</dd>
+<dt>Type</dt><dd>The kind of item. One per item. See below.</dd>
+<dt>Traits</dt><dd>Extra behaviour any type can carry, such as stacking. See below.</dd>
+<dt>Icon</dt><dd>A texture used instead of a rendered picture. Leave it empty to render one from the look.</dd>
+<dt>Look</dt><dd>How the item is drawn on tiles, in the inspect window and on the body: a <em>Static Mesh</em>, a <em>Skeletal Mesh</em> (used when Static Mesh is empty, such as for trousers that follow the body) or a <em>Pickup Actor</em> (such as a fully built rifle Blueprint), plus an optional <em>Framing</em> override. See <a href="character-looks.html">Character looks</a>.</dd>
+</dl>
+
+<h2 id="item-types">Item types<a class="anchor" href="#item-types" aria-label="Link to this section">#</a></h2>
+<p>Each type adds its own fields under <em>Type</em>, and picking a type shows only that type's fields. The wearable types, Weapon, Armour, Container and Gear, also have <em>Worn On</em> and <em>Worn Offset</em>, which place the item on the character while it is worn. See <a href="equipment.html#worn-gear-on-the-character">Equipment</a>. The type also gives the item its word on the tile when no category names it, such as WEAPON.</p>
+<dl class="api">
+<dt>Weapon</dt><dd><em>Equip Slot</em> (such as <code>NVS.View.Slot.Primary</code> or <code>NVS.View.Slot.Sidearm</code>), <em>Worn On</em>, <em>Worn Offset</em>, <em>Fire Modes</em> and <em>Attachment Slots</em>. Each attachment slot has a <em>Slot</em> tag, a <em>Label</em>, an <em>Accepts</em> list of kinds, and a <em>Socket</em> and <em>Offset</em> for where a fitted part sits. The raid HUD reads the first fire mode of the worn primary. <em>Calibre</em> is stored for your game. See <a href="weapons.html">Weapons</a>.</dd>
+<dt>Attachment</dt><dd><em>Kind</em>, such as <code>Attachment.Optic</code>. A weapon slot whose <em>Accepts</em> holds that kind takes it.</dd>
+<dt>Ammo</dt><dd><em>Kind</em> is the weapon slot a magazine loads into, such as <code>Attachment.Magazine.AR4</code>. <em>Capacity</em> is the rounds it holds, which the raid HUD shows while it is fitted. Leave both empty for loose rounds. <em>Calibre</em> is stored for your game.</dd>
+<dt>Armour</dt><dd><em>Equip Slot</em>, such as <code>NVS.View.Slot.Armour</code> or <code>NVS.View.Slot.Head</code>, <em>Worn On</em> and <em>Worn Offset</em>. <em>Armour Class</em> and <em>Protected Zones</em> are stored for your game.</dd>
+<dt>Consumable</dt><dd><em>Heals</em> is the hit points it gives back to a body zone on the health screen. <em>Food</em> and <em>Water</em> are added when the player uses it from a grid. <em>Uses</em>, <em>Use Seconds</em> and <em>Effect</em> are stored for your game. Consumables are the items that get a Use row.</dd>
+<dt>Container</dt><dd><em>Grids</em> (a label and a size each, so a rig can have several pouches), <em>Equip Slot</em> (such as <code>NVS.View.Slot.Pack</code>, empty for a crate), <em>Worn On</em>, <em>Worn Offset</em>, <em>Accepts</em> (a tag query, empty takes anything), <em>Refusal Text</em> and <em>Place</em>. See <a href="containers.html">Containers</a>.</dd>
+<dt>Gear</dt><dd><em>Equip Slot</em>, <em>Worn On</em> and <em>Worn Offset</em> for worn gear such as a headset, gloves or trousers. Leave <em>Equip Slot</em> empty for loose gear such as salvage or grenades.</dd>
+<dt>Key</dt><dd><em>Opens</em> and <em>Uses</em>, stored for your game.</dd>
+<dt>Quest Item</dt><dd><em>Task</em>, the task definition that wants it, stored for your game.</dd>
+</dl>
+<div class="callout important">The fields marked as stored for your game are kept on the asset and readable in Blueprint, but no shipped screen acts on them yet. Read them from the definition when your game needs them.</div>
+
+<h3 id="example-values-from-the-demo">Example values from the demo<a class="anchor" href="#example-values-from-the-demo" aria-label="Link to this section">#</a></h3>
+<p>The free Blackline Demo project builds its items from a table. A few of its rows, as you would type them in the Details panel:</p>
+<pre><code class="lang-text">PDA_AR4        Weapon      4 x 1   3600   3.4 kg   Item.Weapon.Rifle
+               Equip Slot NVS.View.Slot.Primary, Fire Modes Semi, Auto
+               Attachment Slots: OPTIC accepts Attachment.Optic,
+                                 MAG accepts Attachment.Magazine.AR4
+PDA_AR4Mag     Ammo        1 x 2    240   0.5 kg   Item.Ammo
+               Kind Attachment.Magazine.AR4, Capacity 30, Stackable 3
+PDA_MedKit     Consumable  2 x 2   1200   1.1 kg   Item.Medical
+               Heals 60, Uses 3
+PDA_Ration     Consumable  1 x 1     70   0.4 kg   Item.Food
+               Food 30, Stackable 4
+PDA_ChestRig   Container   3 x 2   1400   1.1 kg   Item.Container
+               Equip Slot NVS.View.Slot.Rig
+               Grids MAGS 4 x 2, ADMIN 2 x 2, MED 2 x 2
+PDA_Gloves     Gear        1 x 1    180   0.2 kg   Item.Gear
+               Equip Slot NVS.View.Slot.Gloves, Loot Rule StaysOnBody</code></pre>
+
+<h2 id="traits">Traits<a class="anchor" href="#traits" aria-label="Link to this section">#</a></h2>
+<p>Traits are added from the <em>Traits</em> list with the plus button. An item carries each trait at most once.</p>
+<dl class="api">
+<dt>Stackable</dt><dd><em>Max Stack</em>, how many share one cell. Without it an item never stacks. Adding items tops up partial stacks first, and Shift-click splits a stack in half.</dd>
+<dt>Loot Rule</dt><dd>What happens when someone else loots the inventory this item is in. <code>StaysOnBody</code> means the item cannot be taken off a body, but what is inside it can, like trousers and their pockets. <code>Sealed</code> means nothing about it can be taken or opened, like a secure case. See <a href="containers.html">Containers</a>.</dd>
+<dt>Tradeable</dt><dd><em>Listable On Market</em> lets the player list it on the market. <em>Sell Ratio</em> is stored for your game.</dd>
+<dt>Quest Locked</dt><dd>Keeps the item off the market. <em>Reason</em> is stored for your game.</dd>
+<dt>Durability</dt><dd><em>Max Durability</em>, stored for your game.</dd>
+</dl>
+
+<h2 id="categories">Categories<a class="anchor" href="#categories" aria-label="Link to this section">#</a></h2>
+<p>An <strong>Item Category Definition</strong> is one tab on the stash filter and the trade and market rails, such as Weapons or Medical. Create it the same way, as a Data Asset of class <code>Item Category Definition</code>.</p>
+<dl class="api">
+<dt>Tag</dt><dd>Items whose tags carry this tag, or one below it, belong here. A category for <code>Item.Weapon</code> catches <code>Item.Weapon.Rifle</code> and <code>Item.Weapon.Sidearm</code>. When two categories match, the deeper tag wins.</dd>
+<dt>Display Name</dt><dd>The tab's name.</dd>
+<dt>Icon</dt><dd>The tab's icon by name, such as <code>rifle</code> or <code>med</code>. None shows the name instead.</dd>
+<dt>Sort Order</dt><dd>Lower comes first. Ties sort by asset name.</dd>
+</dl>
+<p>The category also names the word on the tile. The item's deepest tag under its category is used, so <code>Item.Weapon.Rifle</code> under a Weapons category reads RIFLE. With no category, the tile shows the type's word. The stash rail is built from your categories only when the project has at least one.</p>
+
+<h2 id="items-made-at-run-time">Items made at run time<a class="anchor" href="#items-made-at-run-time" aria-label="Link to this section">#</a></h2>
+<p>For procedural loot, build an Item Definition object in Blueprint or C++ and call <strong>Register Runtime Item</strong> on <em>NVS View Definition Library</em>. It is then found by its id like any asset until you call <strong>Unregister Runtime Item</strong>. <strong>Get Item Definition</strong> returns the definition for any id, and <strong>Get All Item Ids</strong> lists every item without loading them.</p>
+
+<h2 id="result">Result<a class="anchor" href="#result" aria-label="Link to this section">#</a></h2>
+<p>Add your new item to the player's <em>Starting Items</em> on the Inventory component (see <a href="containers.html">Containers</a>) and press Play. Open the stash. Your item sits in the grid with its name, word and weight, and double-clicking it opens the inspect window with your description, weight and value.</p>
+<figure class="shot"><img src="img/screens/stash.png" alt="The stash screen with the paper doll on the left, carried containers in the middle and the stash grid on the right"><figcaption>The stash screen. Every tile on it is drawn from an Item Definition.</figcaption></figure>
+
+<div class="cards">
+<a class="card" href="containers.html"><span class="card-tag">Guide</span><strong>Containers</strong>The Inventory component, bags, crates and bodies.</a>
+<a class="card" href="weapons.html"><span class="card-tag">Guide</span><strong>Weapons</strong>Attachment slots, magazines and the HUD readout.</a>
+<a class="card" href="equipment.html"><span class="card-tag">Guide</span><strong>Equipment</strong>Equip slots, the doll and Kit up.</a>
+</div>
+      <nav class="pager"><a class="prev" href="interfaces.html"><span>Previous</span>Connecting your game</a><a class="next" href="weapons.html"><span>Next</span>Weapons</a></nav>
+    </article>
+  </main>
+  <aside class="toc"><div class="toc-title">On this page</div><nav></nav></aside>
+</div>
+<div class="search-panel" hidden>
+  <div class="search-box">
+    <input type="search" placeholder="Search guides, screens, classes…" aria-label="Search">
+    <div class="search-results"></div>
+    <div class="search-hint"><kbd>↑</kbd><kbd>↓</kbd> to move, <kbd>Enter</kbd> to open, <kbd>Esc</kbd> to close</div>
+  </div>
+</div>
+<div class="lightbox" hidden><img alt=""><div class="lightbox-caption"></div></div>
+<script src="assets/search-index.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

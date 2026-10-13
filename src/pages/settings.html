@@ -1,0 +1,191 @@
+<!--meta {"title": "Settings", "section": "Systems", "order": 40, "summary": "The settings screen: the registry that describes each row, the source that stores values, the Engine Settings Setup Definition, how display changes are kept or reverted, key bindings, and adding a row of your own."} -->
+<p class="lead">The settings screen draws its rows from a registry that describes each setting, and reads and writes values through a source your game controls. The shipped screen applies every row to the engine straight away, so window mode, volumes, language and the rest work with no code. This page covers both halves, how a display change is kept or reverted, and how to add a row of your own.</p>
+
+<figure class="shot"><img src="img/screens/settings.png" alt="The settings screen with a category rail on the left and setting rows on the right"><figcaption>Settings, with the category rail, the chosen category's rows and the Apply bar.</figcaption></figure>
+
+<h2>What works out of the box</h2>
+<p>The shipped <code>W_SettingsScreen</code> uses three classes from the <code>NVSViewSettings</code> module:</p>
+<table>
+<thead><tr><th>Class</th><th>Role</th></tr></thead>
+<tbody>
+<tr><td><code>UNVSViewEngineSettingRegistry</code></td><td>The rows of a typical shooter's settings screen, in six categories: <code>Settings.Video</code>, <code>Settings.Audio</code>, <code>Settings.Controls</code>, <code>Settings.Gameplay</code>, <code>Settings.Interface</code> and <code>Settings.Accessibility</code>. The Controls category also gets one key binding row per bindable action.</td></tr>
+<tr><td><code>UNVSViewEngineSettingCategories</code></td><td>The category rail, with each category's name and description.</td></tr>
+<tr><td><code>UNVSViewEngineSettingsSource</code></td><td>Reads and writes each row wherever the engine keeps it: the game user settings, console variables, the sound mix and the current culture. Values the engine has no home for are saved in <code>UNVSViewSavedSettings</code>, in <code>GameUserSettings.ini</code>.</td></tr>
+</tbody>
+</table>
+<p>Saved values are applied again once a player has a controller, by <code>UNVSViewPlayerSettingsSubsystem</code>. Rows the engine cannot act on, such as the Gameplay rows, subtitle size and the high contrast HUD, are saved for your game to read. The accessibility ones say <em>Read by the game</em> on the screen.</p>
+<pre><code class="lang-cpp">#include "Settings/NVSViewSavedSettings.h"
+
+const UNVSViewSavedSettings&amp; Saved = UNVSViewSavedSettings::Get();
+const bool bAutoReload = Saved.IsAutoReload();
+const int32 SubtitleSize = Saved.GetSubtitleSize(); // 0 small, 1 medium, 2 large
+const float Fov = Saved.GetFieldOfView();</code></pre>
+<p>Each setting id names its tab and its setting, such as <code>Video.WindowMode</code>, <code>Audio.MasterVolume</code> or <code>Gameplay.AutoReload</code>. The full list is in <code>Settings/NVSViewSettingIds.h</code>.</p>
+
+<h2>The Engine Settings Setup Definition</h2>
+<p>How the shipped rows reach the engine is set on one data asset, the <strong>Engine Settings Setup Definition</strong>. The plugin ships <code>DA_BlacklineEngineSetup</code>. Make your own from <em>right-click &gt; Miscellaneous &gt; Data Asset</em>, and a game's own setup wins over the one the plugin ships.</p>
+<dl class="api">
+<dt>Sound Mix, Master Class, Music Class, Effects Class, Voice Class, Interface Class</dt><dd>The sound mix and sound classes the five volume sliders drive. Point them at your own to make the sliders control your game's audio.</dd>
+<dt>Night Mode Effect</dt><dd>Added to the master submix while dynamic range is set to Night.</dd>
+<dt>Drive Field Of View, Authored Field Of View</dt><dd>Scales each player's camera field of view by the saved value against the one your cameras are built with. Turn it off if your game sets field of view itself.</dd>
+<dt>Revert Window Seconds</dt><dd>How long a display change waits for the player to keep it. Default 15.</dd>
+<dt>Max Visible Notifications, Max Held Notifications</dt><dd>The notification stack's sizes. See <a href="notifications.html">Notifications</a>.</dd>
+<dt>Back Keys</dt><dd>Keys that close the screen on top. Escape and the gamepad's right face button by default.</dd>
+<dt>Action Set</dt><dd>The actions the Controls tab lists for rebinding.</dd>
+<dt>Context Priority</dt><dd>The priority of the mapping context built from the player's bindings. Keep it above your game's own contexts, so a rebound key wins.</dd>
+</dl>
+
+<h2>Describe, then store</h2>
+<p>Blackline never keeps a setting's value itself. A <code>UNVSViewSettingRegistry</code> describes each row, and the value always travels through <code>INVSViewSettingValueSource</code>, so your save system can stay the only store. A registry is a data asset, so you can also make one and fill its rows by hand.</p>
+<p>Each row is an <code>FNVSViewSettingDescription</code>:</p>
+<dl class="api">
+<dt>SettingId, CategoryId</dt><dd>The row's id, and the id of the category it is listed under.</dd>
+<dt>Kind</dt><dd><code>Bool</code>, <code>Enum</code>, <code>Slider</code> or <code>Keybind</code>. It picks the row widget and which field of the value it reads.</dd>
+<dt>ApplyModel</dt><dd><code>Live</code> or <code>ConfirmAndRevert</code>. See below.</dd>
+<dt>Label, HelpText</dt><dd>The row's caption and the line under it.</dd>
+<dt>Options, OptionValues, Presentation</dt><dd>A choice row's choices, what each stands for (such as 60 for a 60 FPS cap), and how it draws them. <code>Auto</code> uses chips for up to four choices and a stepper past that.</dd>
+<dt>DefaultValue</dt><dd>What a player starts with on first launch: a slider's number, 1 for a switch that starts on, or a choice's place in Options counting from 0.</dd>
+<dt>MinValue, MaxValue, StepSize, ValueSuffix, DisplayFractionalDigits</dt><dd>A slider's range and readout. A step of zero is continuous.</dd>
+<dt>KeyMappingName</dt><dd>For a key binding row, the action it binds.</dd>
+</dl>
+<p>A value is an <code>FNVSViewSettingValue</code>. <code>Kind</code> says which field is used: <code>bBoolValue</code>, <code>OptionIndex</code> or <code>Number</code>. Key binding rows carry no value field, because the player's key profile stores bindings.</p>
+
+<h2>Keeping or reverting a change</h2>
+<p>Most settings are <code>Live</code> and take effect when written. Settings that can leave the screen unreadable, such as window mode and resolution, are <code>ConfirmAndRevert</code>. They apply provisionally and go back unless the player keeps them.</p>
+<p>The clock lives in <code>UNVSViewSettingApplySubsystem</code>, a local player subsystem, so closing the screen cannot skip a revert. The window opens on the first provisional change, later changes do not extend it, and it counts down while the game is paused. A revert is an ordinary write of the old value through the source.</p>
+<ol class="flow">
+<li data-title="Player edits">The player changes rows. Each change is held, the row shows the new value and the bar counts the unsaved changes. Nothing is written yet.</li>
+<li data-title="Apply">The player presses Apply. Every held change goes to the apply subsystem, and key binding drafts are saved.</li>
+<li data-title="Live rows write">A <code>Live</code> row is written through <code>SetSettingValue</code> straight away.</li>
+<li data-title="Window opens">A <code>ConfirmAndRevert</code> row first reads and keeps its old value, then writes the new one. A veil asks "Keep these settings?" with a countdown.</li>
+<li data-title="Keep or revert">Keep, or Enter, confirms. Revert, Escape, or the countdown reaching zero writes the old values back.</li>
+</ol>
+<figure class="shot"><img src="img/features/settings-apply.png" alt="The keep these settings prompt counting down over the settings screen"><figcaption>A display change waits for the player to keep it.</figcaption></figure>
+<p>Closing the screen without Apply throws held changes away. Untick <code>bChangesWaitForApply</code> on a copy of the screen to write each change as it is made. A Video change is saved only once it is kept, so if the player quits during the window the next launch puts the kept value back.</p>
+
+<h3>Driving the clock yourself</h3>
+<p>The apply subsystem works without the screen. Its functions are Blueprint callable:</p>
+<dl class="api">
+<dt>void SetValueSource(const TScriptInterface&lt;INVSViewSettingValueSource&gt;&amp; Source)</dt><dd>Where values live. Nothing applies until one is set.</dd>
+<dt>void SetRegistry(UNVSViewSettingRegistry* InRegistry)</dt><dd>Says which apply model each setting uses. Settings it does not describe apply live.</dd>
+<dt>bool ApplyValue(FName SettingId, const FNVSViewSettingValue&amp; Value)</dt><dd>Writes the value. False, and nothing written, when the source is missing, refuses, or cannot read the old value of a confirm and revert setting.</dd>
+<dt>void ConfirmPendingChanges() / void RevertPendingChanges()</dt><dd>Keeps every provisional change, or writes every old value back now.</dd>
+<dt>int32 NumPendingChanges() const / float GetSecondsUntilRevert() const</dt><dd>For a prompt of your own.</dd>
+</dl>
+
+<h2>Key bindings</h2>
+<p>Key bindings are Enhanced Input. The Controls tab lists one row per action in the Engine Settings Setup Definition's <em>Action Set</em>, a <code>UNVSViewActionSet</code>. Point it at your own set to list your game's actions. <code>UNVSViewKeyProfileSubsystem</code> builds the player's bindings into one mapping context added at <em>Context Priority</em>, so your input code reads the actions as usual. Each row captures a key when its chip is clicked, offers Swap or Clear on a clash, and an input test strip on the Controls tab lights each action as it fires. While the screen is open, binding edits go to a draft that Apply saves and closing discards.</p>
+
+<h2>Adding a setting row</h2>
+<p>This example adds a "Damage numbers" switch to the Gameplay tab and keeps every shipped row. It takes two small C++ classes, because the registry and the engine source are where the shipped rows are built.</p>
+
+<h3>1. Describe it</h3>
+<pre><code class="lang-cpp">// MySettingRegistry.h
+#pragma once
+
+#include "Settings/NVSViewEngineSettingRegistry.h"
+
+#include "MySettingRegistry.generated.h"
+
+UCLASS()
+class UMySettingRegistry : public UNVSViewEngineSettingRegistry
+{
+	GENERATED_BODY()
+
+public:
+	UMySettingRegistry();
+};
+
+// MySettingRegistry.cpp
+#include "MySettingRegistry.h"
+
+UMySettingRegistry::UMySettingRegistry()
+{
+	FNVSViewSettingDescription DamageNumbers;
+	DamageNumbers.SettingId = FName(TEXT("Gameplay.DamageNumbers"));
+	DamageNumbers.CategoryId = FName(TEXT("Settings.Gameplay"));
+	DamageNumbers.Kind = ENVSViewSettingKind::Bool;
+	DamageNumbers.ApplyModel = ENVSViewSettingApplyModel::Live;
+	DamageNumbers.Label = NSLOCTEXT("MyGame", "DamageNumbers", "Damage numbers");
+	DamageNumbers.HelpText = NSLOCTEXT("MyGame", "DamageNumbersHelp", "Shows the damage each hit deals");
+	DamageNumbers.DefaultValue = 1.0f;
+	Settings.Add(DamageNumbers);
+}</code></pre>
+
+<h3>2. Store it</h3>
+<p>Subclass the engine source, answer your id, and hand every other id to the base class. This stores the value in <code>UNVSViewSavedSettings</code> next to the plugin's own.</p>
+<pre><code class="lang-cpp">// MySettingsSource.h
+#pragma once
+
+#include "Settings/NVSViewEngineSettingsSource.h"
+
+#include "MySettingsSource.generated.h"
+
+UCLASS()
+class UMySettingsSource : public UNVSViewEngineSettingsSource
+{
+	GENERATED_BODY()
+
+public:
+	virtual bool GetSettingValue_Implementation(FName SettingId, FNVSViewSettingValue&amp; OutValue) override;
+	virtual bool SetSettingValue_Implementation(FName SettingId, const FNVSViewSettingValue&amp; Value) override;
+};
+
+// MySettingsSource.cpp
+#include "MySettingsSource.h"
+
+#include "Settings/NVSViewSavedSettings.h"
+
+namespace
+{
+	const FName DamageNumbersId(TEXT("Gameplay.DamageNumbers"));
+}
+
+bool UMySettingsSource::GetSettingValue_Implementation(FName SettingId, FNVSViewSettingValue&amp; OutValue)
+{
+	if (SettingId != DamageNumbersId)
+	{
+		return Super::GetSettingValue_Implementation(SettingId, OutValue);
+	}
+	if (!UNVSViewSavedSettings::Get().FindValue(SettingId, OutValue))
+	{
+		OutValue.Kind = ENVSViewSettingKind::Bool;
+		OutValue.bBoolValue = true;
+	}
+	return true;
+}
+
+bool UMySettingsSource::SetSettingValue_Implementation(FName SettingId, const FNVSViewSettingValue&amp; Value)
+{
+	if (SettingId != DamageNumbersId)
+	{
+		return Super::SetSettingValue_Implementation(SettingId, Value);
+	}
+	UNVSViewSavedSettings::Get().SetValue(SettingId, Value);
+	UNVSViewSavedSettings::Get().Save();
+	return true;
+}</code></pre>
+<p>Add <code>NVSView</code> and <code>NVSViewSettings</code> to your module's dependencies.</p>
+
+<h3>3. Point the screen at them</h3>
+<ol class="steps">
+<li><strong>Copy the screen</strong> Duplicate <code>/NVSBlackline/Screens/W_SettingsScreen</code> into your content folder.</li>
+<li><strong>Set the registry</strong> In the copy's Class Defaults, set <em>Setting Registry Class</em> to <code>MySettingRegistry</code>.</li>
+<li><strong>Set the source</strong> In <em>View Model Bindings</em>, find the <code>SettingRows</code> binding and set its <em>Source Class</em> to <code>MySettingsSource</code>.</li>
+<li><strong>Route to it</strong> In your own screen registry, point the <code>NVS.View.Screen.SettingsScreen</code> row at your copy. Every button that opens settings, such as the hub's, then opens your copy. See <a href="layers-and-screens.html#replace-a-shipped-screen">Replace a shipped screen</a>.</li>
+</ol>
+
+<h3>4. Read it in gameplay</h3>
+<pre><code class="lang-cpp">FNVSViewSettingValue Value;
+const bool bShowDamage = !UNVSViewSavedSettings::Get().FindValue(FName(TEXT("Gameplay.DamageNumbers")), Value)
+	|| Value.bBoolValue;</code></pre>
+
+<h2>Things to know</h2>
+<ul>
+<li>The Reset button raises <code>Settings.ResetCategory</code> with the category id and drops any held change. With the engine source it restores nothing else, so answer the request in your game if Reset should put defaults back. See <a href="requests.html">Requests</a>.</li>
+<li>In the editor, ending Play restores effects that reach the whole process, so a colour filter tried in play does not tint the editor.</li>
+<li>A setting is never allowed to resize the editor's own window. When Play runs in its own window, display changes apply to that window.</li>
+</ul>
+
+<h2>What you see</h2>
+<p>Open your copy of the settings screen and pick the Gameplay tab. "Damage numbers" sits at the end of the list as a switch. Flip it and press Apply, and the unsaved count drops to zero. Close and reopen the screen and the switch shows the stored value.</p>

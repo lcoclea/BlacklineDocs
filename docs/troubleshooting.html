@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Troubleshooting · Blackline for Unreal Engine</title>
+<meta name="description" content="Fixes for screens showing their empty state, guns with no model in the demo, a missing theme, screens that do not open, stuck input and more, with the log lines that point at them.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="icon" href="assets/mark.svg" type="image/svg+xml">
+<script>try{var t=localStorage.getItem("bl-theme");if(t)document.documentElement.dataset.theme=t;}catch(e){}</script>
+</head>
+<body class="layout-doc">
+<header class="topbar">
+  <button class="menu-toggle" aria-label="Open navigation">☰</button>
+  <a class="brand" href="index.html"><img src="assets/mark.svg" alt=""><span>Blackline</span><em>v1.0.0</em></a>
+  <button class="search-open" aria-label="Search"><span>Search the docs</span><kbd>/</kbd></button>
+  <nav class="top-links">
+    <a href="getting-started.html">Get started</a>
+    <a href="screens.html">Screens</a>
+    <a href="https://github.com/lcoclea/blackline-docs/issues">Support</a>
+    <button class="theme-toggle" aria-label="Switch light or dark theme">◐</button>
+  </nav>
+</header>
+<div class="shell">
+  <aside class="sidebar"><div class="nav-section"><div class="nav-title">Start here</div>
+<a href="index.html">Blackline</a>
+<a href="getting-started.html">Getting started</a>
+<a href="architecture.html">Architecture</a>
+</div>
+<div class="nav-section"><div class="nav-title">Guides</div>
+<a href="interfaces.html">Connecting your game</a>
+<a href="items.html">Items</a>
+<a href="weapons.html">Weapons</a>
+<a href="placing-weapon-parts.html">Placing weapon parts</a>
+<a href="containers.html">Containers</a>
+<a href="context-menu.html">Context menu</a>
+<a href="drag-and-drop.html">Drag and drop</a>
+<a href="equipment.html">Equipment</a>
+<a href="inspect.html">Inspect</a>
+<a href="character-looks.html">Character looks</a>
+<a href="market-and-trading.html">Market and trading</a>
+<a href="raid-loop.html">The raid loop</a>
+<a href="health-and-vitals.html">Health and vitals</a>
+<a href="hideout-and-crafting.html">Hideout and crafting</a>
+<a href="tasks-and-loadouts.html">Tasks and loadouts</a>
+</div>
+<div class="nav-section"><div class="nav-title">Systems</div>
+<a href="layers-and-screens.html">Layers and screens</a>
+<a href="viewmodels.html">Viewmodels</a>
+<a href="theming.html">Theming</a>
+<a href="settings.html">Settings</a>
+<a href="notifications.html">Notifications</a>
+<a href="rendering.html">Rendering</a>
+</div>
+<div class="nav-section"><div class="nav-title">Reference</div>
+<a href="screens.html">Screens</a>
+<a href="components.html">Components</a>
+<a href="source-interfaces.html">Source interfaces</a>
+<a href="requests.html">Requests</a>
+<a href="project-settings.html">Project settings</a>
+</div>
+<div class="nav-section"><div class="nav-title">Help</div>
+<a href="faq.html">FAQ</a>
+<a href="troubleshooting.html" class="active">Troubleshooting</a>
+</div></aside>
+  <main class="content">
+    <article>
+      <div class="eyebrow">Help</div>
+      <h1>Troubleshooting</h1>
+      <p class="lead">Most problems with Blackline leave a line in the Output Log. Start there, find the symptom below, and apply the fix.</p>
+
+<h2 id="log">Read the log first<a class="anchor" href="#log" aria-label="Link to this section">#</a></h2>
+<p>The plugin logs on two categories. <code>LogNVSView</code> covers layers, screens, sources and settings. <code>LogNVSViewRender</code> covers icons and the character preview. Warnings show at the default verbosity. To see routine messages too, type these in the console and filter the Output Log on <code>NVSView</code>:</p>
+<pre><code class="lang-console">Log LogNVSView Verbose
+Log LogNVSViewRender Verbose</code></pre>
+
+<h2 id="empty-state">A screen shows its empty state<a class="anchor" href="#empty-state" aria-label="Link to this section">#</a></h2>
+<p>A card such as <em>No traders yet</em> over a screen means the screen found nothing to show. That is what a project with no content looks like, and nothing is broken. Outside Shipping builds, the accent-coloured line under the title names what to create.</p>
+<table>
+<thead><tr><th>Screen</th><th>What to add</th></tr></thead>
+<tbody>
+<tr><td>Traders, Trade</td><td>Trader Definitions. For the trade screen, give the trader a <em>Shelf</em>.</td></tr>
+<tr><td>Market</td><td>Item Definitions with a price, or your own market source.</td></tr>
+<tr><td>Hideout, Workbench, Generator</td><td>Station Definitions with levels and recipes, including one for the generator.</td></tr>
+<tr><td>Location select</td><td>Raid Map Definitions.</td></tr>
+<tr><td>Skills, Skill tree</td><td>Skill Definitions or Perk Definitions, with Perk Branch Definitions.</td></tr>
+<tr><td>Task log</td><td>Task Definitions given to a trader. A task shows once the player takes it.</td></tr>
+<tr><td>Loadouts</td><td>Loadout Definitions.</td></tr>
+<tr><td>Character</td><td>Wardrobe Piece Definitions, including a body piece.</td></tr>
+<tr><td>Stash</td><td>An Inventory component on the player's pawn, with starting items or a starting loadout.</td></tr>
+<tr><td>Debrief</td><td>A call to <em>End Raid</em> on the raid session before the debrief opens.</td></tr>
+</tbody>
+</table>
+<p>If you have added the assets and the card still shows:</p>
+<ul>
+<li>Check the asset is really of that class. Open it and look at the class name at the top of the Details panel.</li>
+<li>Check the asset's list is not empty. A Station Definition with no recipes still leaves the workbench empty.</li>
+<li>For the stash, check the Inventory component is on the pawn the player controls, and that the screen's <em>Shows Player Inventory</em> is still ticked.</li>
+<li>If you edited a screen's <em>Empty When Bindings</em>, look for <code>... decides its empty state by the binding '...', which it does not hold, so it never shows one.</code> The id must match a binding in the same screen's <em>View Model Bindings</em>.</li>
+</ul>
+<p>To change the words or turn an empty state off, see <a href="screens.html#change-an-empty-state">Set or change an empty state</a>.</p>
+
+<h2 id="demo-guns">Guns have no model in the demo project<a class="anchor" href="#demo-guns" aria-label="Link to this section">#</a></h2>
+<p>The demo's guns, magazines, scope and grenade use models from the free FPS Weapon Bundle on Fab. The project zip leaves it out, because its licence does not allow passing it on. Without it, those items have no rendered picture and the first-person gun is missing.</p>
+<ol class="steps">
+<li><strong>Get the bundle</strong> Add the FPS Weapon Bundle to your Fab library.</li>
+<li><strong>Add it to the demo project</strong> Add it from Fab into <code>BlacklineDemo</code> so it lands at <code>/Game/FPS_Weapon_Bundle</code>. The item definitions look for it at exactly that path.</li>
+<li><strong>Restart the editor</strong> Then press Play and open the stash.</li>
+</ol>
+<p>Until then, <code>LogNVSViewRender</code> warns <code>Look asset ... did not load; it is left out.</code> once for each missing mesh. The playable Windows build already has the bundle cooked in.</p>
+
+<h2 id="style">Text is in the engine's default font, or the theme looks wrong<a class="anchor" href="#style" aria-label="Link to this section">#</a></h2>
+<p>Every component takes its colours, sizes and font from a style asset. When a component's own <code>Style</code> is unset, it uses <code>StyleAsset</code> on the View Setup Definition in force. If that does not load, components fall back to built-in colours with no font, so text draws in Slate's default font, and <code>LogNVSView</code> warns <code>No style asset loaded from '...'</code>.</p>
+<ol class="steps">
+<li><strong>Find the setup in force</strong> A View Setup Definition in your project wins over the plugin's <code>DA_BlacklineSetup</code>. If you made one, check its <code>StyleAsset</code> names an asset that exists. The default is <code>/NVSBlackline/DA_BlacklineStyle</code>.</li>
+<li><strong>Check the font</strong> Open the style asset and check its font is set. The shipped one uses <code>/NVSBlackline/Fonts/F_JetBrainsMono</code>.</li>
+<li><strong>Check overrides</strong> A <code>Style</code> set on a screen or component wins over the setup. Clear it to use the setup's.</li>
+</ol>
+
+<h2 id="character-preview">The character is a mannequin of basic shapes, or empty<a class="anchor" href="#character-preview" aria-label="Link to this section">#</a></h2>
+<h3 id="a-figure-made-of-cylinders-and-a-sphere">A figure made of cylinders and a sphere<a class="anchor" href="#a-figure-made-of-cylinders-and-a-sphere" aria-label="Link to this section">#</a></h3>
+<p>Your project has no Wardrobe Piece Definitions with a body piece, so the figure falls back to a mannequin of basic shapes. The example characters are not part of the plugin. They ship with the Blackline Demo project.</p>
+<ul>
+<li>Create Wardrobe Piece Definitions for your own character, including a body piece. See <a href="character-looks.html">Character looks</a>.</li>
+<li>Or copy the demo's <code>Wardrobe</code> and <code>Examples</code> folders into your project, keeping their paths.</li>
+</ul>
+<h3 id="nothing-at-all">Nothing at all<a class="anchor" href="#nothing-at-all" aria-label="Link to this section">#</a></h3>
+<ul>
+<li>A mesh or material in the look did not load. <code>LogNVSViewRender</code> warns <code>Look asset ... did not load; it is left out.</code></li>
+<li>The preview is drawn by the icon renderer, which is not created on a dedicated server.</li>
+</ul>
+<p>See <a href="rendering.html">Rendering</a>.</p>
+
+<h2 id="screen-missing">A screen does not open<a class="anchor" href="#screen-missing" aria-label="Link to this section">#</a></h2>
+<h3 id="from-show-screen-by-tag-or-show-screen">From Show Screen By Tag or Show Screen<a class="anchor" href="#from-show-screen-by-tag-or-show-screen" aria-label="Link to this section">#</a></h3>
+<table>
+<thead><tr><th>Log line on LogNVSView</th><th>Fix</th></tr></thead>
+<tbody>
+<tr><td><code>ShowScreenByTag: no screen is registered under '...'.</code></td><td>The tag has no row in the screen registry in force. If you made your own registry, copy every row you still need from <code>DA_BlacklineScreenRegistry</code>.</td></tr>
+<tr><td><code>ShowScreenByTag: '...' declares no layer.</code></td><td>The widget in that registry row has no layer. Set a <em>Layer Override</em> on the row, or <em>Layer Tag</em> in the widget's class defaults.</td></tr>
+<tr><td><code>ShowScreen: ... declares no layer.</code></td><td>Set <em>Layer Tag</em> in the screen's class defaults.</td></tr>
+<tr><td><code>CreateLayerStack needs a local player.</code></td><td>The player controller you passed has no local player, such as a server's copy of a remote player. Call it on the owning client.</td></tr>
+<tr><td><code>CreateLayerStack has no layout asset.</code></td><td>Set <em>Layout Asset</em> on your View Setup Definition, or pass a layout to <em>Create Layer Stack</em>.</td></tr>
+</tbody>
+</table>
+<h3 id="from-a-button-on-another-screen">From a button on another screen<a class="anchor" href="#from-a-button-on-another-screen" aria-label="Link to this section">#</a></h3>
+<table>
+<thead><tr><th>Log line on LogNVSView</th><th>Fix</th></tr></thead>
+<tbody>
+<tr><td><code>cannot open '...': it names no class that will load.</code></td><td>The destination was moved or deleted. Re-pick it in the screen's <em>Menu Destinations</em> or tab entry.</td></tr>
+<tr><td><code>cannot open '...': there is no layer subsystem for its player.</code></td><td>The screen has no local player. Open screens through the screen library so they get one.</td></tr>
+<tr><td><code>cannot open '...': that class declares no layer.</code></td><td>Set <em>Layer Tag</em> in the destination's class defaults.</td></tr>
+<tr><td><code>... sends '...' to a screen and its tree has no button of that name.</code></td><td>A <em>Menu Destinations</em> entry names a button the Widget Blueprint no longer has. Restore the button's name.</td></tr>
+<tr><td><code>... goes back from '...' and its tree has no button of that name.</code></td><td>The same for <em>Back Button Names</em>.</td></tr>
+</tbody>
+</table>
+
+<h2 id="empty-panels">A panel stays blank after you set your own source<a class="anchor" href="#empty-panels" aria-label="Link to this section">#</a></h2>
+<table>
+<thead><tr><th>Log line on LogNVSView</th><th>Cause and fix</th></tr></thead>
+<tbody>
+<tr><td><code>...'s binding '...' names a ... its ... does not take: it will show nothing.</code></td><td>Your source does not implement the interface that binding reads. In a Blueprint, add the interface under <em>Class Settings &gt; Implemented Interfaces</em>. See <a href="interfaces.html">Interfaces</a>.</td></tr>
+<tr><td><code>... activated with no viewmodel registry: it will show nothing.</code></td><td>The screen has no local player. Open it through the screen library.</td></tr>
+<tr><td><code>Resolve of '...' as ... refused: it is already resolved as ...</code></td><td>Two screens use the same binding id with different viewmodel classes. Give one of them another binding id.</td></tr>
+<tr><td><code>... fills the line '...' from '...', which publishes no '...' a line can draw.</code></td><td>A text line reads a field or meter id your source does not publish. Publish that id from your source, or change the line's entry in the screen's <em>Readout Bindings</em>.</td></tr>
+<tr><td><code>... fills '...' and its tree has no widget of that name.</code></td><td>The Widget Blueprint lost a widget the screen fills. Restore its name.</td></tr>
+</tbody>
+</table>
+<p>If nothing is logged and the values are stale, your source changed after the screen last read it. Call <em>Refresh Source</em> with your source whenever its values change, as the demo's <code>BPC_Vitals</code> does.</p>
+
+<h2 id="input">Input stays in menu mode after the last screen closes<a class="anchor" href="#input" aria-label="Link to this section">#</a></h2>
+<p>Each layer has its own input config, and the highest occupied layer that decides input wins. When every layer is empty, the plugin changes nothing, so restoring game input is up to your game.</p>
+<ul>
+<li>The simplest fix is to keep a HUD screen such as <code>W_RaidHUD</code> open on the Game layer. Its layer puts the game back in control when a menu above it closes.</li>
+<li>Or, in Blueprint, call <em>Set Input Mode Game Only</em> and hide the cursor after you close the last menu with <em>Close Screen By Tag</em> or <em>Close Top Screen</em>.</li>
+</ul>
+<p>In C++, <code>UNVSViewLayerSubsystem::OnLayerActivationChanged()</code> fires with an empty tag when no layer decides input any more.</p>
+
+<h2 id="back">Escape closes the wrong thing, or nothing<a class="anchor" href="#back" aria-label="Link to this section">#</a></h2>
+<ul>
+<li>Escape, and the other keys in <code>BackKeys</code> on the Engine Settings Setup Definition, close the active screen of the topmost layer that shows one.</li>
+<li>Screens with <em>Ignores Back</em> are passed over. The raid HUD and the notifications have it set, so Escape goes to the screen below them.</li>
+<li>A screen can handle Back itself first. Screens clear a selected tile on the first press, and the settings screen reverts a pending display change while its keep prompt is up.</li>
+<li>While a settings dropdown is open or a key-bind row is listening, the back keys go to that widget.</li>
+<li>The raid inventory also closes on the keys in its <em>Close Keys</em>, so the key that opens it closes it too.</li>
+</ul>
+
+<h2 id="raid">The raid loop does not go where you expect<a class="anchor" href="#raid" aria-label="Link to this section">#</a></h2>
+<ul>
+<li><strong>The raid map's level does not open.</strong> The plugin never loads levels. The deploy queue pushes the raid HUD and calls <em>Begin Raid</em>, and your game opens the level of the chosen map. <em>Get Selected Raid Map</em> and <em>Get Raid Map Definition</em> give you its <em>Level</em>.</li>
+<li><strong>Interacting with a crate shows nothing to loot.</strong> The actor passed to <em>Open Loot Screen</em> needs an Inventory component. With no owner, the screen shows the player's gear alone.</li>
+<li><strong>The debrief is empty.</strong> Call <em>End Raid</em> on the raid session before the debrief opens.</li>
+<li><strong>Everything was lost on death.</strong> Missing in action forfeits everything carried except what the Inventory component's <em>Kept On Death</em> slots hold. Add the secure case slot there.</li>
+</ul>
+
+<h2 id="notifications">A notification never goes away<a class="anchor" href="#notifications" aria-label="Link to this section">#</a></h2>
+<p>A payload with a <code>Duration</code> of zero or less stays until it is dismissed. Call <em>Dismiss</em> on the notification subsystem with its tag, or <em>Dismiss All</em>. Give every other payload a positive duration. The default is 4 seconds. See <a href="notifications.html">Notifications</a>.</p>
+
+<h2 id="hideout">The hideout does not do what you expect<a class="anchor" href="#hideout" aria-label="Link to this section">#</a></h2>
+<ul>
+<li><strong>The upgrade button says <em>Load the parts</em>.</strong> The next level lists items in its <em>Parts</em>, and not all of them are loaded yet. Drag each item from the stash onto its slot under the level. The count on the button, such as <code>1 / 2</code>, says how many are in. If the stash does not hold enough, buy or find the rest. Leave <em>Parts</em> empty on a level that should cost only cash.</li>
+<li><strong>The upgrade button says <em>Not enough cash</em>.</strong> Every part is loaded but the session wallet is short of the level's <em>Cost</em>. Sell something or hand in a task, then come back. The loaded parts stay loaded.</li>
+<li><strong>Crafts stopped and the bench says <code>NO POWER</code>.</strong> The generator is out of fuel. Open the generator and press <em>Add fuel</em>, or drag a fuel can from the stash onto an empty slot of the tank. Paused crafts carry on from where they stopped. To run a hideout without fuel at all, set the generator's <em>Hours Per Can</em> to 0.</li>
+<li><strong><em>Add fuel</em> reads <em>No fuel in the stash</em>.</strong> The stash holds none of the generator's <em>Fuel Item</em>. Check that <em>Fuel Item</em> names the same Item Definition the player picks up or buys.</li>
+<li><strong><em>Add fuel</em> reads <em>Every slot is full</em>.</strong> Every slot holds some fuel. A part can counts as full and cannot be topped up, so wait for it to burn out, or upgrade the generator for more <em>Fuel Slots</em>.</li>
+<li><strong>Fuel never goes down.</strong> Fuel burns only while a craft is running. If it still stays put during a craft, the generator's <em>Hours Per Can</em> is 0, which never burns.</li>
+<li><strong>A new player's tank is empty.</strong> The generator's <em>Starting Fuel</em> list is empty. Add one entry per slot, such as <code>1</code> for a full can.</li>
+<li><strong>Worn trousers and the wardrobe's trousers both show on the figure.</strong> Worn clothing is drawn on top of the wardrobe and does not hide it. Dress the wardrobe to match, for example with a starting outfit that has no trousers, or a piece in that slot that sits under the worn item. See <a href="character-looks.html#worn-gear-on-the-body">Character looks</a>.</li>
+</ul>
+
+<h2 id="by-design">Things that are not bugs<a class="anchor" href="#by-design" aria-label="Link to this section">#</a></h2>
+<ul>
+<li><strong>A bench refuses to start a craft right after an upgrade.</strong> It is down for its level's <em>Downtime</em>. The bench screen shows when it is back.</li>
+<li><strong>A second player sees nothing of the first player's inventory.</strong> The Inventory component does not replicate. Blackline is single player as shipped.</li>
+<li><strong>Only the character screen's figure moves.</strong> Every other preview is still on purpose, and none zooms or swoops.</li>
+</ul>
+
+<h2 id="still-stuck">Still stuck<a class="anchor" href="#still-stuck" aria-label="Link to this section">#</a></h2>
+<p>Check the <a href="faq.html">FAQ</a>, then report the problem with the <code>LogNVSView</code> lines from the moment it happens.</p>
+      <nav class="pager"><a class="prev" href="faq.html"><span>Previous</span>FAQ</a></nav>
+    </article>
+  </main>
+  <aside class="toc"><div class="toc-title">On this page</div><nav></nav></aside>
+</div>
+<div class="search-panel" hidden>
+  <div class="search-box">
+    <input type="search" placeholder="Search guides, screens, classes…" aria-label="Search">
+    <div class="search-results"></div>
+    <div class="search-hint"><kbd>↑</kbd><kbd>↓</kbd> to move, <kbd>Enter</kbd> to open, <kbd>Esc</kbd> to close</div>
+  </div>
+</div>
+<div class="lightbox" hidden><img alt=""><div class="lightbox-caption"></div></div>
+<script src="assets/search-index.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

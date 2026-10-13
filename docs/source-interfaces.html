@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source interfaces · Blackline for Unreal Engine</title>
+<meta name="description" content="The nine interfaces Blackline&#x27;s screens read, with every function, struct field and the order a screen picks its source in.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="icon" href="assets/mark.svg" type="image/svg+xml">
+<script>try{var t=localStorage.getItem("bl-theme");if(t)document.documentElement.dataset.theme=t;}catch(e){}</script>
+</head>
+<body class="layout-doc">
+<header class="topbar">
+  <button class="menu-toggle" aria-label="Open navigation">☰</button>
+  <a class="brand" href="index.html"><img src="assets/mark.svg" alt=""><span>Blackline</span><em>v1.0.0</em></a>
+  <button class="search-open" aria-label="Search"><span>Search the docs</span><kbd>/</kbd></button>
+  <nav class="top-links">
+    <a href="getting-started.html">Get started</a>
+    <a href="screens.html">Screens</a>
+    <a href="https://github.com/lcoclea/blackline-docs/issues">Support</a>
+    <button class="theme-toggle" aria-label="Switch light or dark theme">◐</button>
+  </nav>
+</header>
+<div class="shell">
+  <aside class="sidebar"><div class="nav-section"><div class="nav-title">Start here</div>
+<a href="index.html">Blackline</a>
+<a href="getting-started.html">Getting started</a>
+<a href="architecture.html">Architecture</a>
+</div>
+<div class="nav-section"><div class="nav-title">Guides</div>
+<a href="interfaces.html">Connecting your game</a>
+<a href="items.html">Items</a>
+<a href="weapons.html">Weapons</a>
+<a href="placing-weapon-parts.html">Placing weapon parts</a>
+<a href="containers.html">Containers</a>
+<a href="context-menu.html">Context menu</a>
+<a href="drag-and-drop.html">Drag and drop</a>
+<a href="equipment.html">Equipment</a>
+<a href="inspect.html">Inspect</a>
+<a href="character-looks.html">Character looks</a>
+<a href="market-and-trading.html">Market and trading</a>
+<a href="raid-loop.html">The raid loop</a>
+<a href="health-and-vitals.html">Health and vitals</a>
+<a href="hideout-and-crafting.html">Hideout and crafting</a>
+<a href="tasks-and-loadouts.html">Tasks and loadouts</a>
+</div>
+<div class="nav-section"><div class="nav-title">Systems</div>
+<a href="layers-and-screens.html">Layers and screens</a>
+<a href="viewmodels.html">Viewmodels</a>
+<a href="theming.html">Theming</a>
+<a href="settings.html">Settings</a>
+<a href="notifications.html">Notifications</a>
+<a href="rendering.html">Rendering</a>
+</div>
+<div class="nav-section"><div class="nav-title">Reference</div>
+<a href="screens.html">Screens</a>
+<a href="components.html">Components</a>
+<a href="source-interfaces.html" class="active">Source interfaces</a>
+<a href="requests.html">Requests</a>
+<a href="project-settings.html">Project settings</a>
+</div>
+<div class="nav-section"><div class="nav-title">Help</div>
+<a href="faq.html">FAQ</a>
+<a href="troubleshooting.html">Troubleshooting</a>
+</div></aside>
+  <main class="content">
+    <article>
+      <div class="eyebrow">Reference</div>
+      <h1>Source interfaces</h1>
+      <p class="lead">This is the full list behind <a href="interfaces.html">Connecting your game</a>: the nine interfaces the screens read, the order a screen picks its source in, and every field of the structs they return. Read the guide first. You only need this page for a value the guide does not cover, or to write a source in C++.</p>
+
+<h2 id="how-a-screen-gets-its-data">How a screen gets its data<a class="anchor" href="#how-a-screen-gets-its-data" aria-label="Link to this section">#</a></h2>
+<p>A screen never reads your game's types. Each of its bindings asks a source for plain structs, such as a list of meters or a container's items, and a viewmodel publishes them to the widgets. Every binding names a built-in source class, such as <code>UNVSViewVitals</code> for the raid HUD's vitals, and your object stands in for that class.</p>
+
+<h2 id="which-source-a-binding-uses">Which source a binding uses<a class="anchor" href="#which-source-a-binding-uses" aria-label="Link to this section">#</a></h2>
+<p>A screen binding resolves its source in this order. The first one found wins:</p>
+<ol>
+<li>An object passed to <code>SetBindingSource</code> on that open screen.</li>
+<li>The binding's <code>SourceObject</code>, set on a screen's class defaults.</li>
+<li>An object registered with <strong>Set Screen Source</strong> for the binding's built-in class.</li>
+<li>A Screen Source Definition that replaces the binding's built-in class.</li>
+<li>A new instance of the binding's built-in <code>SourceClass</code>.</li>
+</ol>
+<p><code>SetBindingSource</code> is Blueprint callable on any screen. Use it to point one binding of one open screen at a live object. <code>SetInventoryOwner</code> does the same for every container binding at once.</p>
+
+<h2 id="the-nine-interfaces">The nine interfaces<a class="anchor" href="#the-nine-interfaces" aria-label="Link to this section">#</a></h2>
+<p>All nine live in the <code>NVSView</code> module under <code>Public/Interfaces</code>. Each is <code>Blueprintable</code> and every function is a <code>BlueprintNativeEvent</code>, so a Blueprint can implement it from Class Settings. The default implementation returns nothing, and a binding whose source returns nothing shows nothing.</p>
+<table>
+<thead><tr><th>Interface</th><th>Read by</th><th>Built-in sources</th></tr></thead>
+<tbody>
+<tr><td><a href="#invsviewcontainersource"><code>INVSViewContainerSource</code></a></td><td><code>UNVSViewContainerViewModel</code></td><td><code>UNVSViewItemGrid</code> and its subclasses, <code>UNVSViewLootBody</code>, <code>UNVSViewCrewGear</code>, <code>UNVSViewInventorySource</code></td></tr>
+<tr><td><a href="#invsviewfiltersource"><code>INVSViewFilterSource</code></a></td><td><code>UNVSViewFilterViewModel</code></td><td><code>UNVSViewFilterOptions</code>, <code>UNVSViewLootTabs</code>, <code>UNVSViewWardrobeFilter</code>, <code>UNVSViewInventorySource</code></td></tr>
+<tr><td><a href="#invsviewlooksource"><code>INVSViewLookSource</code></a></td><td>The icon renderer and the character preview</td><td><code>UNVSViewCharacterLooks</code></td></tr>
+<tr><td><a href="#invsviewmapmarkersource"><code>INVSViewMapMarkerSource</code></a></td><td><code>UNVSViewMapMarkerListViewModel</code></td><td><code>UNVSViewMapMarkers</code></td></tr>
+<tr><td><a href="#invsviewmarketsource"><code>INVSViewMarketSource</code></a></td><td><code>UNVSViewMarketViewModel</code></td><td><code>UNVSViewMarketBoard</code></td></tr>
+<tr><td><a href="#invsviewmetersource"><code>INVSViewMeterSource</code></a></td><td><code>UNVSViewMeterSetViewModel</code></td><td><code>UNVSViewMeterList</code> and its subclasses, plus the loadout, body zone, trader job, player profile and crew gear sources</td></tr>
+<tr><td><a href="#invsviewrecordsource"><code>INVSViewRecordSource</code></a></td><td><code>UNVSViewRecordViewModel</code>, <code>UNVSViewRecordListViewModel</code></td><td><code>UNVSViewRecordList</code> and its many subclasses</td></tr>
+<tr><td><a href="#invsviewsettingvaluesource"><code>INVSViewSettingValueSource</code></a></td><td><code>UNVSViewSettingListViewModel</code>, <code>UNVSViewSettingApplySubsystem</code></td><td><code>UNVSViewSettingValues</code>, and <code>UNVSViewEngineSettingsSource</code> in <code>NVSViewSettings</code></td></tr>
+<tr><td><a href="#invsviewslotsetsource"><code>INVSViewSlotSetSource</code></a></td><td><code>UNVSViewSlotSetViewModel</code></td><td><code>UNVSViewWornSlots</code>, <code>UNVSViewLootBody</code>, <code>UNVSViewCrewGear</code>, <code>UNVSViewInventorySource</code></td></tr>
+</tbody>
+</table>
+<p>In the Class Settings picker, each one appears under its Blueprint name, such as <em>NVS View Meter Source</em> for <code>INVSViewMeterSource</code>.</p>
+
+<h3 id="the-context-id">The context id<a class="anchor" href="#the-context-id" aria-label="Link to this section">#</a></h3>
+<p>Every function takes an <code>FGuid</code>, named <code>SetId</code>, <code>ContainerId</code>, <code>RecordId</code> and so on. It tells a source that serves several sets which one is wanted. A source that serves one set, like <code>BPC_Vitals</code>, ignores it.</p>
+<ul>
+<li>For a binding as a screen opens, the id is made from the binding id with <code>FGuid::NewDeterministicGuid</code>, so <code>Stash</code> always gives the same id.</li>
+<li>When a screen asks about one record, such as the trader the player picked, the id is made from that record's id. <code>UNVSViewDefinitionLibrary::ContextFor(FName RecordId)</code> returns the same value in C++.</li>
+</ul>
+
+<h3 id="when-a-screen-reads-again">When a screen reads again<a class="anchor" href="#when-a-screen-reads-again" aria-label="Link to this section">#</a></h3>
+<p>A screen reads every binding when it opens, again straight after it raises a request, and whenever <strong>Refresh Source</strong> names its source. <code>RefreshViewModels()</code> on a screen re-reads all of its bindings and is Blueprint callable. The market screen also asks its market source once a second.</p>
+
+<h2 id="invsviewcontainersource">INVSViewContainerSource<a class="anchor" href="#invsviewcontainersource" aria-label="Link to this section">#</a></h2>
+<p>A grid container's description and its items. Each open container gets its own viewmodel, told apart by the context.</p>
+<dl class="api">
+<dt>bool DescribeContainer(const FGuid&amp; ContainerId, FNVSViewContainerDescription&amp; OutDescription)</dt>
+<dd>Fill the container's label, name and size. Return false for an unknown container and leave <code>OutDescription</code> untouched.</dd>
+<dt>void GetContainerItems(const FGuid&amp; ContainerId, TArray&lt;FNVSViewContainerItem&gt;&amp; OutItems)</dt>
+<dd>Fill the items. Reset <code>OutItems</code> first so an unknown container reads as empty.</dd>
+</dl>
+<table>
+<thead><tr><th>FNVSViewContainerDescription</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td><code>FText Label</code>, <code>FText ContainerName</code>, <code>FText NoteText</code></td><td>The container's kind (such as BACKPACK), its name and a note line.</td></tr>
+<tr><td><code>FIntPoint GridSize</code></td><td>Size in cells.</td></tr>
+<tr><td><code>bool bSearched</code></td><td>False veils the contents until the player searches. Defaults to true.</td></tr>
+<tr><td><code>bool bOnBody</code></td><td>The container is on a body, which shortens the search.</td></tr>
+<tr><td><code>bool bLocked</code></td><td>Locked shut, like a secure case on a body. Contents are hidden and nothing goes in or out.</td></tr>
+<tr><td><code>FGameplayTag Place</code></td><td>Where its items sit, under <code>NVS.View.Place</code>, which decides their menu rows. Empty counts as the stash.</td></tr>
+<tr><td><code>FGameplayTagQuery Accepts</code>, <code>FText RefusalText</code></td><td>Which items it takes, and what the player is told when it refuses one. Empty takes anything.</td></tr>
+</tbody>
+</table>
+<table>
+<thead><tr><th>FNVSViewContainerItem</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td><code>FName ItemId</code></td><td>Your handle for the item. Requests name it.</td></tr>
+<tr><td><code>FIntPoint TopLeft</code>, <code>FIntPoint Footprint</code></td><td>Top-left cell, and size in cells with rotation already applied.</td></tr>
+<tr><td><code>FText DisplayName</code>, <code>FText TagText</code>, <code>FText SecondaryValue</code></td><td>The name, the short tag and the figure under the name. Empty fields are not drawn.</td></tr>
+<tr><td><code>ENVSViewColorRole TintRole</code></td><td>The tile's tint.</td></tr>
+<tr><td><code>bool bQuestLit</code>, <code>bool bUnaffordable</code></td><td>An item an active task wants, and one the player cannot afford.</td></tr>
+<tr><td><code>FGameplayTagContainer ItemTags</code></td><td>The item's own tags, which categories, slots and containers match against.</td></tr>
+<tr><td><code>FGameplayTag FitsSlot</code>, <code>FGameplayTag BlocksSlot</code></td><td>The doll slot it is worn in, and the slot it rules out while worn. Both under <code>NVS.View.Slot</code>.</td></tr>
+<tr><td><code>TSoftObjectPtr&lt;UTexture&gt; RenderArt</code></td><td>A picture for the inspect window.</td></tr>
+<tr><td><code>bool bUsable</code></td><td>Offers a Use row. Your game applies the effect.</td></tr>
+<tr><td><code>FName InsideId</code></td><td>The container this item opens, such as a pack. None when it opens nothing.</td></tr>
+<tr><td><code>FGameplayTag AttachKind</code></td><td>The attachment kind it is, such as <code>Attachment.Optic</code>. Empty for an item that is not an attachment.</td></tr>
+<tr><td><code>int64 Price</code>, <code>int32 Count</code></td><td>What one costs or fetches in whole currency units, and how many are stacked here.</td></tr>
+</tbody>
+</table>
+<p>Most games use the plugin's Inventory component, which needs neither this interface nor the slot set one. Implement both only for an item system of your own, and hand the screen your object with <code>SetBindingSource</code>. See <a href="containers.html">Containers</a>.</p>
+
+<h2 id="invsviewfiltersource">INVSViewFilterSource<a class="anchor" href="#invsviewfiltersource" aria-label="Link to this section">#</a></h2>
+<p>The options of a filter rail, such as the stash categories. The selected option and the search text belong to the viewmodel and are never asked of the source.</p>
+<dl class="api">
+<dt>bool GetFilterOptions(const FGuid&amp; SetId, TArray&lt;FNVSViewFilterOption&gt;&amp; OutOptions)</dt>
+<dd>Fill the options. Return false when nothing narrows this set. Empty <code>OutOptions</code> either way.</dd>
+</dl>
+<table>
+<thead><tr><th>FNVSViewFilterOption</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td><code>FName OptionId</code></td><td>The option's id.</td></tr>
+<tr><td><code>FText Label</code></td><td>The caption, or the tooltip when an icon is drawn.</td></tr>
+<tr><td><code>FName IconId</code></td><td>The icon the rail draws. None shows the label.</td></tr>
+<tr><td><code>int32 MatchCount</code></td><td>How many entries the option matches. Negative paints no count.</td></tr>
+<tr><td><code>FGameplayTagContainer MatchTags</code></td><td>Items carrying any of these tags, or a tag below them, match. Empty matches everything, like an All option.</td></tr>
+</tbody>
+</table>
+<p>The stash's categories come from your Item Category Definitions, so most games never implement this. See <a href="items.html">Items</a>.</p>
+
+<h2 id="invsviewlooksource">INVSViewLookSource<a class="anchor" href="#invsviewlooksource" aria-label="Link to this section">#</a></h2>
+<p>What items and characters look like, so the renderer can build them in its studio world.</p>
+<dl class="api">
+<dt>bool DescribeItemLook(FName ItemId, FNVSViewLook&amp; OutLook)</dt>
+<dd>Describe the item a tile or slot names. Return false when the item has no look.</dd>
+<dt>bool DescribeCharacterLook(const FGuid&amp; ContextId, FNVSViewLook&amp; OutLook)</dt>
+<dd>Describe a character. <code>ContextId</code> is the screen's viewmodel context, so a crewmate's card asks for that crewmate.</dd>
+</dl>
+<p>An item id that names an Item Definition is drawn from that definition's <em>Look</em> without asking the source, so items authored as data need no look source at all. The built-in <code>UNVSViewCharacterLooks</code> dresses the figure from your Wardrobe Piece Definitions, or shows a mannequin of basic shapes without them.</p>
+<p>The renderer makes its look source once, when the game instance starts, from the <code>UNVSViewCharacterLooks</code> slot. Replace it with a Screen Source Definition whose <em>Replaces</em> is <code>NVSViewCharacterLooks</code>. From C++ you can also swap it at run time with <code>UNVSViewIconRenderer::Get(WorldContext)-&gt;SetLookSource(Source)</code>.</p>
+<div class="callout warn">Live figures rebuild after a wardrobe or equipment request only when the look source derives from <code>UNVSViewDataAsset</code> and its <code>ApplyRequest</code> returns true. Derive your look source from <code>UNVSViewCharacterLooks</code> or <code>UNVSViewDataAsset</code> if you use the character screen. In C++, <code>UNVSViewIconRenderer::RefreshFigures()</code> rebuilds every live figure after a change made outside a request.</div>
+<p>See <a href="rendering.html">Rendering</a> and <a href="character-looks.html">Character looks</a> for what a look holds.</p>
+
+<h2 id="invsviewmapmarkersource">INVSViewMapMarkerSource<a class="anchor" href="#invsviewmapmarkersource" aria-label="Link to this section">#</a></h2>
+<p>The markers on a map plate. The details behind a selected marker come from a record source, asked under that marker's context.</p>
+<dl class="api">
+<dt>bool GetMapMarkers(const FGuid&amp; PlateId, TArray&lt;FNVSViewMapMarker&gt;&amp; OutMarkers)</dt>
+<dd>Fill the markers. Return false when nothing is marked. Empty <code>OutMarkers</code> either way.</dd>
+</dl>
+<table>
+<thead><tr><th>FNVSViewMapMarker</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td><code>FName MarkerId</code></td><td>The marker's id.</td></tr>
+<tr><td><code>FVector2D Position</code></td><td>Position as a 0 to 1 fraction of the plate on each axis, so it holds at any plate size. Not clamped.</td></tr>
+<tr><td><code>FText Label</code>, <code>FText StatusText</code></td><td>The marker's name and an optional status line.</td></tr>
+<tr><td><code>ENVSViewColorRole TintRole</code></td><td>The marker's colour.</td></tr>
+<tr><td><code>bool bSelectable</code></td><td>Whether a click selects it. Informational markers such as exits leave it false.</td></tr>
+</tbody>
+</table>
+<p>The location screen places one point per Raid Map Definition, so a game with raid maps authored as data does not need this.</p>
+
+<h2 id="invsviewmarketsource">INVSViewMarketSource<a class="anchor" href="#invsviewmarketsource" aria-label="Link to this section">#</a></h2>
+<p>Everything the market screen shows, in one struct. The screen asks once a second. Types are in <code>Market/NVSViewMarketTypes.h</code>.</p>
+<dl class="api">
+<dt>bool DescribeMarket(const FGuid&amp; ContextId, FNVSViewMarket&amp; OutMarket)</dt>
+<dd>Fill the market. A false return empties the screen.</dd>
+</dl>
+<table>
+<thead><tr><th>FNVSViewMarket</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td><code>TArray&lt;FNVSViewListing&gt; Listings</code></td><td>Listings on the board. Each listing's state is <code>Open</code>, <code>Leading</code>, <code>Outbid</code>, <code>Ended</code> or <code>Won</code>.</td></tr>
+<tr><td><code>TArray&lt;FNVSViewOwnListing&gt; MyListings</code></td><td>The player's listings, each <code>Live</code>, <code>Sold</code> or <code>Expired</code>.</td></tr>
+<tr><td><code>TArray&lt;FNVSViewMarketType&gt; Catalogue</code></td><td>Every item type the market knows.</td></tr>
+<tr><td><code>FNVSViewMarketWallet Wallet</code></td><td>Cash, escrow, money to collect, listing slots and the fee rates.</td></tr>
+</tbody>
+</table>
+<p>The built-in <code>UNVSViewMarketBoard</code> runs a market offline on a clock and answers every market request itself. A networked market replaces it. See <a href="market-and-trading.html">Market and trading</a>.</p>
+
+<h2 id="invsviewmetersource">INVSViewMeterSource<a class="anchor" href="#invsviewmetersource" aria-label="Link to this section">#</a></h2>
+<p>Measured figures for a set, such as vitals, a raid clock or a cash balance. This is the interface the demo's two Blueprint components implement.</p>
+<dl class="api">
+<dt>bool GetMeters(const FGuid&amp; SetId, TArray&lt;FNVSViewMeter&gt;&amp; OutMeters)</dt>
+<dd>Fill the meters. Return false when nothing is measured. Empty <code>OutMeters</code> either way.</dd>
+</dl>
+<table>
+<thead><tr><th>FNVSViewMeter</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td><code>FName MeterId</code></td><td>The id screens look the meter up by. See <a href="interfaces.html#the-names-the-screens-look-for">the names the screens look for</a>.</td></tr>
+<tr><td><code>FText Label</code></td><td>The caption, such as CARRY.</td></tr>
+<tr><td><code>FText ValueText</code></td><td>The figure as your game formats it.</td></tr>
+<tr><td><code>double Value</code>, <code>double MaxValue</code></td><td>Drive the fill and the colour band. A <code>MaxValue</code> of zero is open ended and draws no bar.</td></tr>
+<tr><td><code>double WarnFraction</code>, <code>double CriticalFraction</code></td><td>Where the band turns to warning and critical. Defaults 0.8333 and 1.0.</td></tr>
+<tr><td><code>bool bLowIsAdverse</code></td><td>Warn below the fractions instead of above, as health does.</td></tr>
+<tr><td><code>ENVSViewColorRole NominalRole</code></td><td>The colour below the warning band. Default <code>Success</code>.</td></tr>
+</tbody>
+</table>
+<h3 id="a-meter-source-in-c">A meter source in C++<a class="anchor" href="#a-meter-source-in-c" aria-label="Link to this section">#</a></h3>
+<p>The same component as the guide's Blueprint, written in C++.</p>
+<pre><code class="lang-cpp">// MyVitalsComponent.h
+#pragma once
+
+#include "Components/ActorComponent.h"
+#include "Interfaces/NVSViewMeterSource.h"
+
+#include "MyVitalsComponent.generated.h"
+
+UCLASS(meta = (BlueprintSpawnableComponent))
+class UMyVitalsComponent : public UActorComponent, public INVSViewMeterSource
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Vitals")
+	float Health = 100.0f;
+
+	virtual void BeginPlay() override;
+	virtual bool GetMeters_Implementation(const FGuid&amp; SetId, TArray&lt;FNVSViewMeter&gt;&amp; OutMeters) override;
+
+	/** Call when Health changes so open screens redraw. */
+	void Redraw();
+};
+
+// MyVitalsComponent.cpp
+#include "MyVitalsComponent.h"
+
+#include "Definitions/NVSViewDefinitionLibrary.h"
+#include "NVSViewScreenLibrary.h"
+#include "Sources/NVSViewMeterLists.h"
+
+void UMyVitalsComponent::BeginPlay()
+{
+	Super::BeginPlay();
+	UNVSViewDefinitionLibrary::SetScreenSource(UNVSViewVitals::StaticClass(), this);
+}
+
+bool UMyVitalsComponent::GetMeters_Implementation(const FGuid&amp; SetId, TArray&lt;FNVSViewMeter&gt;&amp; OutMeters)
+{
+	OutMeters.Reset();
+	FNVSViewMeter&amp; Hp = OutMeters.AddDefaulted_GetRef();
+	Hp.MeterId = TEXT("Vitals.Health");
+	Hp.Label = INVTEXT("HP");
+	Hp.ValueText = FText::AsNumber(FMath::RoundToInt(Health));
+	Hp.Value = Health;
+	Hp.MaxValue = 100.0;
+	Hp.bLowIsAdverse = true;
+	Hp.WarnFraction = 0.5;
+	Hp.CriticalFraction = 0.25;
+	return true;
+}
+
+void UMyVitalsComponent::Redraw()
+{
+	UNVSViewScreenLibrary::RefreshSource(GetWorld()-&gt;GetFirstPlayerController(), this);
+}</code></pre>
+<p>Add <code>NVSView</code> and <code>NVSViewWidgets</code> to your module's dependencies.</p>
+
+<h2 id="invsviewrecordsource">INVSViewRecordSource<a class="anchor" href="#invsviewrecordsource" aria-label="Link to this section">#</a></h2>
+<p>Named records and record lists. Most screens are built from it, from trader cards to task steps.</p>
+<dl class="api">
+<dt>bool DescribeRecord(const FGuid&amp; RecordId, FNVSViewRecord&amp; OutRecord)</dt>
+<dd>Fill one record, for a detail pane. Return false for an unknown record and leave <code>OutRecord</code> untouched.</dd>
+<dt>void GetRecords(const FGuid&amp; SetId, TArray&lt;FNVSViewRecord&gt;&amp; OutRecords)</dt>
+<dd>Fill a list. Reset <code>OutRecords</code> first so an unknown set reads as empty.</dd>
+</dl>
+<table>
+<thead><tr><th>FNVSViewRecord</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td><code>FName RecordId</code></td><td>The record's id. Clicks, tabs and requests name it.</td></tr>
+<tr><td><code>FText Headline</code>, <code>FText Subtitle</code></td><td>The main line and the line under it.</td></tr>
+<tr><td><code>FText StatusText</code>, <code>ENVSViewColorRole StatusRole</code></td><td>A short status, such as IN USE, and its colour.</td></tr>
+<tr><td><code>FText PrimaryValue</code>, <code>FText SecondaryValue</code>, <code>FText SecondarySuffix</code></td><td>Two figures, and smaller text after the second, such as the "/30" in "24/30".</td></tr>
+<tr><td><code>FText Body</code></td><td>Longer text shown in a detail pane.</td></tr>
+<tr><td><code>ENVSViewColorRole AccentRole</code>, <code>FName IconId</code></td><td>The row's accent, and an icon looked up in the screen's art table.</td></tr>
+<tr><td><code>FGameplayTag State</code></td><td>The record's state under <code>NVS.View.State</code>, such as <code>NVS.View.State.Ready</code>. Screens make decisions from this, while <code>StatusText</code> is only the label they show.</td></tr>
+<tr><td><code>FGameplayTagContainer Tags</code></td><td>What the record is about, such as the item a part slot wants.</td></tr>
+<tr><td><code>float Fraction</code></td><td>A 0 to 1 figure drawn as a bar, such as standing. Below 0 draws none.</td></tr>
+<tr><td><code>double Number</code>, <code>int32 Count</code>, <code>int32 Of</code></td><td>Figures a screen computes with, such as a price, a stock count, or a tally out of <code>Of</code>.</td></tr>
+<tr><td><code>FText Duration</code></td><td>How long it takes, such as a recipe's craft time.</td></tr>
+</tbody>
+</table>
+<p>Empty fields are not drawn. In Blueprint, implement <em>Get Records</em> by building an array of <em>NVS View Record</em> structs. A source that only fills a list can leave <em>Describe Record</em> returning false.</p>
+
+<h2 id="invsviewsettingvaluesource">INVSViewSettingValueSource<a class="anchor" href="#invsviewsettingvaluesource" aria-label="Link to this section">#</a></h2>
+<p>Reads and writes setting values. The settings registry describes each row, and your game keeps the values wherever it already stores them. This is the one interface that writes.</p>
+<dl class="api">
+<dt>bool GetSettingValue(FName SettingId, FNVSViewSettingValue&amp; OutValue)</dt>
+<dd>Fill the value. Return false for an unknown setting and leave <code>OutValue</code> untouched.</dd>
+<dt>bool SetSettingValue(FName SettingId, const FNVSViewSettingValue&amp; Value)</dt>
+<dd>Store the value. Return false to reject the write, and the row shows the value you kept.</dd>
+</dl>
+<p><code>FNVSViewSettingValue</code> holds a <code>Kind</code> (<code>Bool</code>, <code>Enum</code>, <code>Slider</code> or <code>Keybind</code>) and one field for each: <code>bBoolValue</code>, <code>OptionIndex</code> and <code>Number</code>. Key bindings have no field, because Enhanced Input already stores them. The shipped settings screen uses <code>UNVSViewEngineSettingsSource</code>, which applies each row to the engine. See <a href="settings.html">Settings</a>.</p>
+
+<h2 id="invsviewslotsetsource">INVSViewSlotSetSource<a class="anchor" href="#invsviewslotsetsource" aria-label="Link to this section">#</a></h2>
+<p>A set of equipment slots, such as what the player wears, a saved loadout or a looted body.</p>
+<dl class="api">
+<dt>bool DescribeSlotSet(const FGuid&amp; SetId, FNVSViewSlotSetDescription&amp; OutDescription)</dt>
+<dd>Fill the panel's <code>Label</code>, <code>Title</code> and <code>NoteText</code>. Return false for an unknown set and leave <code>OutDescription</code> untouched.</dd>
+<dt>void GetSlots(const FGuid&amp; SetId, TArray&lt;FNVSViewSlotEntry&gt;&amp; OutSlots)</dt>
+<dd>Fill every slot, empty ones included, since the panel draws every slot. Reset <code>OutSlots</code> first.</dd>
+</dl>
+<table>
+<thead><tr><th>FNVSViewSlotEntry</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td><code>FName SlotId</code>, <code>FText Label</code></td><td>The slot's id and its own name, such as HEAD.</td></tr>
+<tr><td><code>FText ItemName</code>, <code>FName ItemId</code>, <code>float WeightKg</code></td><td>The worn item's name, id and weight. Ignored while empty.</td></tr>
+<tr><td><code>bool bFilled</code>, <code>bool bStripped</code></td><td>Whether something is worn, and whether the slot is unavailable.</td></tr>
+<tr><td><code>bool bFixed</code></td><td>The worn item cannot be taken, like trousers on a body. It shows faded and cannot be dragged.</td></tr>
+<tr><td><code>FGameplayTagQuery Accepts</code></td><td>Extra items the slot takes on top of items made to be worn there.</td></tr>
+<tr><td><code>FGameplayTag BlocksSlot</code></td><td>The slot the worn item rules out.</td></tr>
+<tr><td><code>ENVSViewColorRole TintRole</code></td><td>The colour of a filled slot's mark.</td></tr>
+<tr><td><code>int32 MountCount</code>, <code>int32 FittedCount</code>, <code>FName MountedOn</code></td><td>Sub-slots a slot carries and how many are filled. A sub-slot names its parent in <code>MountedOn</code> and gets no tile.</td></tr>
+</tbody>
+</table>
+<p>In C++, <code>NVSViewDeriveMounts(TArray&lt;FNVSViewSlotEntry&gt;&amp; Slots)</code> recomputes the mount counts from the sub-slot rows. See <a href="equipment.html">Equipment</a>.</p>
+
+<h2 id="next-steps">Next steps<a class="anchor" href="#next-steps" aria-label="Link to this section">#</a></h2>
+<div class="cards">
+<a class="card" href="interfaces.html"><span class="card-tag">Guide</span><strong>Connecting your game</strong>Connect your game's values with a Blueprint component.</a>
+<a class="card" href="requests.html"><span class="card-tag">Reference</span><strong>Requests</strong>Answer the buttons that change your game's data.</a>
+<a class="card" href="viewmodels.html"><span class="card-tag">Systems</span><strong>Viewmodels</strong>How bindings, viewmodels and widgets connect.</a>
+</div>
+      <nav class="pager"><a class="prev" href="components.html"><span>Previous</span>Components</a><a class="next" href="requests.html"><span>Next</span>Requests</a></nav>
+    </article>
+  </main>
+  <aside class="toc"><div class="toc-title">On this page</div><nav></nav></aside>
+</div>
+<div class="search-panel" hidden>
+  <div class="search-box">
+    <input type="search" placeholder="Search guides, screens, classes…" aria-label="Search">
+    <div class="search-results"></div>
+    <div class="search-hint"><kbd>↑</kbd><kbd>↓</kbd> to move, <kbd>Enter</kbd> to open, <kbd>Esc</kbd> to close</div>
+  </div>
+</div>
+<div class="lightbox" hidden><img alt=""><div class="lightbox-caption"></div></div>
+<script src="assets/search-index.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

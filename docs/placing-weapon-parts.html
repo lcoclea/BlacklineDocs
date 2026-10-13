@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Placing weapon parts · Blackline for Unreal Engine</title>
+<meta name="description" content="Line up magazines, scopes, a gun worn on the back and the gun in the player&#x27;s hands, using sockets or offsets.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="icon" href="assets/mark.svg" type="image/svg+xml">
+<script>try{var t=localStorage.getItem("bl-theme");if(t)document.documentElement.dataset.theme=t;}catch(e){}</script>
+</head>
+<body class="layout-doc">
+<header class="topbar">
+  <button class="menu-toggle" aria-label="Open navigation">☰</button>
+  <a class="brand" href="index.html"><img src="assets/mark.svg" alt=""><span>Blackline</span><em>v1.0.0</em></a>
+  <button class="search-open" aria-label="Search"><span>Search the docs</span><kbd>/</kbd></button>
+  <nav class="top-links">
+    <a href="getting-started.html">Get started</a>
+    <a href="screens.html">Screens</a>
+    <a href="https://github.com/lcoclea/blackline-docs/issues">Support</a>
+    <button class="theme-toggle" aria-label="Switch light or dark theme">◐</button>
+  </nav>
+</header>
+<div class="shell">
+  <aside class="sidebar"><div class="nav-section"><div class="nav-title">Start here</div>
+<a href="index.html">Blackline</a>
+<a href="getting-started.html">Getting started</a>
+<a href="architecture.html">Architecture</a>
+</div>
+<div class="nav-section"><div class="nav-title">Guides</div>
+<a href="interfaces.html">Connecting your game</a>
+<a href="items.html">Items</a>
+<a href="weapons.html">Weapons</a>
+<a href="placing-weapon-parts.html" class="active">Placing weapon parts</a>
+<a href="containers.html">Containers</a>
+<a href="context-menu.html">Context menu</a>
+<a href="drag-and-drop.html">Drag and drop</a>
+<a href="equipment.html">Equipment</a>
+<a href="inspect.html">Inspect</a>
+<a href="character-looks.html">Character looks</a>
+<a href="market-and-trading.html">Market and trading</a>
+<a href="raid-loop.html">The raid loop</a>
+<a href="health-and-vitals.html">Health and vitals</a>
+<a href="hideout-and-crafting.html">Hideout and crafting</a>
+<a href="tasks-and-loadouts.html">Tasks and loadouts</a>
+</div>
+<div class="nav-section"><div class="nav-title">Systems</div>
+<a href="layers-and-screens.html">Layers and screens</a>
+<a href="viewmodels.html">Viewmodels</a>
+<a href="theming.html">Theming</a>
+<a href="settings.html">Settings</a>
+<a href="notifications.html">Notifications</a>
+<a href="rendering.html">Rendering</a>
+</div>
+<div class="nav-section"><div class="nav-title">Reference</div>
+<a href="screens.html">Screens</a>
+<a href="components.html">Components</a>
+<a href="source-interfaces.html">Source interfaces</a>
+<a href="requests.html">Requests</a>
+<a href="project-settings.html">Project settings</a>
+</div>
+<div class="nav-section"><div class="nav-title">Help</div>
+<a href="faq.html">FAQ</a>
+<a href="troubleshooting.html">Troubleshooting</a>
+</div></aside>
+  <main class="content">
+    <article>
+      <div class="eyebrow">Guides</div>
+      <h1>Placing weapon parts</h1>
+      <p class="lead">A fitted magazine or scope, a rifle slung on the back and the gun in the player's hands are all placed by numbers on your data assets. This guide shows where each number lives, which view it moves, and the fastest way to line them up.</p>
+
+<h2 id="what-moves-what">What moves what<a class="anchor" href="#what-moves-what" aria-label="Link to this section">#</a></h2>
+<p>Three fields place everything. Change one and every view that uses it follows.</p>
+<dl class="api">
+<dt>Attachment slot: Socket and Offset</dt><dd>On the weapon's Item Definition, under <strong>Type &gt; Attachment Slots</strong>. Places a fitted part, such as a magazine or a scope, on the gun. It moves the part on the gun's tile picture, in the inspect window, on the gun worn on the character and on the gun in the player's hands.</dd>
+<dt>Worn On and Worn Offset</dt><dd>On the weapon's Item Definition, under <strong>Type</strong>. Places the gun on the character's body while it is equipped, such as across the back or on the thigh. Its fitted parts ride along with it.</dd>
+<dt>The held gun component</dt><dd>On your player Blueprint. Places the gun in front of the camera. In the demo it is the <code>HeldWeapon</code> component on <code>BP_DemoCharacter</code>.</dd>
+</dl>
+<div class="callout tip">Fix the attachment slots first. They show up in the most places, and the worn gun and the held gun both inherit them.</div>
+
+<h2 id="place-a-magazine-or-a-scope">Place a magazine or a scope<a class="anchor" href="#place-a-magazine-or-a-scope" aria-label="Link to this section">#</a></h2>
+<p>You have two ways to say where a fitted part goes. A <strong>socket</strong> on the gun's mesh is the cleanest, because you place it by eye in the mesh editor. An <strong>offset</strong> alone works on any mesh without opening it.</p>
+
+<h3 id="with-a-socket-recommended">With a socket (recommended)<a class="anchor" href="#with-a-socket-recommended" aria-label="Link to this section">#</a></h3>
+<ol class="steps">
+<li><strong>Open the gun's mesh</strong> Find the mesh the Item Definition's <strong>Look &gt; Static Mesh</strong> points at, and double-click it. In the demo the AR-4 is <code>/Game/FPS_Weapon_Bundle/Weapons/Meshes/AR4/SM_AR4</code>.</li>
+<li><strong>Add a socket</strong> Open <strong>Window &gt; Socket Manager</strong> and click <strong>Create Socket</strong>. Name it after the slot, such as <code>Mag</code> or <code>Optic</code>.</li>
+<li><strong>Preview the part on it</strong> Select the socket and set <strong>Preview Static Mesh</strong> in its details to the magazine or scope mesh. Move and rotate the socket with the gizmo until the preview sits where it should. Save the mesh.</li>
+<li><strong>Point the slot at the socket</strong> Open the weapon's Item Definition. Under <strong>Type &gt; Attachment Slots</strong>, expand the slot, set <strong>Socket</strong> to the socket's name and set <strong>Offset</strong> back to zero location, zero rotation and a scale of 1. Save.</li>
+<li><strong>Check it</strong> Start a new Play session, open the stash and look at the gun's tile, its inspect window (double-click the gun) and the doll. The part sits on the socket everywhere.</li>
+</ol>
+<p>The Offset still applies on top of the socket, so you can keep the socket where it is and nudge one gun's part with a small offset.</p>
+
+<h3 id="with-an-offset-only">With an offset only<a class="anchor" href="#with-an-offset-only" aria-label="Link to this section">#</a></h3>
+<p>Leave <strong>Socket</strong> as None and type the part's place into <strong>Offset</strong>. The numbers are in centimetres and degrees, measured from the gun mesh's pivot, along the gun mesh's own axes.</p>
+<ol class="steps">
+<li><strong>Find the gun's axes</strong> Open the gun's mesh and look at the axis widget. In the FPS Weapon Bundle the barrel runs along <strong>+Y</strong> and up is <strong>+Z</strong>.</li>
+<li><strong>Measure the spot</strong> Hover over the magazine well or the rail in the mesh editor. Note how far it is from the pivot along each axis.</li>
+<li><strong>Type the offset</strong> In the slot's <strong>Offset</strong>, set <strong>Location</strong> to that spot. Set <strong>Rotation</strong> so the part's own mesh lines up with the gun. Rotation reads X roll, Y pitch, Z yaw. The demo's rifle slots use a yaw of 90 because the part meshes face along X while the guns face along Y.</li>
+<li><strong>Check and repeat</strong> Start a new Play session and open the inspect window. Nudge a centimetre at a time until it seats.</li>
+</ol>
+<p>The demo's starting values, as a reference point:</p>
+<pre><code class="lang-text">Gun       Optic slot location   Mag slot location   Yaw
+AR-4      (0, 5, 9.5)           (0, 10, -2)         90
+KA-47     (0, 8, 7.5)           (0, 12, -3)         90
+SMG-11    (4, 0, 9)             (2, 0, -4)          0</code></pre>
+
+<div class="callout important">Each slot accepts parts by tag. A magazine fits the AR-4's well because the slot's <strong>Accepts</strong> holds <code>Attachment.Magazine.AR4</code> and the magazine's Ammo type has that <strong>Kind</strong>. Moving a slot never changes what fits it.</div>
+
+<h2 id="place-the-gun-on-the-character">Place the gun on the character<a class="anchor" href="#place-the-gun-on-the-character" aria-label="Link to this section">#</a></h2>
+<p>A weapon shows its own Look mesh on the body, so you only set where it hangs. Its fitted parts follow it there.</p>
+<ol class="steps">
+<li><strong>Pick a bone</strong> Set <strong>Worn On</strong> to a bone or socket on the character's skeleton. The demo slings rifles on <code>spine_03</code>, the knife on <code>spine_03</code> as well and the SMG on <code>thigh_r</code>. Open the character's skeleton to see every bone name.</li>
+<li><strong>Set the offset</strong> <strong>Worn Offset</strong> is measured from that bone, along the bone's axes. The demo's rifles use location <code>(0, -22, -2)</code> with rotation Y 90 and Z 35, which lays them diagonally across the back.</li>
+<li><strong>Check it</strong> Equip the gun and look at the doll on the stash or the character screen. A wrong bone name puts the gun at the character's feet, and the log says which name it could not find.</li>
+</ol>
+<p>A scope or magazine on a worn gun keeps the place its slot gives it on the gun, socket included, so a slot you fixed once is right here too.</p>
+
+<h2 id="place-the-gun-in-the-player-s-hands">Place the gun in the player's hands<a class="anchor" href="#place-the-gun-in-the-player-s-hands" aria-label="Link to this section">#</a></h2>
+<p>The held gun is a Static Mesh component on your player that <code>Show Held Item</code> fills with the equipped weapon and its parts. The demo calls it whenever the inventory changes.</p>
+<ol class="steps">
+<li><strong>Open the player Blueprint</strong> In the demo that is <code>/Game/Demo/BP_DemoCharacter</code>. Select the <code>HeldWeapon</code> component. It sits under the <code>Eyes</code> camera, so it moves with the view.</li>
+<li><strong>Set where it sits</strong> Change <strong>Location</strong>. X is forward from the camera, Y is right, Z is up. The demo uses <code>(68, 19, -27)</code>, low and to the right.</li>
+<li><strong>Set where the barrel points</strong> The demo turns the gun every frame so its barrel points at what the crosshair is on, 20 m ahead. That overrides the component's own Rotation. To change the gun's angle, open the Event Graph, find the group labelled "The hand holds the weapon, and the barrel points at the crosshair" and edit the <strong>A</strong> value of the <strong>Compose Rotators</strong> node. The demo uses <code>(0, -90, 0)</code> because the bundle's barrels run along +Y. Add a few degrees of roll or pitch here to cant the gun.</li>
+<li><strong>Check it</strong> Play, deploy into a raid and look down the gun. Fitted parts sit where their slots say, because <code>Show Held Item</code> reads the same slots as every other view.</li>
+</ol>
+<div class="callout warn">The demo's <code>Arms</code> component is hidden. Its only animation is a pistol idle, which cannot hold a rifle. To show hands, give <code>Arms</code> a rifle animation of your own, untick <strong>Hidden in Game</strong>, and move <code>HeldWeapon</code> until the grip meets the hand.</div>
+
+<h2 id="when-a-part-will-not-line-up">When a part will not line up<a class="anchor" href="#when-a-part-will-not-line-up" aria-label="Link to this section">#</a></h2>
+<dl class="api">
+<dt>The part sits at the gun's pivot</dt><dd>The slot names a socket the mesh does not have. Check the spelling in the Socket Manager. A slot with no socket and a zero offset also sits at the pivot.</dd>
+<dt>The change does not show</dt><dd>Tile pictures are rendered once and cached. Start a new Play session after editing a data asset.</dd>
+<dt>The part is rotated 90 degrees</dt><dd>The part's mesh faces a different axis than the gun. Change the slot's yaw by 90, or rotate the socket.</dd>
+</dl>
+
+<h2 id="result">Result<a class="anchor" href="#result" aria-label="Link to this section">#</a></h2>
+<p>Every fitted part now sits where it belongs on the tile, in the inspect window, on the character and in the player's hands, from one slot per part. For what a weapon is and how parts get fitted, see <a href="weapons.html">Weapons</a>.</p>
+      <nav class="pager"><a class="prev" href="weapons.html"><span>Previous</span>Weapons</a><a class="next" href="containers.html"><span>Next</span>Containers</a></nav>
+    </article>
+  </main>
+  <aside class="toc"><div class="toc-title">On this page</div><nav></nav></aside>
+</div>
+<div class="search-panel" hidden>
+  <div class="search-box">
+    <input type="search" placeholder="Search guides, screens, classes…" aria-label="Search">
+    <div class="search-results"></div>
+    <div class="search-hint"><kbd>↑</kbd><kbd>↓</kbd> to move, <kbd>Enter</kbd> to open, <kbd>Esc</kbd> to close</div>
+  </div>
+</div>
+<div class="lightbox" hidden><img alt=""><div class="lightbox-caption"></div></div>
+<script src="assets/search-index.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

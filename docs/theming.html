@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Theming · Blackline for Unreal Engine</title>
+<meta name="description" content="Re-theme every screen from one style asset: colour roles, emphasis, type steps, fonts and layout tokens.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="icon" href="assets/mark.svg" type="image/svg+xml">
+<script>try{var t=localStorage.getItem("bl-theme");if(t)document.documentElement.dataset.theme=t;}catch(e){}</script>
+</head>
+<body class="layout-doc">
+<header class="topbar">
+  <button class="menu-toggle" aria-label="Open navigation">☰</button>
+  <a class="brand" href="index.html"><img src="assets/mark.svg" alt=""><span>Blackline</span><em>v1.0.0</em></a>
+  <button class="search-open" aria-label="Search"><span>Search the docs</span><kbd>/</kbd></button>
+  <nav class="top-links">
+    <a href="getting-started.html">Get started</a>
+    <a href="screens.html">Screens</a>
+    <a href="https://github.com/lcoclea/blackline-docs/issues">Support</a>
+    <button class="theme-toggle" aria-label="Switch light or dark theme">◐</button>
+  </nav>
+</header>
+<div class="shell">
+  <aside class="sidebar"><div class="nav-section"><div class="nav-title">Start here</div>
+<a href="index.html">Blackline</a>
+<a href="getting-started.html">Getting started</a>
+<a href="architecture.html">Architecture</a>
+</div>
+<div class="nav-section"><div class="nav-title">Guides</div>
+<a href="interfaces.html">Connecting your game</a>
+<a href="items.html">Items</a>
+<a href="weapons.html">Weapons</a>
+<a href="placing-weapon-parts.html">Placing weapon parts</a>
+<a href="containers.html">Containers</a>
+<a href="context-menu.html">Context menu</a>
+<a href="drag-and-drop.html">Drag and drop</a>
+<a href="equipment.html">Equipment</a>
+<a href="inspect.html">Inspect</a>
+<a href="character-looks.html">Character looks</a>
+<a href="market-and-trading.html">Market and trading</a>
+<a href="raid-loop.html">The raid loop</a>
+<a href="health-and-vitals.html">Health and vitals</a>
+<a href="hideout-and-crafting.html">Hideout and crafting</a>
+<a href="tasks-and-loadouts.html">Tasks and loadouts</a>
+</div>
+<div class="nav-section"><div class="nav-title">Systems</div>
+<a href="layers-and-screens.html">Layers and screens</a>
+<a href="viewmodels.html">Viewmodels</a>
+<a href="theming.html" class="active">Theming</a>
+<a href="settings.html">Settings</a>
+<a href="notifications.html">Notifications</a>
+<a href="rendering.html">Rendering</a>
+</div>
+<div class="nav-section"><div class="nav-title">Reference</div>
+<a href="screens.html">Screens</a>
+<a href="components.html">Components</a>
+<a href="source-interfaces.html">Source interfaces</a>
+<a href="requests.html">Requests</a>
+<a href="project-settings.html">Project settings</a>
+</div>
+<div class="nav-section"><div class="nav-title">Help</div>
+<a href="faq.html">FAQ</a>
+<a href="troubleshooting.html">Troubleshooting</a>
+</div></aside>
+  <main class="content">
+    <article>
+      <div class="eyebrow">Systems</div>
+      <h1>Theming</h1>
+      <p class="lead">Every colour, size, font weight and duration in Blackline comes from one data asset. Change the asset and every component and screen follows. This page covers what the asset holds and how to put your own in place.</p>
+
+<p>Try the main colour roles here. The preview uses the plugin's shipped values as its starting point.</p>
+<div data-widget="token-playground"></div>
+
+<h2 id="the-style-asset">The style asset<a class="anchor" href="#the-style-asset" aria-label="Link to this section">#</a></h2>
+<p>The theme is a <code>UNVSViewStyleAsset</code>. The plugin ships one, <code>/NVSBlackline/DA_BlacklineStyle</code>, and the plugin's View Setup Definition names it as its <em>Style Asset</em>. Components never hold a colour of their own. They ask the asset for a role, such as <code>Accent</code> or <code>TextDim</code>, and only the asset knows the value.</p>
+<p>Each component and each screen has a <code>Style</code> property. It is usually unset, and then the component uses the style asset of the View Setup Definition in force. If that names none that loads, it uses the class defaults of <code>UNVSViewStyleAsset</code>, which hold the same values as the shipped asset.</p>
+<p>The asset's maps:</p>
+<dl class="api">
+  <dt>Colors</dt>
+  <dd><code>TMap&lt;ENVSViewColorRole, FLinearColor&gt;</code>. One entry per colour role.</dd>
+  <dt>EmphasisAlphaScale</dt>
+  <dd><code>TMap&lt;ENVSViewEmphasis, float&gt;</code>. Alpha multipliers for states such as hover and disabled.</dd>
+  <dt>TypeRamp</dt>
+  <dd><code>TMap&lt;ENVSViewTypeRole, FNVSViewTypeStep&gt;</code>. One text style per use.</dd>
+  <dt>Spacing, Metrics, CornerRadii</dt>
+  <dd>Gaps, fixed element sizes and corner radii, in pixels.</dd>
+  <dt>DurationsSeconds, Easing, SlamEasing</dt>
+  <dd>Animation lengths and cubic bezier curves, written the same way as in CSS.</dd>
+  <dt>Font, WeightTypefaces</dt>
+  <dd>The font asset text renders with, and which of its typefaces each weight uses.</dd>
+</dl>
+
+<h2 id="colour-roles">Colour roles<a class="anchor" href="#colour-roles" aria-label="Link to this section">#</a></h2>
+<p><code>ENVSViewColorRole</code> has 121 roles. The ones you change first:</p>
+<table>
+  <thead><tr><th>Role</th><th>Shipped value</th><th>Used for</th></tr></thead>
+  <tbody>
+    <tr><td><code>Surface</code></td><td>#0B0B0A</td><td>Panel fill and the ground of most screens</td></tr>
+    <tr><td><code>Accent</code></td><td>#E7840E</td><td>Selection, primary buttons, eyebrows</td></tr>
+    <tr><td><code>TextPrimary</code></td><td>#EDE7DB</td><td>Body text and titles</td></tr>
+    <tr><td><code>TextDim</code></td><td>#8B8276</td><td>Secondary captions</td></tr>
+    <tr><td><code>Success</code></td><td>#3A9C5F</td><td>Good news and positive figures</td></tr>
+    <tr><td><code>Danger</code></td><td>#E56A6A</td><td>Bad news, such as an injury or a negative amount</td></tr>
+    <tr><td><code>OnAccent</code></td><td>#100E0B</td><td>Text on a solid accent plate</td></tr>
+  </tbody>
+</table>
+<p>The rest cover specific states and surfaces: <code>Border</code>, <code>SurfaceRaised</code> and <code>SurfaceInset</code>, <code>Critical</code> and <code>Warning</code>, the button and toggle states (<code>AccentHover</code>, <code>AccentPressed</code>, <code>ToggleTrackOn</code>), and inks drawn over gameplay such as <code>CrosshairDot</code> and <code>PromptInk</code>. Each one carries a comment in <code>Style/NVSViewStyleAsset.h</code> saying where it is used.</p>
+<p>A role missing from <code>Colors</code> draws magenta, so a gap in a custom theme is easy to spot on screen.</p>
+
+<h3 id="emphasis">Emphasis<a class="anchor" href="#emphasis" aria-label="Link to this section">#</a></h3>
+<p>Hover, pressed, disabled and similar states mostly reuse a role's colour with a different alpha. <code>ENVSViewEmphasis</code> names the steps and <code>EmphasisAlphaScale</code> holds the multiplier for each: <code>Full</code> 1.0, <code>Raised</code> 2.0, <code>Reduced</code> 0.55, <code>Held</code> 1.35, <code>Faded</code> 0.22, <code>Lit</code> 3.2, <code>Struck</code> 3.9. <code>Tinted</code> (0.13) and <code>TintedRule</code> (0.45) are absolute alphas for opaque category colours. Retune a step and every state that uses it changes together.</p>
+
+<h2 id="type-steps">Type steps<a class="anchor" href="#type-steps" aria-label="Link to this section">#</a></h2>
+<p>Text styles are named by use, so the names still fit after you resize them. <code>ENVSViewTypeRole</code> has steps such as <code>Label</code>, <code>Body</code>, <code>Caption</code>, <code>Heading</code>, <code>Control</code>, <code>Title</code>, <code>MenuEntry</code> and a set of HUD steps. Each is a <code>FNVSViewTypeStep</code>:</p>
+<dl class="api">
+  <dt>SizePx</dt>
+  <dd>Size in pixels. Slate sizes fonts in points drawn at 96 dpi, so the components set three quarters of this value as the Slate size.</dd>
+  <dt>Weight</dt>
+  <dd>A CSS weight from 100 to 900. It picks a typeface through <code>WeightTypefaces</code>.</dd>
+  <dt>LineHeight</dt>
+  <dd>A multiplier on the size.</dd>
+  <dt>LetterSpacingEm</dt>
+  <dd>Tracking in em.</dd>
+</dl>
+<p>For example, the shipped <code>Title</code> step is 26 px at weight 600, and <code>Control</code>, the caption inside a button, is 13 px at weight 600.</p>
+
+<h2 id="fonts">Fonts<a class="anchor" href="#fonts" aria-label="Link to this section">#</a></h2>
+<p>The plugin ships <strong>JetBrains Mono</strong> in <code>/NVSBlackline/Fonts/</code>: the composite font <code>F_JetBrainsMono</code> and its Regular, Medium, SemiBold and Bold faces. The shipped style asset uses it, with this weight map:</p>
+<pre><code class="lang-text">400  Regular
+500  Medium
+600  SemiBold
+700  Bold</code></pre>
+<p>Slate does no weight matching of its own, and an unknown typeface name silently falls back to the first one. So a weight with no exact entry uses the nearest mapped weight, preferring the heavier one on a tie.</p>
+<p>JetBrains Mono is under the SIL Open Font License 1.1. The licence text ships in the plugin at <code>Licenses/JetBrainsMono-OFL.txt</code>, and <code>CREDITS.md</code> lists it. You can ship it in your game under that licence.</p>
+<h3 id="using-your-own-font">Using your own font<a class="anchor" href="#using-your-own-font" aria-label="Link to this section">#</a></h3>
+<ol class="steps">
+  <li><strong>Import the font</strong> Import your font files and create a composite Font asset with one typeface entry per weight.</li>
+  <li><strong>Point the asset at it</strong> In your style asset, set <code>Font</code> to the new Font asset.</li>
+  <li><strong>Map the weights</strong> Edit <code>WeightTypefaces</code> so each weight the type ramp uses names a typeface entry in your font.</li>
+</ol>
+<p><code>FontFamily</code> and <code>FontFallbacks</code> are for reference only. Slate cannot load an operating system font by name, so <code>Font</code> is what renders. With <code>Font</code> unset, text uses Slate's default font.</p>
+
+<h2 id="layout-tokens">Layout tokens<a class="anchor" href="#layout-tokens" aria-label="Link to this section">#</a></h2>
+<dl class="api">
+  <dt>Spacing (ENVSViewSpacingStep)</dt>
+  <dd><code>Micro</code> 3, <code>Tiny</code> 4, <code>Small</code> 6, <code>Base</code> 8, <code>Medium</code> 10, <code>Large</code> 12, <code>Section</code> 16, <code>Region</code> 32. Region is the gap between a label column and its control.</dd>
+  <dt>Metrics (ENVSViewMetricRole)</dt>
+  <dd>Fixed sizes such as <code>GridCell</code> (60, the painted inventory cell), <code>ButtonHeight</code>, <code>SlotTile</code>, <code>DollCell</code> and <code>BeltCell</code>.</dd>
+  <dt>CornerRadii (ENVSViewCornerRadius)</dt>
+  <dd><code>Sharp</code> 0, <code>Soft</code> 3 for outlined boxes, <code>Pill</code> 1000.</dd>
+  <dt>DurationsSeconds (ENVSViewDurationStep)</dt>
+  <dd><code>Fast</code> 0.08, <code>Standard</code> 0.12, <code>Slow</code> 0.16, <code>Entrance</code> 0.20, plus the deploy sequence steps such as <code>Slam</code> 0.42.</dd>
+</dl>
+
+<h2 id="reading-tokens-yourself">Reading tokens yourself<a class="anchor" href="#reading-tokens-yourself" aria-label="Link to this section">#</a></h2>
+<p>Your own widgets can read the same tokens. The asset's getters are Blueprint pure:</p>
+<pre><code class="lang-cpp">const UNVSViewStyleAsset* Style = UNVSViewSettings::GetStyleAsset();
+if (Style != nullptr)
+{
+	const FLinearColor Accent = Style-&gt;GetColor(ENVSViewColorRole::Accent);
+	const FLinearColor Hovered = Style-&gt;GetColorAtEmphasis(ENVSViewColorRole::Border, ENVSViewEmphasis::Raised);
+	const FNVSViewTypeStep Body = Style-&gt;GetTypeStep(ENVSViewTypeRole::Body);
+	const float Gap = Style-&gt;GetSpacing(ENVSViewSpacingStep::Base);
+}</code></pre>
+<p>A widget derived from <code>UNVSViewStyledWidget</code> also has <code>ResolveColor</code>, <code>ResolveTypeStep</code>, <code>ResolveSpacing</code> and the rest, which respect its own <code>Style</code> override.</p>
+
+<h2 id="swap-the-style-asset">Swap the style asset<a class="anchor" href="#swap-the-style-asset" aria-label="Link to this section">#</a></h2>
+<ol class="steps">
+  <li><strong>Duplicate the shipped asset</strong> Copy <code>DA_BlacklineStyle</code> into your own content folder, so a plugin update never overwrites your theme.</li>
+  <li><strong>Edit it</strong> Change the roles in <code>Colors</code>, the steps in <code>TypeRamp</code> and anything else you need.</li>
+  <li><strong>Select it</strong> Make your own View Setup Definition from <em>right-click &gt; Miscellaneous &gt; Data Asset</em>, or open the one your game already has, and set <em>Style Asset</em> to your copy. A game's own setup wins over the one the plugin ships, so no other setting is needed.</li>
+</ol>
+<p>The asset is resolved once per setup and cached. A new style asset applies to the next widget that is built, so reopen a screen to see it. Values are read when a widget is built, so editing a role while the game runs does not repaint widgets already on screen.</p>
+<p>To theme one screen differently, set the <code>Style</code> property in that screen's class defaults. Its own components fall back to the setup's asset unless you set theirs too.</p>
+<p>The colours a kind of toast uses are roles too, picked on its Notification Kind Definition. See <a href="notifications.html">Notifications</a>.</p>
+
+<h2 id="what-you-see">What you see<a class="anchor" href="#what-you-see" aria-label="Link to this section">#</a></h2>
+<p>With your copy selected and its <code>Accent</code> changed, reopen the hub. Selected rows, primary buttons and eyebrows draw in the new accent, and nothing else moves.</p>
+<figure class="shot"><img src="img/screens/hub.png" alt="The hub screen in the shipped theme"><figcaption>The hub in the shipped theme. Every colour on it is a role from the style asset.</figcaption></figure>
+      <nav class="pager"><a class="prev" href="viewmodels.html"><span>Previous</span>Viewmodels</a><a class="next" href="settings.html"><span>Next</span>Settings</a></nav>
+    </article>
+  </main>
+  <aside class="toc"><div class="toc-title">On this page</div><nav></nav></aside>
+</div>
+<div class="search-panel" hidden>
+  <div class="search-box">
+    <input type="search" placeholder="Search guides, screens, classes…" aria-label="Search">
+    <div class="search-results"></div>
+    <div class="search-hint"><kbd>↑</kbd><kbd>↓</kbd> to move, <kbd>Enter</kbd> to open, <kbd>Esc</kbd> to close</div>
+  </div>
+</div>
+<div class="lightbox" hidden><img alt=""><div class="lightbox-caption"></div></div>
+<script src="assets/search-index.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

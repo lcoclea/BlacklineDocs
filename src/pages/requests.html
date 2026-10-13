@@ -1,0 +1,156 @@
+<!--meta {"title": "Requests", "section": "Reference", "order": 40, "summary": "Every NVS.View.Request tag Blackline raises, its payload, which built-in sources answer it, and how your game answers the rest in Blueprint or C++."} -->
+<p class="lead">Screens never change game data themselves. A button that buys, crafts or heals raises a request, a gameplay tag under <code>NVS.View.Request</code>, on the <em>NVS View Request Subsystem</em>. The built-in sources answer most requests on their own, and your game binds <strong>On Request</strong> to answer the rest or to mirror the change in its own systems.</p>
+
+<h2>How a request travels</h2>
+<ol class="flow">
+<li data-title="Click">The player presses a button, drops an item or picks a menu row.</li>
+<li data-title="Raise">The screen fills an <code>FNVSViewRequest</code> and calls <code>Raise</code> on its local player's request subsystem. The subsystem keeps the request in its history and broadcasts <code>OnRequest</code>.</li>
+<li data-title="Your game">Every listener runs during the broadcast. Your game changes its own state here, or sends the change to its server.</li>
+<li data-title="Built-in sources">The screen offers the same request to every source it holds. A built-in source that knows the request changes its rows, such as the body zones healing on Heal all.</li>
+<li data-title="Redraw">The screen re-reads its sources and redraws, so a change made inside the broadcast shows at once.</li>
+</ol>
+<p>The subsystem is a local player subsystem, so each local player has its own. Nothing is sent over the network.</p>
+
+<h2>Answer a request in Blueprint</h2>
+<p>The demo's player controller answers its requests this way. It handles <code>Raid.Deploy</code> by streaming in the chosen raid map, <code>Raid.TimeOut</code> by bringing the player home, and <code>Task.ShowOnMap</code> by opening the location screen.</p>
+<ol class="steps">
+<li><strong>Get the subsystem</strong> In your player controller's Begin Play, add <em>Get NVSViewRequestSubsystem</em>, the local player subsystem getter, with Self as the player controller.</li>
+<li><strong>Bind the event</strong> Drag from it and choose <em>Bind Event to On Request</em>. Create a custom event from the red pin. It receives one <em>NVS View Request</em>.</li>
+<li><strong>Check the tag</strong> Break the request and compare <em>Request Id</em> with the tag you answer, using <em>Equal (Gameplay Tag)</em> and a Branch, or a <em>Switch on Gameplay Tag</em> for several.</li>
+<li><strong>Use the payload</strong> Read <em>Subject Id</em>, <em>Item Id</em> or whichever fields the request uses. For <code>Raid.Deploy</code>, <em>Subject Id</em> names the raid map, and <em>Get Raid Map Definition</em> gives you its level.</li>
+</ol>
+<div class="callout tip">You can add requests of your own. Make a gameplay tag, such as <code>MyGame.Request.MarkJunk</code>, and name it as the <em>Action</em> of an Item Action Definition. The item menu then offers the row and raises your tag when it is chosen. The demo adds a Mark as junk row exactly this way and answers <code>Demo.Request.MarkJunk</code> with a toast. Your own code can also call <em>Raise</em> on the subsystem, which is Blueprint callable.</div>
+
+<h2>Answer a request in C++</h2>
+<pre><code class="lang-cpp">// MyUIBridge.h
+#pragma once
+
+#include "Subsystems/NVSViewRequestSubsystem.h"
+
+#include "MyUIBridge.generated.h"
+
+UCLASS()
+class UMyUIBridge : public UObject
+{
+	GENERATED_BODY()
+
+public:
+	void Bind(ULocalPlayer* Player);
+
+private:
+	UFUNCTION()
+	void HandleRequest(const FNVSViewRequest&amp; Request);
+};
+
+// MyUIBridge.cpp
+#include "MyUIBridge.h"
+
+void UMyUIBridge::Bind(ULocalPlayer* Player)
+{
+	if (UNVSViewRequestSubsystem* Requests = Player-&gt;GetSubsystem&lt;UNVSViewRequestSubsystem&gt;())
+	{
+		Requests-&gt;OnRequest.AddDynamic(this, &amp;UMyUIBridge::HandleRequest);
+	}
+}
+
+void UMyUIBridge::HandleRequest(const FNVSViewRequest&amp; Request)
+{
+	if (Request.RequestId == NVSViewRequests::RaidDeploy())
+	{
+		LoadRaid(Request.SubjectId); // Your own code. SubjectId names the raid map.
+	}
+	else if (Request.RequestId.MatchesTag(TAG_NVS_View_Request_Market))
+	{
+		SendToMarketServer(Request); // Every Market request is a child of this tag.
+	}
+}</code></pre>
+<p>The <code>NVSViewRequests</code> namespace has a function for every built-in tag, such as <code>NVSViewRequests::ItemMove()</code>. The native tags themselves are declared in <code>Tags/NVSViewTags.h</code>, so you can match a whole family with <code>MatchesTag</code>.</p>
+<p>When your answer arrives later, for example from a server, call <strong>Refresh Source</strong> with the object that changed, or <code>RefreshViewModels()</code> on the open screen. See <a href="source-interfaces.html#when-a-screen-reads-again">When a screen reads again</a>.</p>
+
+<h2>What the built-in sources answer</h2>
+<p>A game that keeps its data in the plugin's built-in sources and the Inventory component needs no request code for these:</p>
+<table>
+<thead><tr><th>Area</th><th>Requests answered</th><th>By</th></tr></thead>
+<tbody>
+<tr><td>Items</td><td><code>Item.*</code>, <code>Bench.LoadPart</code>, <code>Station.Feed</code>, the item side of <code>Market.*</code> and <code>Trade.Swap</code></td><td>The Inventory component, when the screen shows one. Trader deals change cash as the goods change hands. A loaded part and a fed fuel can leave the stash.</td></tr>
+<tr><td>Cash</td><td><code>Cosmetic.Buy</code>, the reward on <code>Job.HandIn</code></td><td>The session wallet, <code>NVSViewCash</code>. Each request is paid once however many sources hear it.</td></tr>
+<tr><td>Crafting</td><td><code>Bench.Start</code>, <code>Bench.Collect</code>, <code>Bench.Upgrade</code>, <code>Station.Collect</code></td><td>The hideout sources, from your Station Definitions. A craft starts only while the generator has fuel. An upgrade needs every part loaded and the cash in the wallet, then spends both.</td></tr>
+<tr><td>Health</td><td><code>Health.HealAll</code>, and <code>Item.Use</code> with a body zone as subject</td><td><code>UNVSViewBodyZones</code>. Heal all spends cash, and treating a zone uses the med.</td></tr>
+<tr><td>Tasks</td><td><code>Job.Take</code>, <code>Job.HandIn</code>, <code>Task.Track</code></td><td>The trader jobs and the task log, from your Task Definitions. Handing in takes the items from the player's inventory.</td></tr>
+<tr><td>Skills</td><td><code>Perk.Take</code>, <code>Perk.Refund</code></td><td>The perk tree and the player profile, which spends or refunds points.</td></tr>
+<tr><td>Wardrobe</td><td><code>Cosmetic.Wear</code>, <code>Cosmetic.Buy</code>, <code>Cosmetic.ResetLook</code></td><td>The wardrobe, the operator and the character looks.</td></tr>
+<tr><td>Loadouts</td><td><code>Loadout.Save</code>, <code>Loadout.Apply</code></td><td>The saved loadouts. Applying kits the player up from what the stash holds.</td></tr>
+<tr><td>Market</td><td><code>Market.*</code></td><td>The offline <code>UNVSViewMarketBoard</code>.</td></tr>
+</tbody>
+</table>
+<p>Your game still hears every one of these on <strong>On Request</strong>, so it can save, log or mirror them. These are left to your game: <code>Raid.Deploy</code>, <code>Raid.TimeOut</code>, <code>Raid.Report</code>, <code>Task.ShowOnMap</code> and <code>Notify.Act</code>.</p>
+
+<h2>The payload</h2>
+<p>Every request is one <code>FNVSViewRequest</code>. Each request uses a few fields and leaves the rest at their defaults.</p>
+<table>
+<thead><tr><th>Field</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td><code>FGameplayTag RequestId</code></td><td>What the screen asks for, such as <code>NVS.View.Request.Item.Move</code>.</td></tr>
+<tr><td><code>FName SubjectId</code></td><td>The record the request is about, such as a perk, a trader, a recipe or a raid map. None when there is no record.</td></tr>
+<tr><td><code>FName ItemId</code>, <code>FText ItemName</code>, <code>FText ItemTag</code></td><td>The item the request moves or acts on.</td></tr>
+<tr><td><code>FIntPoint ItemFootprint</code>, <code>bool bTurned</code></td><td>The item's size in cells, already turned when <code>bTurned</code> says it lands a quarter turn from how it lies now.</td></tr>
+<tr><td><code>FName TargetId</code></td><td>Where the item goes. A doll slot for <code>Item.Equip</code>, a container for <code>Item.Move</code>.</td></tr>
+<tr><td><code>FIntPoint TargetCell</code></td><td>The top-left cell on <code>Item.Move</code> and <code>Item.Unequip</code>. (-1,-1) takes the first free cell.</td></tr>
+<tr><td><code>FName TargetBindingId</code></td><td>The screen binding the item was dropped on, which tells two holders with same-named grids apart.</td></tr>
+<tr><td><code>FName IntoId</code></td><td>The container an unequipped item goes into. None means the stash.</td></tr>
+<tr><td><code>FName WornItemId</code></td><td>For an item taken off a doll, the worn item's own id. <code>ItemId</code> then names the slot.</td></tr>
+<tr><td><code>int64 Amount</code></td><td>A bid, a price or a quantity, by request.</td></tr>
+<tr><td><code>FNVSViewListingDraft Draft</code></td><td>The sale type, buyout, opening bid and duration on <code>Market.List</code>.</td></tr>
+<tr><td><code>FGameplayTagContainer ItemTags</code>, <code>FGameplayTag ItemFitsSlot</code>, <code>FGameplayTag ItemAttachKind</code>, <code>FGameplayTag ItemBlocksSlot</code>, <code>bool bItemUsable</code></td><td>What the moved item is, copied from its row, so it stays wearable, usable and fittable wherever it lands.</td></tr>
+</tbody>
+</table>
+<p>With the plugin's own grids, a container id in <code>TargetId</code> is the grid's own id. With a container source of your own, the screen uses the binding id instead, such as <code>Stash</code> or <code>Pack</code>.</p>
+
+<h2>Every request</h2>
+<p>All tags sit under <code>NVS.View.Request</code>. The table drops that prefix.</p>
+<table>
+<thead><tr><th>Tag</th><th>Raised by</th><th>Payload</th></tr></thead>
+<tbody>
+<tr><td><code>Perk.Take</code>, <code>Perk.Refund</code></td><td>Skill tree</td><td><code>SubjectId</code> is the perk.</td></tr>
+<tr><td><code>Cosmetic.Wear</code></td><td>Character</td><td><code>SubjectId</code> is the wardrobe piece.</td></tr>
+<tr><td><code>Cosmetic.Buy</code></td><td>Character</td><td><code>SubjectId</code> is the piece and <code>Amount</code> its price. The piece is worn at once.</td></tr>
+<tr><td><code>Cosmetic.Preview</code></td><td>Character</td><td>Passed straight to the look source to try a piece on, with no subject to stop. Never raised, so <strong>On Request</strong> never hears it.</td></tr>
+<tr><td><code>Cosmetic.ResetLook</code></td><td>Character</td><td>No subject. Puts the starting outfit back. What was bought stays bought.</td></tr>
+<tr><td><code>Loadout.Save</code></td><td>Stash</td><td>No subject. Saves what is worn as a loadout.</td></tr>
+<tr><td><code>Loadout.Apply</code></td><td>Loadouts, lobby</td><td><code>SubjectId</code> is the loadout.</td></tr>
+<tr><td><code>Job.Take</code>, <code>Job.HandIn</code></td><td>Trade</td><td><code>SubjectId</code> is the job.</td></tr>
+<tr><td><code>Settings.ResetCategory</code></td><td>Settings</td><td><code>SubjectId</code> is the category. See <a href="settings.html">Settings</a>.</td></tr>
+<tr><td><code>Bench.LoadPart</code></td><td>Workbench, generator</td><td><code>SubjectId</code> is the part slot, such as <code>PDA_Workbench.AR4Mag.Part0</code> for a recipe or <code>PDA_Workbench.Upgrade2.Part0</code> for an upgrade, and <code>ItemId</code> the item.</td></tr>
+<tr><td><code>Bench.Start</code>, <code>Bench.Collect</code></td><td>Workbench</td><td><code>SubjectId</code> is the recipe.</td></tr>
+<tr><td><code>Bench.Upgrade</code></td><td>Workbench, generator</td><td><code>SubjectId</code> is the station. Raised only once every part of the next level is loaded and the wallet covers its cost.</td></tr>
+<tr><td><code>Station.Collect</code></td><td>Hideout</td><td><code>SubjectId</code> is the station. Collect all raises one per ready station.</td></tr>
+<tr><td><code>Station.Feed</code></td><td>Generator's <em>Add fuel</em>, a can dropped on an empty tank slot</td><td><code>SubjectId</code> is the generator and <code>ItemId</code> the fuel can from the stash.</td></tr>
+<tr><td><code>Notify.Act</code></td><td>A toast's action button</td><td><code>SubjectId</code> is the notification's action tag, as a name. See <a href="notifications.html">Notifications</a>.</td></tr>
+<tr><td><code>Item.Equip</code></td><td>Item menu, inspect window, drops on the doll</td><td><code>ItemId</code> is the item and <code>TargetId</code> the doll slot.</td></tr>
+<tr><td><code>Item.Unequip</code></td><td>Item menu, inspect window, drags off the doll</td><td><code>TargetId</code> is the slot, <code>IntoId</code> and <code>TargetCell</code> where it lands.</td></tr>
+<tr><td><code>Item.Move</code></td><td>Grid drops, item menu, container windows, trade, market</td><td><code>ItemId</code> is the item and <code>TargetId</code> the container or attachment slot.</td></tr>
+<tr><td><code>Item.Buy</code></td><td>Trade, item menu</td><td><code>SubjectId</code> is the trader, <code>ItemId</code> the item, <code>TargetId</code> where it goes, <code>Amount</code> the quantity.</td></tr>
+<tr><td><code>Item.Sell</code></td><td>Trade, item menu, inspect window</td><td><code>SubjectId</code> is the trader and <code>ItemId</code> the item.</td></tr>
+<tr><td><code>Item.Rotate</code>, <code>Item.Split</code>, <code>Item.Drop</code>, <code>Item.Use</code></td><td>Item menu and its keys</td><td><code>ItemId</code> is the item. The health screen also raises <code>Item.Use</code> with the body zone as <code>SubjectId</code>.</td></tr>
+<tr><td><code>Trade.Swap</code></td><td>Trade</td><td>The Buy button on an item with barter terms. <code>SubjectId</code> is the trader and <code>ItemId</code> the item.</td></tr>
+<tr><td><code>Market.Bid</code></td><td>Market</td><td><code>SubjectId</code> is the listing and <code>Amount</code> the bid.</td></tr>
+<tr><td><code>Market.Buy</code>, <code>Market.Watch</code>, <code>Market.Unwatch</code></td><td>Market</td><td><code>SubjectId</code> is the listing.</td></tr>
+<tr><td><code>Market.List</code></td><td>Market</td><td><code>ItemId</code> is the sell box item and <code>Draft</code> the terms.</td></tr>
+<tr><td><code>Market.Cancel</code>, <code>Market.Reclaim</code></td><td>Market</td><td>Cancel a live listing with no bids, or take back an expired one. <code>SubjectId</code> is the listing.</td></tr>
+<tr><td><code>Market.Collect</code></td><td>Market</td><td>Collect a sale, or every sale with no subject.</td></tr>
+<tr><td><code>Market.Deliver</code>, <code>Market.Refund</code></td><td>Market</td><td>Raised by the screen itself for an auction the player won. <code>SubjectId</code> is the listing.</td></tr>
+<tr><td><code>Health.HealAll</code></td><td>Health</td><td>No subject. Treats every hurt zone.</td></tr>
+<tr><td><code>Task.Track</code>, <code>Task.ShowOnMap</code></td><td>Task log</td><td><code>SubjectId</code> is the task.</td></tr>
+<tr><td><code>Raid.Report</code></td><td>Debrief</td><td>No subject.</td></tr>
+<tr><td><code>Raid.Deploy</code></td><td>The deploy queue, when its countdown ends</td><td><code>SubjectId</code> names the chosen raid map. Your game loads its level. The raid session has already begun.</td></tr>
+<tr><td><code>Raid.TimeOut</code></td><td>The raid session, when the clock runs out</td><td><code>SubjectId</code> names the raid map. The player is already marked missing in action, and your game takes them out.</td></tr>
+</tbody>
+</table>
+<p>Which rows the item menu offers, and which request each raises, comes from the Item Action Definitions. See <a href="context-menu.html">Context menu</a>.</p>
+
+<h2>History and replay</h2>
+<p>The subsystem keeps every request in order, readable from C++ with <code>GetHistory()</code>. When a screen opens, it replays that history into the built-in sources it made fresh, so a screen opened later matches what the player did on earlier ones. A source you registered yourself is never replayed into, because it already holds the live state.</p>
+
+<h2>What you see</h2>
+<p>Open the health screen in the demo and press Heal all. The body zones fill, the cash drops by the price, and nothing in the demo's player controller had to answer it. Press Move out in the lobby and let the countdown finish, and the controller hears <code>Raid.Deploy</code> and streams the raid map in.</p>
+<figure class="shot"><img src="img/screens/health.png" alt="The health screen with its body zones and the Heal all button"><figcaption>Heal all raises <code>Health.HealAll</code>, which the built-in body zones answer.</figcaption></figure>

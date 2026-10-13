@@ -1,0 +1,101 @@
+<!--meta {"title": "Health and vitals", "section": "Guides", "order": 110, "summary": "Set up body zones and treatments, price Heal all, feed food and water, read load tiers, and drive the raid HUD's vitals from a Blueprint component."} -->
+<p class="lead">The health screen treats body zones with meds from the stash, food and water come from what the player eats, and the load tiers say how fast a player can move. This guide sets each one up in data and then walks through the demo's <code>BPC_Vitals</code> Blueprint, which drives food, water and sprinting on the raid HUD.</p>
+
+<h2>Body zones</h2>
+<p>The health screen (<code>W_HealthScreen</code>) reads the body from <code>UNVSViewBodyZones</code>. It lists zones in a fixed order, centre three first, then the left six, then the right six, so the screen can deal them into columns. To author your own body, make a data asset of class <em>NVS View Body Zones</em> and plug it in with a <em>Screen Source Definition</em> whose <em>Replaces</em> is <em>NVS View Body Zones</em>. The demo's are <code>DA_PlayerBody</code> and <code>PDA_PlayerBodySource</code>.</p>
+<p>Each zone is one entry in <em>Zones</em> and one record in <em>Records</em> with the same id:</p>
+<dl class="api">
+<dt>Record Id</dt><dd>The zone's id, such as <code>Zone.Chest</code>.</dd>
+<dt>Hit Points, Max Hit Points</dt><dd>Where the zone starts and its total. The demo's chest starts at 62 of 85.</dd>
+<dt>Conditions</dt><dd>One chip per entry, such as <code>BANDAGED</code>. Empty uses the record's status text, such as <code>LIGHT BLEED</code>, as a single chip.</dd>
+</dl>
+<p>A zone's colour follows its share of hit points: red at zero, the accent colour under <em>Low Fraction</em> (0.35), yellow under <em>Hurt Fraction</em> (0.75), and green above.</p>
+<div class="callout important">Blackline does not simulate wounds. A condition such as a bleed or a fracture is a line of text you author, and nothing drains hit points over time unless your game calls <strong>Hurt Body</strong>.</div>
+<figure class="shot"><img src="img/screens/health.png" alt="The health screen with body zones in columns, the chosen zone's card and the stash"><figcaption>The health screen. Pick a zone, then click a med in the stash beside it.</figcaption></figure>
+
+<h2>Treatments</h2>
+<p>Which meds treat which zone comes from <code>UNVSViewZoneTreatments</code>, set up the same way with a data asset and a Screen Source Definition. Each entry in <em>Zone Fixes</em> has a <em>Zone Id</em>, the <em>Meds</em> (Item Definitions) that treat it, and the <em>Fixes</em> rows shown for a zone that lists no meds. The rows say <code>IN THE STASH</code> or <code>NONE IN THE STASH</code> for each med, so the player knows what they have.</p>
+<p>A med is an Item Definition with the <strong>Consumable</strong> type. Its <em>Heals</em> field is the hit points it gives back to a zone. A med with <em>Heals</em> at zero still treats what is wrong, as a bandage stops a bleed. The demo's field med kit heals 60.</p>
+<p>When the player picks a zone and clicks a med in the stash, the screen checks three things: the item is a consumable, the zone needs work, and the zone lists that med. It then raises <code>Item.Use</code> with the zone as <em>Subject Id</em>. The Inventory component uses up one of the med, and the zone gets the med's hit points, loses its conditions and reads <code>TREATED</code> until it is whole. A zone at zero hit points needs a med whose <em>Heals</em> is above zero.</p>
+
+<h3>Heal all</h3>
+<p>The Heal all button treats every zone and fills it for cash. Its price is:</p>
+<ul>
+<li><em>Heal Price Per Point</em> (10 by default) for every missing hit point, plus</li>
+<li><em>Treatment Price</em> (150 by default) for every zone with something nobody has treated.</li>
+</ul>
+<p>The button shows the price, and reads <em>Not enough cash</em> and stays disabled when the session cash is short. Pressing it raises <code>Health.HealAll</code>, and the body zones source spends the cash and heals. Both prices are fields on the body zones asset.</p>
+
+<h2>Hurt the body from Blueprint</h2>
+<p>All of these are on <em>NVS View Screen Library</em>:</p>
+<dl class="api">
+<dt>Get Body Health</dt><dd>The player's health out of 100, from the hit points of every zone. Treating and healing raise it.</dd>
+<dt>Hurt Body (Hit Points)</dt><dd>Takes hit points off the body, shared across the zones by their size. A zone never drops below 1 this way, so hunger wears the player down without blacking out a limb.</dd>
+</dl>
+<p>Treatment and damage last for the play session. They are not written to a save game.</p>
+
+<h2>Food and water</h2>
+<p>A Consumable's <em>Food</em> and <em>Water</em> fields are what it gives back, out of 100. The demo's ration pack gives 30 food and its water bottle 40 water. When the player uses one from a grid, the Inventory component removes it and adds its food and water to the session's total.</p>
+<p><strong>Get Nourishment</strong> returns the food and water eaten and drunk this session. Blackline keeps no food or water figure of its own, so add these to the values your game tracks. The demo's <code>BPC_Vitals</code> shows how.</p>
+
+<h2>Load tiers</h2>
+<p>The <em>Load Tiers</em> of your View Setup Definition name the gait each weight allows, fastest first, each with the kilograms it ends at. The demo uses SPRINT up to 20 kg, JOG to 28 and WALK to 36. The load card draws the track and shows what dropping weight would gain.</p>
+<dl class="api">
+<dt>Get Carried Weight (Player)</dt><dd>Everything the player's pawn wears and carries, in kilograms. The stash does not count.</dd>
+<dt>Get Load Tier (Player)</dt><dd>The tier that weight falls in, counting from 0 for the lightest. -1 is over the last tier's limit.</dd>
+</dl>
+<p>Blackline does not move the character. Your movement code reads the tier and sets its own speed.</p>
+
+<h2>The raid HUD groups</h2>
+<p>The raid HUD's navigation, vitals and crew groups start hidden. <strong>Reveal Hud Group</strong> shows or hides one:</p>
+<dl class="api">
+<dt>Nav</dt><dd>The compass, the tracked task and the exits.</dd>
+<dt>Vitals</dt><dd>Body, limbs, conditions and weapon.</dd>
+<dt>Crew</dt><dd>The crew.</dd>
+</dl>
+<p>It returns false when no raid HUD is open. The HUD reads no keys itself, so your game decides when each group shows.</p>
+
+<h2>Walkthrough of the demo's BPC_Vitals</h2>
+<p><code>BPC_Vitals</code> is a Blueprint Actor Component on the demo's player controller. It feeds the HUD's vitals meters, runs food and water down during a raid, and handles sprinting. It is an ordinary Blueprint graph you can open and copy.</p>
+<figure class="shot"><img src="img/screens/raid-hud.png" alt="The raid HUD with the vitals group revealed"><figcaption>The raid HUD. BPC_Vitals reveals the vitals while the player is out of breath.</figcaption></figure>
+
+<h3>Its variables</h3>
+<div class="table-wrap"><table>
+<thead><tr><th>Variable</th><th>Default</th><th>What it does</th></tr></thead>
+<tbody>
+<tr><td>Food, Water</td><td>62, 38</td><td>The current values, out of 100.</td></tr>
+<tr><td>Wind</td><td>100</td><td>Breath for sprinting, out of 100.</td></tr>
+<tr><td>Carry Limit Kg</td><td>36</td><td>Matches the last load tier.</td></tr>
+<tr><td>Food Per Minute, Water Per Minute</td><td>2, 3</td><td>Lost each minute in a raid.</td></tr>
+<tr><td>Sprint Wind Per Second</td><td>18</td><td>Wind spent each second of sprinting with nothing carried. A full load doubles it.</td></tr>
+<tr><td>Wind Back Per Second</td><td>10</td><td>Wind regained each second while not sprinting.</td></tr>
+<tr><td>Hunger Damage Per Second</td><td>0.5</td><td>Hit points lost each second while food or water is empty.</td></tr>
+<tr><td>Walk Speed, Sprint Speed</td><td>420, 680</td><td>The character's speeds.</td></tr>
+<tr><td>Loaded Speed</td><td>260</td><td>The speed from the third tier, WALK in the demo.</td></tr>
+<tr><td>Overloaded Speed</td><td>140</td><td>The speed over the last tier's limit.</td></tr>
+</tbody></table></div>
+
+<h3>How it is built</h3>
+<ol class="steps">
+<li><strong>Stand in for the built-in vitals</strong> On Begin Play it calls <strong>Set Screen Source</strong> with <em>Replaces</em> set to <em>NVS View Vitals</em> and <em>Source</em> set to self. From then on every screen that shows vitals reads this component.</li>
+<li><strong>Answer Get Meters</strong> The component implements <em>NVS View Meter Source</em>. Its <strong>Get Meters</strong> returns five meters by id: <code>Vitals.Health</code> from <strong>Get Body Health</strong>, <code>Vitals.Wind</code>, <code>Vitals.Food</code>, <code>Vitals.Water</code>, and <code>Vitals.Carry</code> from <strong>Get Carried Weight</strong> against the carry limit, written as <code>21.2 / 36.0 KG</code>. Health, food and water warn under half and turn critical under a quarter.</li>
+<li><strong>Redraw on a timer</strong> A looping timer every 0.25 seconds calls <strong>Refresh Source</strong> with the player controller and self, so open screens read the new values.</li>
+<li><strong>Run the vitals</strong> A second looping timer every 0.25 seconds runs the Live event:
+<ul>
+<li>Food and water add whatever <strong>Get Nourishment</strong> gained since the last tick, and lose their per minute rate when <strong>Is In Raid</strong> is true on the raid session.</li>
+<li>Sprinting is Left Shift held while moving, with wind left, in load tier 0. It spends wind at 18 per second times one plus the load fraction. Otherwise wind comes back at 10 per second.</li>
+<li>The character's <em>Max Walk Speed</em> is the sprint speed while sprinting, 140 over capacity, 260 from tier 2, and 420 otherwise.</li>
+<li>While food or water is empty it calls <strong>Hurt Body</strong> with 0.5 hit points per second.</li>
+<li>It calls <strong>Reveal Hud Group</strong> with <em>Vitals</em>, revealed while wind is under 100 or Left Alt is held.</li>
+</ul></li>
+</ol>
+<p>To use your own game's values, keep the meter ids and wire your own figures into the meters in place of the variables.</p>
+
+<h2>Result</h2>
+<p>In the demo, open Health, pick the chest and click a bandage in the stash. The chest's bleed chip goes, the zone reads <code>TREATED</code> and the bandage stack drops by one. Press Heal all and pay the price shown. Deploy, hold Left Shift and run: the vitals appear as the wind drains, and they hide again once it is full. Pick up loot until you pass 20 kg and sprinting stops.</p>
+
+<div class="cards">
+<a class="card" href="raid-loop.html"><span class="card-tag">Guide</span><strong>The raid loop</strong>From the lobby to the debrief.</a>
+<a class="card" href="items.html"><span class="card-tag">Guide</span><strong>Items</strong>Consumables and the other item types.</a>
+<a class="card" href="interfaces.html"><span class="card-tag">Reference</span><strong>Interfaces</strong>The meter and record source interfaces.</a>
+</div>

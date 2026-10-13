@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Layers and screens · Blackline for Unreal Engine</title>
+<meta name="description" content="Open and close screens from Blueprint, replace a shipped screen through the screen registry, how layers decide input and Escape, and how to write a screen of your own.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="icon" href="assets/mark.svg" type="image/svg+xml">
+<script>try{var t=localStorage.getItem("bl-theme");if(t)document.documentElement.dataset.theme=t;}catch(e){}</script>
+</head>
+<body class="layout-doc">
+<header class="topbar">
+  <button class="menu-toggle" aria-label="Open navigation">☰</button>
+  <a class="brand" href="index.html"><img src="assets/mark.svg" alt=""><span>Blackline</span><em>v1.0.0</em></a>
+  <button class="search-open" aria-label="Search"><span>Search the docs</span><kbd>/</kbd></button>
+  <nav class="top-links">
+    <a href="getting-started.html">Get started</a>
+    <a href="screens.html">Screens</a>
+    <a href="https://github.com/lcoclea/blackline-docs/issues">Support</a>
+    <button class="theme-toggle" aria-label="Switch light or dark theme">◐</button>
+  </nav>
+</header>
+<div class="shell">
+  <aside class="sidebar"><div class="nav-section"><div class="nav-title">Start here</div>
+<a href="index.html">Blackline</a>
+<a href="getting-started.html">Getting started</a>
+<a href="architecture.html">Architecture</a>
+</div>
+<div class="nav-section"><div class="nav-title">Guides</div>
+<a href="interfaces.html">Connecting your game</a>
+<a href="items.html">Items</a>
+<a href="weapons.html">Weapons</a>
+<a href="placing-weapon-parts.html">Placing weapon parts</a>
+<a href="containers.html">Containers</a>
+<a href="context-menu.html">Context menu</a>
+<a href="drag-and-drop.html">Drag and drop</a>
+<a href="equipment.html">Equipment</a>
+<a href="inspect.html">Inspect</a>
+<a href="character-looks.html">Character looks</a>
+<a href="market-and-trading.html">Market and trading</a>
+<a href="raid-loop.html">The raid loop</a>
+<a href="health-and-vitals.html">Health and vitals</a>
+<a href="hideout-and-crafting.html">Hideout and crafting</a>
+<a href="tasks-and-loadouts.html">Tasks and loadouts</a>
+</div>
+<div class="nav-section"><div class="nav-title">Systems</div>
+<a href="layers-and-screens.html" class="active">Layers and screens</a>
+<a href="viewmodels.html">Viewmodels</a>
+<a href="theming.html">Theming</a>
+<a href="settings.html">Settings</a>
+<a href="notifications.html">Notifications</a>
+<a href="rendering.html">Rendering</a>
+</div>
+<div class="nav-section"><div class="nav-title">Reference</div>
+<a href="screens.html">Screens</a>
+<a href="components.html">Components</a>
+<a href="source-interfaces.html">Source interfaces</a>
+<a href="requests.html">Requests</a>
+<a href="project-settings.html">Project settings</a>
+</div>
+<div class="nav-section"><div class="nav-title">Help</div>
+<a href="faq.html">FAQ</a>
+<a href="troubleshooting.html">Troubleshooting</a>
+</div></aside>
+  <main class="content">
+    <article>
+      <div class="eyebrow">Systems</div>
+      <h1>Layers and screens</h1>
+      <p class="lead">Every Blackline screen lives on one of five layers, and every screen class names its own layer, so you never pick one when you open it. This page shows how to open and close screens from Blueprint, how to swap a shipped screen for your own, how layers decide input and Escape, and how to build a new screen.</p>
+
+<h2 id="open-a-screen-from-blueprint">Open a screen from Blueprint<a class="anchor" href="#open-a-screen-from-blueprint" aria-label="Link to this section">#</a></h2>
+<p>The <em>NVS View Screen Library</em> puts screens on the viewport without any layer code. The first call that needs the layer stack builds it.</p>
+<ol class="steps">
+<li><strong>Build the layers</strong> In your player controller's Begin Play, call <em>Create Layer Stack</em> with Self. With no layout given it uses the one your View Setup Definition names. Calling it again returns the stack already built.</li>
+<li><strong>Show the toasts</strong> Call <em>Show Screen By Tag</em> with <code>NVS.View.Screen.NotificationStack</code>, so notifications have somewhere to draw.</li>
+<li><strong>Open the hub</strong> Call <em>Show Screen By Tag</em> with <code>NVS.View.Screen.MainMenu</code>.</li>
+</ol>
+<p>The demo's player controller starts the game with exactly these three calls, after looking through its camera. Every screen behind the hub opens from the hub's own buttons.</p>
+<table>
+<thead><tr><th>Call</th><th>What it does</th></tr></thead>
+<tbody>
+<tr><td>Create Layer Stack</td><td>Builds a container for every layer in a layout, binds them for the player and adds the root to the viewport.</td></tr>
+<tr><td>Show Screen By Tag</td><td>Opens the screen the screen registry lists under an <code>NVS.View.Screen.*</code> tag, on the layer its class declares.</td></tr>
+<tr><td>Show Screen</td><td>Opens a screen by class instead of by tag.</td></tr>
+<tr><td>Push To Layer</td><td>Pushes any CommonUI activatable widget onto a layer you name.</td></tr>
+<tr><td>Close Screen By Tag</td><td>Closes that screen wherever it is open.</td></tr>
+<tr><td>Close Top Screen</td><td>Closes the topmost screen, the way Escape does.</td></tr>
+<tr><td>Clear Layer</td><td>Closes every screen on one layer and returns how many closed.</td></tr>
+<tr><td>Is Screen Open</td><td>True while that screen is open, on any layer.</td></tr>
+<tr><td>Open Loot Screen</td><td>Opens the raid inventory with a crate's or a body's items beside the player's.</td></tr>
+</tbody>
+</table>
+<p>The screen tags are declared by the plugin, one per shipped screen: <code>MainMenu</code>, <code>InsertionSelect</code>, <code>RaidHUD</code>, <code>SkillsScreen</code>, <code>SkillTree</code>, <code>CharacterScreen</code>, <code>HealthScreen</code>, <code>StashScreen</code>, <code>LoadoutLibrary</code>, <code>RaidInventory</code>, <code>TraderList</code>, <code>TradeScreen</code>, <code>MarketScreen</code>, <code>TaskLog</code>, <code>PartyLobby</code>, <code>SettingsScreen</code>, <code>NotificationStack</code>, <code>RaidSummary</code>, <code>Hideout</code>, <code>BenchScreen</code> and <code>PowerStation</code>, plus the smaller windows such as <code>ItemMenu</code>, <code>InspectWindow</code> and <code>ContainerWindow</code>. Each sits under <code>NVS.View.Screen</code>. See <a href="screens.html">Screens</a>.</p>
+
+<h2 id="replace-a-shipped-screen">Replace a shipped screen<a class="anchor" href="#replace-a-shipped-screen" aria-label="Link to this section">#</a></h2>
+<p>The <strong>Screen Registry</strong> maps each screen tag to the Widget Blueprint that opens for it. The plugin ships <code>DA_BlacklineScreenRegistry</code>. Every screen that opens another goes through the registry too, so changing one row changes that screen everywhere.</p>
+<ol class="steps">
+<li><strong>Make your screen</strong> Duplicate the shipped Widget Blueprint, such as <code>/NVSBlackline/Screens/W_StashScreen</code>, into your own folder, or make a child of it. Restyle or extend it in the designer.</li>
+<li><strong>Make your registry</strong> Duplicate <code>DA_BlacklineScreenRegistry</code> into your folder and point the <code>NVS.View.Screen.StashScreen</code> row's <em>Widget</em> at your screen.</li>
+<li><strong>Use it</strong> In your own View Setup Definition, set <em>Screen Registry</em> to your copy. A game's own setup wins over the one the plugin ships, so nothing else needs to change.</li>
+</ol>
+<p>Each registry row has a <code>ScreenTag</code>, a <code>Widget</code> and an optional <code>LayerOverride</code>. Only a screen can stand in for a screen, because the caller pushes it onto the layer that class declares.</p>
+
+<h2 id="the-five-layers">The five layers<a class="anchor" href="#the-five-layers" aria-label="Link to this section">#</a></h2>
+<p>The layer table is a <code>UNVSViewLayoutAsset</code>. The plugin ships <code>DA_BlacklineLayout</code>, which the View Setup Definition names, with five layers from bottom to top:</p>
+<table>
+<thead><tr><th>Tag</th><th>Holds</th></tr></thead>
+<tbody>
+<tr><td><code>NVS.View.Layer.Game</code></td><td>The raid HUD.</td></tr>
+<tr><td><code>NVS.View.Layer.GameMenu</code></td><td>Screens over live gameplay: the raid inventory and the task log.</td></tr>
+<tr><td><code>NVS.View.Layer.Menu</code></td><td>Full-screen menus, such as the hub and the stash.</td></tr>
+<tr><td><code>NVS.View.Layer.Modal</code></td><td>The match found banner, the drop countdown, the debrief and the desk that container windows open on.</td></tr>
+<tr><td><code>NVS.View.Layer.Notification</code></td><td>The notification stack and the item menu.</td></tr>
+</tbody>
+</table>
+<p>Each row of the layout is an <code>FNVSViewLayerDef</code>:</p>
+<dl class="api">
+<dt>LayerTag</dt><dd>A tag under <code>NVS.View.Layer</code>. Every push and pop addresses a layer by it.</dd>
+<dt>ZOrder</dt><dd>Higher draws over lower. Declaration order does not matter.</dd>
+<dt>ContainerClass</dt><dd>The CommonUI container. Leave it unset for a stack.</dd>
+<dt>InputConfig</dt><dd>The <code>FUIInputConfig</code> applied when this layer is the highest occupied layer that decides input.</dd>
+<dt>bDecidesInput</dt><dd>When false the layer draws but never takes input, so a toast layer can sit above a dialog without taking its input.</dd>
+<dt>bOwnsBackHandler</dt><dd>Marks the layer meant to own Escape. The current Escape handling does not read it.</dd>
+<dt>TransitionDuration</dt><dd>Zero cuts between screens, which is the default because a crossfade shows the world through both screens.</dd>
+</dl>
+<p>In the editor, the asset's data validation reports a tag outside <code>NVS.View.Layer</code> or a tag used twice.</p>
+
+<h3 id="adding-a-layer">Adding a layer<a class="anchor" href="#adding-a-layer" aria-label="Link to this section">#</a></h3>
+<ol class="steps">
+<li><strong>Add a tag</strong> In <em>Project Settings &gt; Gameplay Tags</em>, add a child of <code>NVS.View.Layer</code>, such as <code>NVS.View.Layer.Tooltip</code>.</li>
+<li><strong>Copy the layout</strong> Duplicate <code>DA_BlacklineLayout</code> into your folder and add a row for the new tag with its z-order and input config. Keep the five shipped rows, because the shipped screens declare them.</li>
+<li><strong>Use it</strong> Set <em>Layout Asset</em> on your View Setup Definition to your copy, or pass it to <em>Create Layer Stack</em>.</li>
+</ol>
+
+<h2 id="back-and-escape">Back and Escape<a class="anchor" href="#back-and-escape" aria-label="Link to this section">#</a></h2>
+<p>The back keys close the topmost screen. They are Escape for the keyboard and the right face button for a gamepad, and the Engine Settings Setup Definition's <em>Back Keys</em> can name others. The layer subsystem reads them through a Slate input preprocessor, so they work even when no widget has focus.</p>
+<ol class="flow">
+<li data-title="Find the top">Layers are walked from the highest z-order down. The first active screen that is visible and does not ignore Back is chosen.</li>
+<li data-title="Ask the screen">The screen's <code>InterceptBack</code> runs first. The base class clears a selected tile or socket and returns true if it did, so the first press deselects and the second closes. The settings screen reverts a pending display change here.</li>
+<li data-title="Close">If nothing intercepted, the screen is removed from its layer and the one below it becomes active.</li>
+</ol>
+<p>Four class defaults on a screen change this:</p>
+<dl class="api">
+<dt>bIgnoresBack</dt><dd>Back passes over this screen to the one below. The raid HUD and the notification stack set it, so Escape closes the menu under the toasts.</dd>
+<dt>CloseKeys</dt><dd>Keys that also close this screen while it is on top. The raid inventory closes on the keys that open it.</dd>
+<dt>BackButtonNames</dt><dd>Buttons in the tree that close the screen, the same way Escape does.</dd>
+<dt>InterceptBack()</dt><dd>Override it in C++ to handle Back some other way, such as closing an inner panel. Return true when you handled it.</dd>
+</dl>
+<p>While a text field or a key capture needs the back key, call <code>SetEscapeClaimed(true)</code> on the layer subsystem so the key goes to the focused widget, and release it afterwards.</p>
+
+<h2 id="input">Input<a class="anchor" href="#input" aria-label="Link to this section">#</a></h2>
+<p>Each time a layer's displayed widget changes, the subsystem picks the highest occupied layer whose <code>bDecidesInput</code> is true, applies that layer's input config through the player's CommonUI action router, and broadcasts the winning tag.</p>
+<dl class="api">
+<dt>FNVSOnLayerActivationChanged&amp; OnLayerActivationChanged()</dt>
+<dd>Fires on every recompute with the winning layer's tag, or an empty tag when no layer is occupied. Restoring game input when the UI empties is left to your game.</dd>
+<dt>void SetInputConfigOverride(const TOptional&lt;FUIInputConfig&gt;&amp; InOverride)</dt>
+<dd>While set, replaces the winning layer's config. Pass an unset optional to go back to the layers.</dd>
+<dt>bool IsLayerOccupied(const FGameplayTag&amp; LayerTag) const</dt>
+<dd>True while the layer shows a widget. Blueprint pure.</dd>
+</dl>
+
+<h2 id="pushing-from-c">Pushing from C++<a class="anchor" href="#pushing-from-c" aria-label="Link to this section">#</a></h2>
+<p><code>UNVSViewLayerSubsystem</code> is a local player subsystem, so split screen gets one stack per player. Pushes are asynchronous because the widget class is a soft reference.</p>
+<dl class="api">
+<dt>FNVSViewPushHandle PushWidget(const FGameplayTag&amp; LayerTag, TSoftClassPtr&lt;UCommonActivatableWidget&gt; WidgetClass)</dt>
+<dd>Loads the class and adds it to the layer. A null class returns a cancelled handle.</dd>
+<dt>FNVSViewPushHandle RequestPush(const FGameplayTag&amp; LayerTag, TSoftClassPtr&lt;UCommonActivatableWidget&gt; WidgetClass, TFunction&lt;void(UNVSViewLayerSubsystem&amp;)&gt; AfterPush)</dt>
+<dd>The same, then runs <code>AfterPush</code> once the widget is in its container.</dd>
+<dt>FNVSViewPushHandle ReplaceWidget(const FGameplayTag&amp; LayerTag, TSoftClassPtr&lt;UCommonActivatableWidget&gt; WidgetClass, UCommonActivatableWidget&amp; Outgoing)</dt>
+<dd>Replaces <code>Outgoing</code> instead of stacking over it. If an instance already sits below, that one is shown again.</dd>
+<dt>bool PopWidget(UCommonActivatableWidget&amp; Widget)</dt>
+<dd>Removes a widget from whichever layer holds it.</dd>
+<dt>bool PopTopmostWidget()</dt>
+<dd>Removes the topmost screen, as the back keys do. False when nothing is showing.</dd>
+</dl>
+<p>The handle tracks the load. <code>IsPending</code>, <code>IsCompleted</code> and <code>IsCancelled</code> report its state, and copies share it. Ask a screen class for its layer with <code>UNVSViewScreen::GetLayerTagForClass</code>, so a push site never hard codes one.</p>
+
+<h3 id="from-inside-a-screen">From inside a screen<a class="anchor" href="#from-inside-a-screen" aria-label="Link to this section">#</a></h3>
+<dl class="api">
+<dt>bool PushScreen(TSoftClassPtr&lt;UNVSViewScreen&gt; Destination)</dt>
+<dd>Opens <code>Destination</code> on the layer its class declares, routed through the screen registry. Blueprint callable.</dd>
+<dt>bool ReplaceScreen(TSoftClassPtr&lt;UNVSViewScreen&gt; Destination)</dt>
+<dd>Replaces this screen, as a navigation tab does. C++ only.</dd>
+<dt>bool PopScreen()</dt>
+<dd>Removes this screen, as a back button does. C++ only.</dd>
+</dl>
+<p>Most screens need no code for this. <code>MenuDestinations</code> maps a button's widget name to the screen it opens, and <code>TabBindings</code> with <code>TabStripWidgetName</code> builds a tab bar whose tabs carry their own destinations.</p>
+
+<h2 id="writing-your-own-screen">Writing your own screen<a class="anchor" href="#writing-your-own-screen" aria-label="Link to this section">#</a></h2>
+<p>A screen is a <code>UNVSViewScreen</code> subclass with a widget tree. The class says which layer it goes on and what it binds, and the tree holds widgets named so the bindings can find them. This example shows the task tracked into a raid, with its own empty state.</p>
+<div class="tabs">
+<div class="tab" data-label="Blueprint">
+<ol class="steps">
+<li><strong>Create the Widget Blueprint</strong> Pick <code>NVSViewScreen</code> as the parent class.</li>
+<li><strong>Set the layer</strong> In Class Defaults, set <em>Layer Tag</em> to <code>NVS.View.Layer.GameMenu</code>.</li>
+<li><strong>Add a binding</strong> Add an entry to <em>View Model Bindings</em>: Binding Id <code>Task</code>, Domain <code>NVS.View.ViewModel.Record</code>, View Model Class <code>NVSViewRecordViewModel</code>, Source Class <code>NVSViewTrackedTask</code>.</li>
+<li><strong>Add readouts</strong> Add two entries to <em>Readout Bindings</em>: <code>TaskTitle</code> reading field <code>Headline</code>, and <code>TaskBody</code> reading <code>Body</code>, both from binding <code>Task</code>.</li>
+<li><strong>Add the empty state</strong> Under <em>Empty State</em>, add <code>Task</code> to <em>Empty When Bindings</em> and fill <em>Empty Title</em>, <em>Empty Body</em> and <em>Empty Setup Hint</em>.</li>
+<li><strong>Add the back button</strong> Add <code>BackButton</code> to <em>Back Button Names</em>.</li>
+</ol>
+</div>
+<div class="tab" data-label="C++">
+<pre><code class="lang-cpp">// MyBriefingScreen.h
+#pragma once
+
+#include "Screens/NVSViewScreen.h"
+
+#include "MyBriefingScreen.generated.h"
+
+UCLASS()
+class UMyBriefingScreen : public UNVSViewScreen
+{
+	GENERATED_BODY()
+
+public:
+	UMyBriefingScreen();
+
+	static FName TaskBindingId() { return FName(TEXT("Task")); }
+};
+
+// MyBriefingScreen.cpp
+#include "MyBriefingScreen.h"
+
+#include "Sources/NVSViewRecordLists.h"
+#include "Tags/NVSViewTags.h"
+#include "ViewModels/NVSViewRecordViewModel.h"
+
+UMyBriefingScreen::UMyBriefingScreen()
+{
+	LayerTag = TAG_NVS_View_Layer_GameMenu.GetTag();
+
+	ViewModelBindings =
+	{
+		MakeBinding(TaskBindingId(), TAG_NVS_View_ViewModel_Record.GetTag(),
+			UNVSViewRecordViewModel::StaticClass(), UNVSViewTrackedTask::StaticClass()),
+	};
+	ReadoutBindings =
+	{
+		MakeReadoutBinding(TEXT("TaskTitle"), TaskBindingId(), TEXT("Headline")),
+		MakeReadoutBinding(TEXT("TaskBody"), TaskBindingId(), TEXT("Body")),
+	};
+	EmptyWhenBindings = { TaskBindingId() };
+	EmptyTitle = INVTEXT("No task tracked");
+	EmptyBody = INVTEXT("Track a task in the task log to see it here.");
+	EmptySetupHint = INVTEXT("Create Task Definition assets.");
+	BackButtonNames = { FName(TEXT("BackButton")) };
+}</code></pre>
+<p>Parent the Widget Blueprint to <code>UMyBriefingScreen</code>.</p>
+</div>
+</div>
+<p>In the tree, place two text blocks named <code>TaskTitle</code> and <code>TaskBody</code>, and a <code>W_Button</code> from <code>/NVSBlackline/Widgets/</code> named <code>BackButton</code> so it carries the theme. Optionally wrap the content in a Scale Box named <code>CompositionScaleBox</code> around a Size Box named <code>CompositionBox</code>. With them the screen lays out at <code>MinimumCompositionSize</code>, 1560 by 900 by default, and scales down below it instead of reflowing.</p>
+<p>To open it, add a row for it to your screen registry under a tag of your own and call <em>Show Screen By Tag</em>, or add the button name and the class to another screen's <code>MenuDestinations</code>.</p>
+
+<h3 id="hooks-a-c-subclass-can-override">Hooks a C++ subclass can override<a class="anchor" href="#hooks-a-c-subclass-can-override" aria-label="Link to this section">#</a></h3>
+<dl class="api">
+<dt>OnViewModelsResolved()</dt><dd>Every binding is resolved and pointed at its source.</dd>
+<dt>OnContentPushed()</dt><dd>Every bound widget is filled and every readout bound.</dd>
+<dt>OnBarsBuilt()</dt><dd>The tab bar and bottom bar are built. Bind extra buttons here.</dd>
+<dt>OnRecordChosen(BindingId, RecordId), OnItemChosen(BindingId, ItemId), OnRailOptionChosen(BindingId, OptionId)</dt><dd>A row, an item or a filter chip was clicked.</dd>
+<dt>InterceptBack()</dt><dd>Runs before Back closes the screen. Return true when you handled it.</dd>
+</dl>
+
+<h2 id="what-you-see">What you see<a class="anchor" href="#what-you-see" aria-label="Link to this section">#</a></h2>
+<p>Open your screen from the raid HUD and it appears on the Game Menu layer over the HUD, with the tracked task's title and description. With no task tracked it shows your empty state instead. Escape or the back button closes it, and the layer below takes input back.</p>
+<figure class="shot"><img src="img/screens/raid-hud.png" alt="The raid HUD on the Game layer"><figcaption>The Game layer holds the HUD. Screens on the Game Menu layer draw over it.</figcaption></figure>
+      <nav class="pager"><a class="prev" href="tasks-and-loadouts.html"><span>Previous</span>Tasks and loadouts</a><a class="next" href="viewmodels.html"><span>Next</span>Viewmodels</a></nav>
+    </article>
+  </main>
+  <aside class="toc"><div class="toc-title">On this page</div><nav></nav></aside>
+</div>
+<div class="search-panel" hidden>
+  <div class="search-box">
+    <input type="search" placeholder="Search guides, screens, classes…" aria-label="Search">
+    <div class="search-results"></div>
+    <div class="search-hint"><kbd>↑</kbd><kbd>↓</kbd> to move, <kbd>Enter</kbd> to open, <kbd>Esc</kbd> to close</div>
+  </div>
+</div>
+<div class="lightbox" hidden><img alt=""><div class="lightbox-caption"></div></div>
+<script src="assets/search-index.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

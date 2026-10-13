@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Weapons · Blackline for Unreal Engine</title>
+<meta name="description" content="Make guns, magazines and scopes as data assets, fit parts by dragging, and show the gun on the raid HUD and in the player&#x27;s hands.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="icon" href="assets/mark.svg" type="image/svg+xml">
+<script>try{var t=localStorage.getItem("bl-theme");if(t)document.documentElement.dataset.theme=t;}catch(e){}</script>
+</head>
+<body class="layout-doc">
+<header class="topbar">
+  <button class="menu-toggle" aria-label="Open navigation">☰</button>
+  <a class="brand" href="index.html"><img src="assets/mark.svg" alt=""><span>Blackline</span><em>v1.0.0</em></a>
+  <button class="search-open" aria-label="Search"><span>Search the docs</span><kbd>/</kbd></button>
+  <nav class="top-links">
+    <a href="getting-started.html">Get started</a>
+    <a href="screens.html">Screens</a>
+    <a href="https://github.com/lcoclea/blackline-docs/issues">Support</a>
+    <button class="theme-toggle" aria-label="Switch light or dark theme">◐</button>
+  </nav>
+</header>
+<div class="shell">
+  <aside class="sidebar"><div class="nav-section"><div class="nav-title">Start here</div>
+<a href="index.html">Blackline</a>
+<a href="getting-started.html">Getting started</a>
+<a href="architecture.html">Architecture</a>
+</div>
+<div class="nav-section"><div class="nav-title">Guides</div>
+<a href="interfaces.html">Connecting your game</a>
+<a href="items.html">Items</a>
+<a href="weapons.html" class="active">Weapons</a>
+<a href="placing-weapon-parts.html">Placing weapon parts</a>
+<a href="containers.html">Containers</a>
+<a href="context-menu.html">Context menu</a>
+<a href="drag-and-drop.html">Drag and drop</a>
+<a href="equipment.html">Equipment</a>
+<a href="inspect.html">Inspect</a>
+<a href="character-looks.html">Character looks</a>
+<a href="market-and-trading.html">Market and trading</a>
+<a href="raid-loop.html">The raid loop</a>
+<a href="health-and-vitals.html">Health and vitals</a>
+<a href="hideout-and-crafting.html">Hideout and crafting</a>
+<a href="tasks-and-loadouts.html">Tasks and loadouts</a>
+</div>
+<div class="nav-section"><div class="nav-title">Systems</div>
+<a href="layers-and-screens.html">Layers and screens</a>
+<a href="viewmodels.html">Viewmodels</a>
+<a href="theming.html">Theming</a>
+<a href="settings.html">Settings</a>
+<a href="notifications.html">Notifications</a>
+<a href="rendering.html">Rendering</a>
+</div>
+<div class="nav-section"><div class="nav-title">Reference</div>
+<a href="screens.html">Screens</a>
+<a href="components.html">Components</a>
+<a href="source-interfaces.html">Source interfaces</a>
+<a href="requests.html">Requests</a>
+<a href="project-settings.html">Project settings</a>
+</div>
+<div class="nav-section"><div class="nav-title">Help</div>
+<a href="faq.html">FAQ</a>
+<a href="troubleshooting.html">Troubleshooting</a>
+</div></aside>
+  <main class="content">
+    <article>
+      <div class="eyebrow">Guides</div>
+      <h1>Weapons</h1>
+      <p class="lead">A weapon in Blackline is an Item Definition whose type is Weapon. This guide makes a carbine, its magazine and a scope from the free FPS Weapon Bundle on Fab, fits the parts by dragging, and shows the result on the raid HUD and in the player's hands. You need no C++ for any of it.</p>
+
+<h2 id="make-the-gun">Make the gun<a class="anchor" href="#make-the-gun" aria-label="Link to this section">#</a></h2>
+<p>Add the FPS Weapon Bundle from Fab to your project. Its meshes land under <code>/Game/FPS_Weapon_Bundle/Weapons/Meshes/</code>. Any static mesh of your own works the same way.</p>
+<ol class="steps">
+<li><strong>Create the asset</strong> In the Content Browser, right-click and pick <em>Miscellaneous &gt; Data Asset</em>, then <em>Item Definition</em>. The demo names its carbine <code>PDA_AR4</code>.</li>
+<li><strong>Fill the item fields</strong> Set <em>Display Name</em>, <em>Description</em>, <em>Footprint</em> (4 by 1 for a rifle), <em>Value</em>, <em>Weight</em> and <em>Tags</em>. A tag such as <code>Item.Weapon.Rifle</code> puts it under your Weapons category.</li>
+<li><strong>Pick the type</strong> Set <em>Type</em> to <strong>Weapon</strong>. The weapon's own fields appear under it.</li>
+<li><strong>Give it a look</strong> Under <em>Look</em>, set <em>Static Mesh</em> to <code>SM_AR4</code>. Tiles, the paper doll and the inspect window now render that mesh. To use a flat picture instead, set <em>Icon</em>.</li>
+</ol>
+<p>The Weapon type has these fields:</p>
+<dl class="api">
+<dt>Equip Slot</dt><dd>Where it is carried: <code>NVS.View.Slot.Primary</code>, <code>Secondary</code>, <code>Sidearm</code> or <code>Melee</code>. This is what puts Equip in the item menu. The editor reports an error when it is empty.</dd>
+<dt>Calibre</dt><dd>A tag of your own, shown on the inspect sheet as the calibre.</dd>
+<dt>Fire Modes</dt><dd>Picked from a list: <em>Semi</em>, <em>Burst</em>, <em>Auto</em>, <em>Bolt</em> and <em>Pump</em>. The first is the one the gun starts in. The inspect sheet lists them all and the raid HUD shows the first, as <code>SEMI</code> or <code>AUTO</code>.</dd>
+<dt>Attachment Slots</dt><dd>The places a part can go. Each slot has a <em>Slot</em> tag that must be unique on the gun, a <em>Label</em> such as <code>MAG</code>, an <em>Accepts</em> list of part kinds, and a <em>Socket</em> and <em>Offset</em> that say where a fitted part sits on the mesh.</dd>
+</dl>
+<p>The demo's AR-4 has two slots. The optic rail accepts <code>Attachment.Optic</code>. The magazine well accepts <code>Attachment.Magazine.AR4</code>, so only the AR-4's own magazine fits it.</p>
+<div class="callout tip">The bundle's meshes carry no sockets, so the demo places each slot with <em>Offset</em> alone. Moving those points until a part lines up is covered in <a href="placing-weapon-parts.html">Placing weapon parts</a>.</div>
+
+<h2 id="make-the-parts">Make the parts<a class="anchor" href="#make-the-parts" aria-label="Link to this section">#</a></h2>
+<p>Parts are Item Definitions too. Two types can be fitted to a gun.</p>
+<dl class="api">
+<dt>Attachment</dt><dd>One field, <em>Kind</em>, such as <code>Attachment.Optic</code>. A slot takes the part when its <em>Accepts</em> list matches the kind. An attachment with no kind fits nothing, and the editor says so.</dd>
+<dt>Ammo</dt><dd><em>Calibre</em>, <em>Kind</em> and <em>Capacity</em>. A magazine sets <em>Kind</em> to the slot kind it loads into and <em>Capacity</em> to its rounds. Loose rounds leave both empty.</dd>
+</dl>
+<p>The demo's parts, all from the bundle:</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Asset</th><th>Type</th><th>Kind</th><th>Capacity</th><th>Mesh</th></tr></thead>
+<tbody>
+<tr><td><code>PDA_AR4Mag</code></td><td>Ammo</td><td><code>Attachment.Magazine.AR4</code></td><td>30</td><td><code>AR4/SM_AR4_Mag</code></td></tr>
+<tr><td><code>PDA_KA47Mag</code></td><td>Ammo</td><td><code>Attachment.Magazine.KA47</code></td><td>30</td><td><code>Ka47/SM_KA47_Mag</code></td></tr>
+<tr><td><code>PDA_SMG11Mag</code></td><td>Ammo</td><td><code>Attachment.Magazine.SMG11</code></td><td>20</td><td><code>SMG11/SM_SMG11_Mag_X</code></td></tr>
+<tr><td><code>PDA_Scope</code></td><td>Attachment</td><td><code>Attachment.Optic</code></td><td></td><td><code>Accessories/SM_Scope_25x56_X</code></td></tr>
+</tbody></table></div>
+<p>Add the <em>Stackable</em> trait to a magazine if you want several in one cell. The demo stacks them three high.</p>
+<figure class="shot"><img src="img/features/item-tiles.png" alt="Grid tiles showing rendered guns, magazines and a scope"><figcaption>Every tile is rendered from the item's look, at the size of its footprint.</figcaption></figure>
+
+<h2 id="fit-a-magazine-or-a-scope">Fit a magazine or a scope<a class="anchor" href="#fit-a-magazine-or-a-scope" aria-label="Link to this section">#</a></h2>
+<p>The player fits a part by dragging it onto any of these:</p>
+<ul>
+<li>The gun's tile in a grid.</li>
+<li>The worn gun on the paper doll.</li>
+<li>A slot in the gun's inspect window.</li>
+</ul>
+<p>The part goes into a slot that accepts its kind and is still empty. Dragging one magazine off a stack fits one and leaves the rest where they were. Dragging the part out again takes it off.</p>
+<p>In Blueprint, the <em>Inventory</em> component's <strong>Attach Item</strong> does the same. It takes the part's instance, the gun's instance and the slot tag, and returns false when the slot does not take that kind or is already full.</p>
+<p>A kit can start with parts already fitted. In a Loadout Definition or in the component's <em>Starting Items</em>, set <em>Fitted To Slot</em> on the magazine to the slot the gun is worn in. The demo's starter kit fits an AR-4 magazine to the gun worn in <code>NVS.View.Slot.Primary</code>, so the player starts with a loaded carbine.</p>
+
+<h2 id="fitted-parts-show-on-the-gun">Fitted parts show on the gun<a class="anchor" href="#fitted-parts-show-on-the-gun" aria-label="Link to this section">#</a></h2>
+<p>Once a part is fitted, the gun's picture shows it everywhere the gun is drawn: its tile, the doll, the inspect window, the character figure and the gun in the player's hands. Each part sits at its slot's <em>Socket</em> and <em>Offset</em>. Icons are cached by everything in the look, so fitting a scope renders a fresh icon by itself.</p>
+<figure class="shot"><img src="img/features/inspect.png" alt="The inspect window showing a rendered rifle with its description, figures and attachment slots"><figcaption>The inspect window lists the gun's slots under it. Drop a part on a slot to fit it there.</figcaption></figure>
+<figure class="shot"><img src="img/features/paperdoll-equipped.png" alt="The paper doll with weapons worn in their sockets"><figcaption>Worn guns on the doll. A part dropped on a worn gun is fitted to it.</figcaption></figure>
+<p>How the gun hangs on the character's body while worn comes from <em>Worn On</em> and <em>Worn Offset</em> on its type. That, and lining up each slot, is the subject of <a href="placing-weapon-parts.html">Placing weapon parts</a>.</p>
+
+<h2 id="the-raid-hud-weapon-readout">The raid HUD weapon readout<a class="anchor" href="#the-raid-hud-weapon-readout" aria-label="Link to this section">#</a></h2>
+<p>The raid HUD (<code>W_RaidHUD</code>) shows the gun in hand from its <code>Weapon</code> binding. The built-in source is <code>UNVSViewHeldWeapon</code>. With an Inventory component on the player's pawn it reads the gun worn in its <em>Held Slot</em> and shows:</p>
+<ul>
+<li>The gun's name.</li>
+<li>Its first fire mode, such as <code>SEMI</code>.</li>
+<li>The fitted magazine's capacity as rounds, such as <code>30/30</code>.</li>
+<li>How many more magazines of the same item the player carries, such as <code>×6 MAG</code>. Magazines in the stash do not count.</li>
+</ul>
+<p><em>Held Slot</em> defaults to <code>NVS.View.Slot.Primary</code>. With nothing worn there the readout shows <em>Unarmed Text</em>, which defaults to Unarmed.</p>
+<figure class="shot"><img src="img/screens/raid-hud.png" alt="The raid HUD with the weapon readout in the corner"><figcaption>The raid HUD. The weapon readout reads the worn primary and its fitted magazine.</figcaption></figure>
+<div class="callout important">Blackline does not count shots. The readout always shows the fitted magazine full. To show live ammunition, give the HUD your own source as described below.</div>
+
+<h3 id="show-live-ammunition">Show live ammunition<a class="anchor" href="#show-live-ammunition" aria-label="Link to this section">#</a></h3>
+<ol class="steps">
+<li><strong>Make a component</strong> Create a Blueprint Actor Component, for example on your player controller, and add the interface <em>NVS View Record Source</em>.</li>
+<li><strong>Answer Describe Record</strong> Fill the record: <em>Headline</em> for the gun's name, <em>Status Text</em> for the fire mode, <em>Secondary Value</em> for rounds left, <em>Secondary Suffix</em> for the capacity such as <code>/30</code>, and <em>Primary Value</em> for spare magazines such as <code>×2 MAG</code>. Return true.</li>
+<li><strong>Stand in for the built-in source</strong> On Begin Play, call <strong>Set Screen Source</strong> with <em>Replaces</em> set to <em>NVS View Held Weapon</em> and <em>Source</em> set to self.</li>
+<li><strong>Redraw after a change</strong> After a shot, a reload or a fire mode switch, call <strong>Refresh Source</strong> with the player controller and self.</li>
+</ol>
+<p>The demo's <code>BPC_Vitals</code> and <code>BPC_RaidClock</code> are built the same way for the vitals and the clock. See <a href="health-and-vitals.html">Health and vitals</a>.</p>
+
+<h2 id="the-gun-in-the-player-s-hands">The gun in the player's hands<a class="anchor" href="#the-gun-in-the-player-s-hands" aria-label="Link to this section">#</a></h2>
+<p><strong>Show Held Item</strong> on <em>NVS View Look Library</em> puts an item and everything fitted to it on a Static Mesh component in your world:</p>
+<pre><code class="lang-cpp">// NVSViewLookLibrary.h
+static TArray&lt;UStaticMeshComponent*&gt; ShowHeldItem(const UObject* WorldContext, UStaticMeshComponent* Base, UObject* Holder, FName InstanceId);</code></pre>
+<p>The demo character does it in Blueprint:</p>
+<ol class="steps">
+<li><strong>Add a mesh</strong> Add a Static Mesh component under the camera, called <code>HeldWeapon</code> in the demo, with collision off.</li>
+<li><strong>Listen for changes</strong> Bind the Inventory component's <em>On Inventory Changed</em> to an event.</li>
+<li><strong>Find the gun</strong> In that event, call <strong>Get Equipped</strong> on the inventory with <code>NVS.View.Slot.Primary</code>.</li>
+<li><strong>Show it</strong> When something is worn, call <strong>Show Held Item</strong> with <code>HeldWeapon</code> as <em>Base</em>, the inventory as <em>Holder</em> and the entry's <em>Instance Id</em>. When nothing is worn, call it with <em>Instance Id</em> left as None, which empties the mesh.</li>
+</ol>
+<p>Calling it again replaces what it added, so fitting or removing a scope updates the gun in hand on the next change. It uses the look's <em>Static Mesh</em>. Positioning the gun in view is covered in <a href="placing-weapon-parts.html">Placing weapon parts</a>.</p>
+
+<h2 id="optional-looks-for-items-that-are-not-definitions">Optional looks for items that are not definitions<a class="anchor" href="#optional-looks-for-items-that-are-not-definitions" aria-label="Link to this section">#</a></h2>
+<p>Everything above reads the look from the Item Definition. If your game shows items that have no definition, such as ids from your own inventory system, the renderer asks the <em>look source</em> instead. That is an object implementing <code>INVSViewLookSource</code>:</p>
+<pre><code class="lang-cpp">// Interfaces/NVSViewLookSource.h
+UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "NVS|View|Look")
+NVSVIEW_API bool DescribeItemLook(FName ItemId, FNVSViewLook&amp; OutLook);</code></pre>
+<p>The built-in look source is <code>UNVSViewCharacterLooks</code>, which also dresses the character figures. To use your own, create a <em>Screen Source Definition</em> with <em>Replaces</em> set to <em>NVS View Character Looks</em> and <em>Class</em> set to your class. The renderer reads it when the game instance starts, so begin a new Play session after changing it. A C++ subclass of <code>UNVSViewCharacterLooks</code> that overrides <code>DescribeItemLook_Implementation</code> and calls <code>Super</code> for ids it does not know keeps the figures working.</p>
+
+<h2 id="result">Result<a class="anchor" href="#result" aria-label="Link to this section">#</a></h2>
+<p>Open the stash in the demo, drag an AR-4 magazine onto the carbine and double-click the gun. The inspect window shows the magazine in the MAG slot and the rendered gun with it in place. Deploy, and the raid HUD reads <code>AR-4 carbine</code> with <code>30/30</code>, while the gun in your hands carries the same magazine.</p>
+
+<div class="cards">
+<a class="card" href="placing-weapon-parts.html"><span class="card-tag">Guide</span><strong>Placing weapon parts</strong>Attachment points, worn guns and the held gun in detail.</a>
+<a class="card" href="items.html"><span class="card-tag">Guide</span><strong>Items</strong>Item definitions, types and traits.</a>
+<a class="card" href="inspect.html"><span class="card-tag">Guide</span><strong>Inspect</strong>How the window frames and turns an item.</a>
+<a class="card" href="rendering.html"><span class="card-tag">Systems</span><strong>Rendering</strong>The icon renderer, cache and studio.</a>
+</div>
+      <nav class="pager"><a class="prev" href="items.html"><span>Previous</span>Items</a><a class="next" href="placing-weapon-parts.html"><span>Next</span>Placing weapon parts</a></nav>
+    </article>
+  </main>
+  <aside class="toc"><div class="toc-title">On this page</div><nav></nav></aside>
+</div>
+<div class="search-panel" hidden>
+  <div class="search-box">
+    <input type="search" placeholder="Search guides, screens, classes…" aria-label="Search">
+    <div class="search-results"></div>
+    <div class="search-hint"><kbd>↑</kbd><kbd>↓</kbd> to move, <kbd>Enter</kbd> to open, <kbd>Esc</kbd> to close</div>
+  </div>
+</div>
+<div class="lightbox" hidden><img alt=""><div class="lightbox-caption"></div></div>
+<script src="assets/search-index.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

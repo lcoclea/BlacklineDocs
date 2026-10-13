@@ -1,0 +1,123 @@
+<!--meta {"title": "Containers", "section": "Guides", "order": 30, "summary": "Put the Inventory component on a player, crate or body, and get grids, worn bags, bags in bags, searching, loot rules, saving and starting kits."} -->
+<p class="lead">Blackline ships an <strong>Inventory</strong> component that holds items for any actor: the player, a supply crate or a dead body. Add it, give it starting items, and the stash, the raid inventory and the loot screens fill themselves from it.</p>
+
+<h2>Give the player an inventory</h2>
+<ol class="steps">
+<li><strong>Add the component</strong> Open your player pawn Blueprint, click <em>Add</em> in the Components panel and choose <em>Inventory</em> (class <code>UNVSViewInventoryComponent</code>).</li>
+<li><strong>Check the base grids</strong> In the Details panel, <em>Base Containers</em> already holds a <code>Stash</code> of 10 by 40 cells and <code>Pockets</code> of 4 by 1. Change the sizes or add more.</li>
+<li><strong>Give it items</strong> Add rows to <em>Starting Items</em>, or set <em>Starting Loadout</em> to a Loadout Definition. See <a href="#starting-items">Starting items</a> below.</li>
+<li><strong>Press Play and open the stash</strong> A screen that shows the player's inventory looks for an Inventory component on the owning pawn when it opens. The stash grid, the pockets, the doll and the worn bags all read from it.</li>
+</ol>
+<p>To show another actor's inventory on a screen, call <strong>Set Inventory Owner</strong> on the screen with that actor. It finds the actor's first component that holds items. A screen whose <em>Shows Player Inventory</em> is ticked does this for the pawn by itself.</p>
+
+<h2>Base grids and worn grids</h2>
+<p>The component has two kinds of grid.</p>
+<ul>
+<li><strong>Base containers</strong> are always there, such as the stash and the pockets. Each row has an <em>Id</em>, a <em>Label</em>, a <em>Size</em>, a <em>Place</em> (such as <code>NVS.View.Place.Stash</code> or <code>NVS.View.Place.Pockets</code>), an <em>Accepts</em> tag query and a <em>Refusal Text</em>.</li>
+<li><strong>Container items</strong> bring their own grids. An item whose type is Container opens every grid its definition lists, whether it is worn or carried, so a backpack keeps its contents when it comes off.</li>
+</ul>
+<p>A worn container's items sit in the place its type names, or in the place named like its slot. A pack worn in <code>NVS.View.Slot.Pack</code> holds items in <code>NVS.View.Place.Pack</code>, a rig in the rig's place. The menu rows and quick moves use these places to know where an item is.</p>
+
+<h3>How the stash screen maps its grids</h3>
+<p>Each container binding on a screen shows the grid of the same name, unless the screen's <em>Inventory Targets</em> map says otherwise. The stash screen ships with this map:</p>
+<dl class="api">
+<dt>Stash, Pockets</dt><dd>The base containers with those ids.</dd>
+<dt>Pack</dt><dd>The first grid of whatever is worn in <code>NVS.View.Slot.Pack</code>.</dd>
+<dt>RigMag, RigAdmin, RigMed</dt><dd>Grids 0, 1 and 2 of whatever is worn in <code>NVS.View.Slot.Rig</code>. A rig draws its first grid on top and its other pouches in a row under it.</dd>
+<dt>Secure</dt><dd>The first grid of whatever is worn in <code>NVS.View.Slot.Secure</code>.</dd>
+</dl>
+<p>With nothing worn in a slot, its block stays on screen and its grids fold away until something is worn there again.</p>
+
+<h2>Bags inside bags</h2>
+<p>A container item can sit inside another container, such as a looted rig carried in your pack or an ammo crate in the stash. Double-click it, or choose <em>Open</em> in its menu, and its grids open in a window. Items inside it move with it.</p>
+<p>A bag can never go inside itself or inside anything it contains, at any depth. The component refuses such a move.</p>
+
+<figure class="shot"><img src="img/features/container-window.png" alt="A container window floating over the stash screen, showing a bag's grid"><figcaption>A container window. It can be moved and resized, and items drag between it and the screen beneath.</figcaption></figure>
+
+<h3>Container windows</h3>
+<p>Each worn block on the stash screen has a pop-out button that opens its grids in a movable window. The screen's <em>Pop Outs</em> list names each button and the bindings its window shows. On the stash screen the pockets and the secure case are marked fixed, so they cannot be taken off. Opening the same container again brings its window to the front, and the front window is where Ctrl-click and the menu's <em>Move to</em> row send an item.</p>
+
+<h2>What a container takes</h2>
+<p>A container's <em>Accepts</em> is a gameplay tag query matched against the item's <em>Tags</em>. Empty takes anything. When the player drops an item it refuses, a REFUSED toast shows the container's <em>Refusal Text</em>, or a line saying the container does not take that item.</p>
+<p>The demo's secure case takes only small valuables. Its query matches any of <code>Item.Key</code>, <code>Item.Medical</code>, <code>Item.Loot</code> and <code>Item.Quest</code>, and its refusal text reads "The lined tin takes keys, medicine and valuables only."</p>
+
+<h2>Crates and bodies</h2>
+<p>Put the same Inventory component on a crate or a body actor. Then open the raid inventory with it beside the player's gear:</p>
+<ol class="steps">
+<li><strong>Add the component</strong> Add <em>Inventory</em> to the crate or body Blueprint. Clear <em>Base Containers</em> if it should only hold what it wears, or give it one grid for a crate.</li>
+<li><strong>Name it</strong> Set <em>Display Name</em>, such as <code>SUPPLY CRATE</code> or <code>DEAD OPERATOR</code>. The loot pane's heading shows it.</li>
+<li><strong>Tick the options</strong> Tick <em>Needs Search</em> to veil its grids until searched. On a body, tick <em>Applies Loot Rules</em>.</li>
+<li><strong>Open it</strong> When the player interacts with it, call <strong>Open Loot Screen</strong> on <em>NVS View Screen Library</em> with the player controller and the actor. With no actor it opens the player's gear and hides the loot pane.</li>
+</ol>
+<figure class="shot"><img src="img/screens/raid-inventory.png" alt="The raid inventory with the player's carried containers beside a loot pane"><figcaption>The raid inventory. The player's gear is on one side and the crate or body on the other, with tabs for each.</figcaption></figure>
+<p>On a body, what it wears counts as loot. Its worn gear shows on a second doll, and its menu offers a <em>Take into</em> row, which moves it into your gear, instead of Unequip.</p>
+
+<h3>Searching</h3>
+<p>With <em>Needs Search</em> ticked, each grid shows a veil. The player clicks it to start a search with a progress bar, and clicks again to cancel. Each container is searched once and stays open after that. The time comes from the Setup Definition:</p>
+<dl class="api">
+<dt>Search Base Seconds</dt><dd>0.8 seconds for every search.</dd>
+<dt>Search Seconds Per Cell</dt><dd>0.12 seconds added for each cell of the grid.</dd>
+<dt>Search Body Factor</dt><dd>0.6. A body's gear takes this share of the time a crate of the same size would.</dd>
+</dl>
+<p><strong>Is Searched</strong> tells you whether a container's contents show yet, and <strong>Mark Searched</strong> opens one from your own code.</p>
+
+<h3>Loot rules</h3>
+<p>With <em>Applies Loot Rules</em> ticked, the <a href="items.html">Loot Rule trait</a> on each item decides what can leave.</p>
+<dl class="api">
+<dt>StaysOnBody</dt><dd>The item cannot be taken, but what is inside it can. The demo puts this on gloves and trousers. Trying shows "That stays on the body. What is inside it can be taken."</dd>
+<dt>Sealed</dt><dd>Nothing about the item can be taken or opened, including anything inside it. The demo puts this on the secure case. Trying shows "It is locked. Only its owner can open it."</dd>
+</dl>
+<p>Worn items that cannot leave show as fixed on the body's doll.</p>
+
+<h3>Moving between inventories</h3>
+<p>When the player drags an item from a crate or body into their own gear, the item moves with everything inside it or fitted to it, such as a rig with its pouches full or a rifle with its scope. If it does not fit, it goes back and a NO ROOM toast says so.</p>
+
+<h2 id="starting-items">Starting items</h2>
+<p>Each row of <em>Starting Items</em>, and each row of a Loadout Definition, is an <code>FNVSViewStartingItem</code>:</p>
+<dl class="api">
+<dt>Item, Count</dt><dd>The item definition and how many.</dd>
+<dt>Equip Slot</dt><dd>Worn in this slot when set.</dd>
+<dt>Fitted To Slot</dt><dd>Fitted to the weapon worn in this slot, such as a magazine in the primary. It goes into the first attachment slot that takes its kind. This wins over packing.</dd>
+<dt>Packed In Slot, Packed Grid</dt><dd>Packed inside the item worn in that slot, such as <code>NVS.View.Slot.Pack</code>. <em>Packed Grid</em> picks a rig's pouch, counted from zero. This wins over <em>Container</em>.</dd>
+<dt>Container</dt><dd>A base container's id. None takes the first one with room.</dd>
+</dl>
+<p>Worn items go on first, so a pack is on the back and a rifle is in hand before anything is packed into or fitted to them. That is how a kit starts with a loaded gun. The demo's starter kit wears <code>PDA_AR4</code> in the primary slot and has a row of <code>PDA_AR4Mag</code> with <em>Fitted To Slot</em> set to <code>NVS.View.Slot.Primary</code>, so the rifle starts with a 30 round magazine in it.</p>
+<p><em>Starting Loadout</em> adds a Loadout Definition's rows on top of <em>Starting Items</em>. The component fills itself with them on Begin Play when it is empty. <strong>Reset To Starting Items</strong> empties it and fills it again.</p>
+
+<h2>Blueprint calls</h2>
+<p>Every call is on the Inventory component. Items are named by their item id, and entries by the instance id the component gives each stack.</p>
+<dl class="api">
+<dt>Add Item(Item, Count, Container)</dt><dd>Puts items away, topping up stacks first. Container None tries each base container. Returns how many did not fit.</dd>
+<dt>Pick Up Item(Item, Count)</dt><dd>Puts an item picked up off the ground where <em>Pickup Order</em> says. The default order is the worn pack, the worn rig, then the pockets. Returns how many did not fit.</dd>
+<dt>Move Item, Move Item Anywhere</dt><dd>Moves an entry to a cell of a container, or to its first free cell.</dd>
+<dt>Equip Item, Unequip Item, Attach Item</dt><dd>Wears, takes off and fits. See <a href="equipment.html">Equipment</a>.</dd>
+<dt>Use Item, Split Stack, Rotate Item, Drop Item</dt><dd>What the menu rows do. Use adds a consumable's food and water and removes one. Drop removes the entry and what it holds.</dd>
+<dt>Remove Item, Take Items, Count Item</dt><dd>Take a count from one entry, take a count of an item across all stacks, or count how many the inventory holds.</dd>
+<dt>Kit Up(Loadout)</dt><dd>Wears, fits and packs a loadout from what the player owns. Returns how many pieces were missing.</dd>
+<dt>Get Carried Weight</dt><dd>Kilograms worn and carried, including the pockets and anything nested in bags. The stash does not count.</dd>
+<dt>Forfeit Carried(Keep Slots)</dt><dd>Removes everything carried, as when the player dies in a raid. What is worn in <em>Keep Slots</em>, and what is inside it, stays, and so does every base container whose place is the stash. Returns what was removed. <em>Kept On Death</em> defaults to <code>NVS.View.Slot.Secure</code>.</dd>
+<dt>Get Entries, Get Equipped</dt><dd>Every entry, or the entry worn in a slot.</dd>
+<dt>Save Inventory, Load Inventory</dt><dd>Save returns an <code>FNVSViewInventorySave</code> struct you can put in a SaveGame object. Load puts it back.</dd>
+</dl>
+<p>Three events let your game react:</p>
+<dl class="api">
+<dt>On Inventory Changed</dt><dd>Fires on any change. Open screens redraw by themselves.</dd>
+<dt>On Item Used</dt><dd>The player used an item. Apply its effect in your game.</dd>
+<dt>On Item Dropped</dt><dd>The player dropped an item. Spawn its pickup in the world.</dd>
+</dl>
+
+<h3>Save and load</h3>
+<pre><code class="lang-text">Save:  Inventory &gt; Save Inventory  -&gt;  store the struct in your SaveGame object
+Load:  read the struct from your SaveGame object  -&gt;  Inventory &gt; Load Inventory</code></pre>
+<p>After a load the component does not refill itself with starting items. Anything that was saved on a trade counter comes back to the first base container.</p>
+
+<div class="callout warn">The Inventory component is single player and does not replicate. A networked game supplies its own inventory by implementing the <code>NVS View Item Holder</code> interface on an actor or component, in Blueprint or C++. The screens read any holder the same way.</div>
+
+<h2>Result</h2>
+<p>Put the Inventory component on your pawn with a pack, a rig and a few items in <em>Starting Items</em>, and on a crate with <em>Needs Search</em> ticked. Press Play and open the stash. The pack and rig blocks show their grids. Call Open Loot Screen with the crate. The loot pane is veiled, a click searches it, and dragging a find into your rig moves it there.</p>
+
+<div class="cards">
+<a class="card" href="drag-and-drop.html"><span class="card-tag">Guide</span><strong>Drag and drop</strong>Every gesture for moving items.</a>
+<a class="card" href="equipment.html"><span class="card-tag">Guide</span><strong>Equipment</strong>Equip slots, the doll and Kit up.</a>
+<a class="card" href="items.html"><span class="card-tag">Guide</span><strong>Items</strong>Item definitions, types and traits.</a>
+</div>

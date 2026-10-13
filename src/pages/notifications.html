@@ -1,0 +1,116 @@
+<!--meta {"title": "Notifications", "section": "Systems", "order": 50, "summary": "Tell the player something with a toast: Notification Kind Definition assets, pushing from Blueprint or C++, priority, repeats, holding toasts back during menus, and actionable toasts."} -->
+<p class="lead">Gameplay tells the player something by pushing a notification to the queue. The queue merges repeats, ranks by priority, holds less urgent toasts back while a menu is open, and the notification stack draws what is left. You describe each kind of toast as a data asset and push it with one Blueprint call.</p>
+
+<figure class="shot"><img src="img/screens/notifications.png" alt="The notification stack showing several toasts of different kinds"><figcaption>The notification stack, bottom right, with toasts of several kinds.</figcaption></figure>
+
+<h2>Push a toast from Blueprint</h2>
+<p>The quickest way is a <strong>Notification Kind Definition</strong> asset, which holds everything about a kind of toast except its words.</p>
+<ol class="steps">
+<li><strong>Make the kind</strong> Create a data asset from <em>right-click &gt; Miscellaneous &gt; Data Asset</em> and pick <em>Notification Kind Definition</em>. Give it a tag, such as <code>MyGame.Notify.Extract</code>, a priority, a duration and its colours. The plugin registers the type with the Asset Manager, so it is found without configuration.</li>
+<li><strong>Get the queue</strong> In your player controller, add <em>Get NVSNotifySubsystem</em>, the local player subsystem getter, with Self as the player controller.</li>
+<li><strong>Push it</strong> Call <em>Push Kind</em> on the subsystem with your kind asset, a title and a body. It returns false when the queue refused it.</li>
+</ol>
+<p>Without a kind asset, call <em>Push</em> with a <em>Make NVSNotifyPayload</em> node instead and set the tag, priority and duration yourself. The demo does this when the player marks an item as junk. It pushes a payload tagged <code>NVS.View.Notify.System</code> at priority 1 for three seconds.</p>
+
+<h2>Notification Kind Definition</h2>
+<p>A toast takes the look of the kind whose tag matches its own most closely, so one kind can style a whole family of tags.</p>
+<dl class="api">
+<dt>Tag</dt><dd>The notifications this kind styles. A child tag, such as <code>MyGame.Notify.Extract.Late</code>, takes this kind unless a closer kind exists.</dd>
+<dt>Priority</dt><dd>From 0, the most urgent, to 4, the least. An urgent toast pushes a less urgent one out of a full stack.</dd>
+<dt>Duration</dt><dd>Seconds on screen. Zero or less stays until dismissed.</dd>
+<dt>Action Tag</dt><dd>When set, the toast shows an action button and a dismiss button. See <a href="#toasts-the-player-acts-on">Toasts the player acts on</a>.</dd>
+<dt>Accent, Title Role, Body Role, Surface, Border</dt><dd>Colour roles from the theme for each part of the toast. See <a href="theming.html">Theming</a>.</dd>
+<dt>Draws Edge</dt><dd>Draws the accent as a bar down the toast's left edge.</dd>
+<dt>Title Is Status</dt><dd>Puts the title at the right of the line as a status word instead of above the body.</dd>
+</dl>
+<p>A kind asset comes before the plugin's own look for a tag, so you can also restyle a built-in kind by making an asset with its tag.</p>
+
+<h3>The built-in kinds</h3>
+<p>Without any kind assets, the toast still knows these tags, which the plugin declares under <code>NVS.View.Notify</code>:</p>
+<table>
+<thead><tr><th>Tag</th><th>Look</th></tr></thead>
+<tbody>
+<tr><td><code>System</code></td><td>Danger caption on the system plate, with the title as a status word.</td></tr>
+<tr><td><code>Status</code></td><td>Critical edge on a red plate, with the title as a status word.</td></tr>
+<tr><td><code>CrewDown</code></td><td>Critical edge and caption on a red plate.</td></tr>
+<tr><td><code>Exfil</code>, <code>Market.Success</code></td><td>Success edge and caption on a green plate.</td></tr>
+<tr><td><code>Task</code></td><td>Accent edge and caption on an accent plate.</td></tr>
+<tr><td><code>Market.Warning</code></td><td>Warning edge and caption on an overlay card.</td></tr>
+<tr><td><code>Market.Danger</code></td><td>Danger edge and caption on a red plate.</td></tr>
+<tr><td><code>Progression</code>, <code>TraderOffer</code>, <code>Market.Info</code></td><td>Plain overlay card with a dim caption.</td></tr>
+<tr><td><code>Salvage</code></td><td>Plain overlay card with a muted caption.</td></tr>
+</tbody>
+</table>
+<p>A tag that matches no kind draws as an overlay card with an accent edge and caption.</p>
+
+<h2>The payload</h2>
+<p>A notification is an <code>FNVSNotifyPayload</code>. <em>Push Kind</em> fills the tag, priority, duration and action tag from the kind, and you give the words.</p>
+<dl class="api">
+<dt>Tag</dt><dd>The identity, matched exactly. A second push with the same tag updates the first toast instead of adding one. A payload with no tag is refused.</dd>
+<dt>Priority</dt><dd>Smaller is more urgent. Defaults to 4, the least urgent, so a payload that sets none never pushes out one that does.</dd>
+<dt>Title, Body</dt><dd>The toast's two lines.</dd>
+<dt>Duration</dt><dd>Seconds on screen. Defaults to 4. Zero or less stays until dismissed.</dd>
+<dt>ActionTag</dt><dd>Makes the toast one the player can act on. Leave it empty for a toast that only informs.</dd>
+</dl>
+<p>Notifications are local to one player's machine. Push them where the replicated state arrives, such as a replication callback or a client event.</p>
+
+<h2>The queue</h2>
+<p><code>UNVSNotifySubsystem</code> is a local player subsystem and ticks on the core ticker, so toasts count down while the game is paused. Everything pushed goes into one queue, one entry per tag, in arrival order. Three rules decide what shows.</p>
+
+<h3>Capacity</h3>
+<p>Up to four toasts show at once, and an open menu holds back up to four more. The Engine Settings Setup Definition's <em>Max Visible Notifications</em> and <em>Max Held Notifications</em> change both. The player's <em>Notification density</em> setting lowers what shows to one or three, or shows the full number on All. When the stack is full, an arrival pushes out the least urgent entry, the oldest among equals, but only if the arrival is strictly more urgent. Otherwise the push returns false and the arrival is dropped.</p>
+
+<h3>Repeats</h3>
+<p>A push whose tag is already queued replaces that entry's payload, priority included, adds one to its repeat count and restarts its timer. The toast keeps its place in the stack. Use one tag for a running ticker, such as salvage picked up, and it updates in place.</p>
+
+<h3>Holding back during menus</h3>
+<p>While the Menu layer has a screen, entries at priority 2 and below are held back. Priority 0 and 1 always show. Held entries do not count down. When the menu closes they rejoin the stack, least urgent dropped first if more come back than the stack holds, and the stack writes how many it is holding under the toasts.</p>
+<ol class="flow">
+<li data-title="Gameplay pushes">Your code pushes a task toast at priority 2 while the player has the stash open.</li>
+<li data-title="Tag check">No entry has that tag, so a new entry is made with its timer.</li>
+<li data-title="Held">The Menu layer is occupied and priority 2 can wait, so the entry joins the held group. Its timer does not run.</li>
+<li data-title="Menu closes">The player closes the stash. The queue releases the held entries.</li>
+<li data-title="Shown">The entry joins the stack and its timer starts. The stack redraws.</li>
+<li data-title="Expires">When its duration runs out the entry is removed and the stack redraws again.</li>
+</ol>
+
+<h3>Removing toasts</h3>
+<p><em>Dismiss</em> removes the entry under one tag at once, persistent or not, and returns false when nothing was queued under it. <em>Dismiss All</em> empties the queue. Both are Blueprint callable, as are the read functions <em>Get Visible Entries</em>, <em>Get Suppressed Count</em>, <em>Is Menu Open</em>, <em>Num All Entries</em>, <em>Get Visible Capacity</em> and <em>Get Suppressed Capacity</em>.</p>
+
+<h2>Toasts the player acts on</h2>
+<p>A toast whose payload has an action tag draws an action button and a dismiss button. Clicking the action raises the <code>NVS.View.Request.Notify.Act</code> request with the action tag, as a name, in its <em>Subject Id</em>, then dismisses the toast. Clicking dismiss only dismisses it. Your game answers the request on <strong>On Request</strong>, the same way it answers any other. See <a href="requests.html">Requests</a>.</p>
+
+<h2>Showing the stack</h2>
+<p>The queue works whether or not anything draws it. Two shipped screens read it:</p>
+<ul>
+<li><code>W_NotificationStack</code> sits on the Notification layer and draws the visible toasts with the held count under them. Open it once with <em>Show Screen By Tag</em> and <code>NVS.View.Screen.NotificationStack</code> after building the layers, and leave it there. It ignores Back, so Escape closes the menu under it.</li>
+<li><code>W_RaidHUD</code> draws the newest visible toast as a single HUD toast. While the HUD is the only thing showing, the stack hides its own toasts so they do not draw twice. When a game menu such as the raid inventory covers the HUD, the stack shows them again.</li>
+</ul>
+<p>To build your own stack, bind <code>UNVSViewNotifyQueueViewModel</code>, which publishes <code>Entries</code>, <code>EntryCount</code>, <code>SuppressedCount</code> and <code>bMenuOpen</code>, and pass <code>GetEntryObjects()</code> to a List View with <code>W_Toast</code> as its entry. Each entry is a <code>UNVSViewNotifyEntryViewModel</code> carrying the payload, the repeat count and the time left. In C++, <code>OnQueueChanged()</code> fires at most once per change to what shows or what is held. A timer counting down does not fire it, but an entry expiring does.</p>
+
+<h2>Push from C++</h2>
+<pre><code class="lang-cpp">#include "Engine/LocalPlayer.h"
+#include "Subsystems/NVSNotifySubsystem.h"
+#include "Tags/NVSViewTags.h"
+
+void AMyPlayerController::NotifyTaskProgress(const FText&amp; Step)
+{
+	ULocalPlayer* Player = GetLocalPlayer();
+	UNVSNotifySubsystem* Queue = Player != nullptr ? Player-&gt;GetSubsystem&lt;UNVSNotifySubsystem&gt;() : nullptr;
+	if (Queue == nullptr)
+	{
+		return;
+	}
+
+	FNVSNotifyPayload Payload;
+	Payload.Tag = TAG_NVS_View_Notify_Task.GetTag();
+	Payload.Priority = 2;
+	Payload.Title = NSLOCTEXT("MyGame", "TaskTitle", "TASK");
+	Payload.Body = Step;
+	Queue-&gt;Push(Payload);
+}</code></pre>
+<p>With a kind asset, call <code>bool PushKind(const UNVSViewNotifyKindDefinition* Kind, FText Title, FText Body)</code> instead. The priority constants live in the <code>NVSNotify</code> namespace: <code>MostUrgentPriority</code> (0), <code>FirstSuppressiblePriority</code> (2), <code>LeastUrgentPriority</code> (4) and <code>DefaultDurationSeconds</code> (4).</p>
+<p><code>UNVSViewNotifyFeed</code> is a data asset holding a list of payloads, and its <code>PushAll</code> pushes them all and returns how many the queue took. It is handy for testing how a stack of toasts looks.</p>
+
+<h2>What you see</h2>
+<p>With the stack open, push a task toast from gameplay. A toast with an accent edge appears bottom right and fades after its duration. Push the same tag again before it fades and the toast updates in place. Open the hub while a priority 2 toast is waiting, and it stays held, counted under the stack, until you close the menu.</p>

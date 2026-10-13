@@ -1,0 +1,144 @@
+<!--meta {"title": "Rendering", "section": "Systems", "order": 60, "summary": "How Blackline renders item icons and character figures into the UI, which screens animate their figure, the preview profiles, the render settings on the View Setup Definition, and what each costs."} -->
+<p class="lead">Blackline draws real 3D meshes in the UI in two ways. Item tiles get icons rendered once and cached, and the character, health, inspect, lobby and paper doll views get a live figure. This page explains both, which screens move their figure, what it costs, and how to set up your own meshes.</p>
+
+<div class="shots">
+<figure class="shot"><img src="img/features/item-tiles.png" alt="Item tiles in a grid, each with a rendered icon"><figcaption>Item tiles draw icons rendered from each item's look.</figcaption></figure>
+<figure class="shot"><img src="img/features/character-try-on.png" alt="The character screen with the figure trying on a wardrobe piece"><figcaption>The character screen is the one place the figure idles and turns.</figcaption></figure>
+</div>
+
+<h2>Where the pictures come from</h2>
+<p>Each item gets its picture from its Item Definition:</p>
+<dl class="api">
+<dt>Icon</dt><dd>A picture to use instead of a rendered icon. Leave it empty to render one from the look.</dd>
+<dt>Look</dt><dd>A <em>Static Mesh</em>, a <em>Skeletal Mesh</em> or a <em>Pickup Actor</em> such as a fully built rifle, and its framing on tiles and in the inspect window.</dd>
+<dt>Worn On, Worn Offset</dt><dd>On the wearable types, Weapon, Armour, Gear and Container. Where the Look mesh hangs on the character while worn. Left as None it shows nothing, except a Gear, Armour or Container item with only a <em>Skeletal Mesh</em>, which follows the body like clothing.</dd>
+</dl>
+<p>So a rifle that takes two cells and a magazine that takes one are drawn from their own models at whatever size each tile needs, and parts fitted to a gun show on its picture everywhere. The figure is dressed from your Wardrobe Piece Definitions, and the gear the player's inventory wears replaces the figure's own equipment. With no wardrobe pieces, the built-in look source shows a mannequin of basic shapes.</p>
+<p>Anything not described by a definition is asked of the look source. See <a href="source-interfaces.html#invsviewlooksource">the look source</a> and <a href="character-looks.html">Character looks</a>.</p>
+
+<h2>Which screens move their figure</h2>
+<p>Every placement of the figure uses a <em>preview profile</em>. Only the character screen animates its figure or lets the player turn it. No preview zooms in on a body part or swoops between views, because that motion made players dizzy. The plugin ships four profiles in <code>/NVSBlackline/Render/</code>:</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Profile</th><th>Used by</th><th>Pose</th><th>Turn by dragging</th><th>Zoom</th><th>Redraw</th></tr></thead>
+<tbody>
+<tr><td><code>PP_Character</code></td><td>Character screen</td><td>Animated idle</td><td>Yes</td><td>No</td><td>Live</td></tr>
+<tr><td><code>PP_Doll</code></td><td>Paper doll</td><td>Still</td><td>No</td><td>No</td><td>Live</td></tr>
+<tr><td><code>PP_Portrait</code></td><td>Lobby crew cards</td><td>Still</td><td>No</td><td>No</td><td>On change</td></tr>
+<tr><td><code>PP_Inspect</code></td><td>Inspect window, which shows an item</td><td>Still</td><td>Yes</td><td>Yes, up to 2</td><td>On change</td></tr>
+</tbody></table></div>
+<p>All four frame the full body and none uses focus. The inspect window turns and zooms the item it shows, never the figure.</p>
+
+<h2>The parts</h2>
+<p>Everything here lives in the <code>NVSViewRender</code> module.</p>
+<dl class="api">
+<dt>FNVSViewStudio</dt><dd>An isolated preview world with a light rig. It is not a level and nothing in it plays. Every icon and figure is built here, far from your game world.</dd>
+<dt>UNVSViewIconRenderer</dt><dd>A game instance subsystem that owns the studio, the icon cache and the look source. It renders a few icons per frame and ticks the live figures.</dd>
+<dt>UNVSViewCharacterPreview</dt><dd>A UMG widget that shows a live capture of a figure or an item.</dd>
+<dt>UNVSViewPreviewProfile</dt><dd>A data asset that sets how one placement of the preview behaves.</dd>
+<dt>FNVSViewLookAssembly</dt><dd>The components one look is built from in the studio. The icon renderer and the preview both use it.</dd>
+<dt>M_IconCutout</dt><dd>The UI material that turns a capture into a cut-out with a transparent background.</dd>
+</dl>
+<p>The renderer is not created on a dedicated server, so a server pays nothing for any of this.</p>
+
+<h2>Icons</h2>
+<p>A tile asks the renderer for its item's icon. The renderer reads the item's look, builds it in a studio slot, captures it with an orthographic camera into a render target and keeps the target in a cache. The tile draws the texture through the cutout material once it is ready. Slots sit 100,000 units apart, so no capture can see a neighbour.</p>
+
+<h3>Sizes and sharing</h3>
+<p>Icon sizes double from 64 pixels along the long side up to the <em>Icon Max Pixels</em> cap, 512 by default, so tiles of similar size share one render. The short side follows the item's footprint and never drops below 16 pixels. The size a tile asks for is multiplied by the viewport's UI scale, and when the scale changes, icons still on screen are rendered again at the new size.</p>
+<p>The cache key covers the size and everything visible in the look: meshes, materials, offsets, tints, scalars and the framing override. Two items with the same look share one render, and a change to any of those gives a new icon.</p>
+
+<h3>Budget and eviction</h3>
+<ul>
+<li>At most <em>Icons Per Frame</em> icons render each frame. The rest wait in a queue, and their assets load asynchronously first.</li>
+<li>In the editor, a look whose shaders or textures are still compiling would capture grey. The renderer waits and retries every quarter second, for up to 30 seconds. A cooked game has every shader ready and skips the wait.</li>
+<li>Each cached icon costs 8 bytes a pixel. A 512 by 512 icon is 2 MB.</li>
+<li>When the cache goes over <em>Icon Cache Megabytes</em>, icons no widget holds are evicted, oldest use first. Icons on screen are never evicted, and if every icon is held the log warns once a minute.</li>
+</ul>
+
+<h2>Live previews</h2>
+<p><code>UNVSViewCharacterPreview</code> is a widget you can place in a Widget Blueprint.</p>
+<dl class="api">
+<dt>Profile</dt><dd>The preview profile for this placement. Empty uses the class defaults: an animated idle, full body framing and drag to turn.</dd>
+<dt>ContextId</dt><dd>Whose figure to show. Empty means the local player.</dd>
+<dt>ItemId</dt><dd>An item to show instead of the figure, seen from its icon angle. None shows the figure.</dd>
+<dt>bItemsOnly</dt><dd>Shows items only. With no item set it shows nothing instead of the figure.</dd>
+<dt>RenderSize</dt><dd>The capture size in pixels, 512 by 768 by default. Match the slot's shape so the subject is not letterboxed small.</dd>
+<dt>bFillsSlot</dt><dd>Fills the slot edge to edge and captures at its size. <code>RenderSize</code> then only sets the first frame.</dd>
+</dl>
+<p>While a look is still loading the preview draws loading dots. When the look changes, the preview compares the new look with the one it built. If the base is the same and every part has a unique name, it swaps only the parts that changed, so changing a helmet does not reload the body.</p>
+
+<h2>Preview profiles</h2>
+<p>A profile is a <code>UNVSViewPreviewProfile</code> data asset. Make one from <em>right-click &gt; Miscellaneous &gt; Data Asset</em> and set it on a preview's <em>Profile</em>.</p>
+<dl class="api">
+<dt>Pose</dt><dd><code>AnimatedIdle</code> loops the look's <em>Character Preview Animation</em>. <code>Static</code> holds its first frame.</dd>
+<dt>Framing, FramingZone</dt><dd><code>FullBody</code> fits the whole figure, <code>UpperBody</code> moves in on the top half, and <code>Zone</code> moves in on the named body zone.</dd>
+<dt>bRotate, RotateButton, DegreesPerPixel</dt><dd>Whether dragging turns the figure, which mouse button drags, and how far each pixel turns it. Defaults are the left button and 0.5 degrees.</dd>
+<dt>bZoom, MinZoom, MaxZoom, ZoomStep</dt><dd>Whether the mouse wheel zooms, its limits (0.8 and 2.5 by default) and how much each notch zooms.</dd>
+<dt>bEaseBackToFront, EaseBackSpeed</dt><dd>After a drag, the figure turns back to face the camera.</dd>
+<dt>bFocus, FocusEaseSpeed</dt><dd>Hovering an equipment slot eases the camera to that slot's body zone.</dd>
+<dt>GamepadTurnAxis, GamepadTiltAxis, GamepadDegreesPerSecond, GamepadDeadZone</dt><dd>Turning with a stick. A zero speed turns the gamepad off.</dd>
+<dt>CameraPitch, FieldOfView</dt><dd>How far the camera looks down, -5 degrees by default, and its field of view, 30 degrees by default.</dd>
+<dt>Redraw</dt><dd><code>Live</code> captures every frame while the figure animates or is dragged. <code>OnChange</code> captures only when the look changes, so a still preview costs nothing per frame.</dd>
+</dl>
+
+<h2>Framing</h2>
+<p>Icons look at an item from yaw -35 and pitch -20 by default, with an orthographic camera so a long rifle is not foreshortened. A clearly long item, more than 1.3 times longer one way than the other, is rolled a quarter turn when the tile runs the other way. To change one item's angle, set <em>Framing</em> on its look and tick <em>Override</em>:</p>
+<pre><code class="lang-cpp">FNVSViewFraming Front;
+Front.bOverride = true;
+Front.Yaw = 155.0f;
+Front.Pitch = -10.0f;
+Front.Zoom = 1.2f;                      // above 1 fills more of the frame
+Front.Offset = FVector2D(0.0f, 0.05f);  // a fraction of the frame, so it holds at every size</code></pre>
+<p>The inspect window starts from the same angle the icon uses. A figure is seen from the front, looking along -X from the +X side. When a preview turns to a body zone, it looks for these standard bone names, or the matching part of the built-in mannequin of shapes:</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Zone</th><th>Bone</th></tr></thead>
+<tbody>
+<tr><td>head</td><td><code>head</code></td></tr>
+<tr><td>chest</td><td><code>spine_03</code></td></tr>
+<tr><td>arms</td><td><code>upperarm_l</code></td></tr>
+<tr><td>legs</td><td><code>thigh_l</code></td></tr>
+<tr><td>feet</td><td><code>calf_l</code></td></tr>
+</tbody></table></div>
+
+<h2>Render settings</h2>
+<p>The render settings sit in the <em>Render</em> section of the View Setup Definition. A game's own setup wins over the one the plugin ships. The renderer reads them when the game instance starts, so restart play after changing them.</p>
+<dl class="api">
+<dt>Icons Per Frame</dt><dd>Most icons rendered in one frame, from 1 to 16. Default 2.</dd>
+<dt>Icon Cache Megabytes</dt><dd>Above this size, icons nobody holds are evicted. At least 8. Default 64.</dd>
+<dt>Icon Max Pixels</dt><dd>The largest an icon is drawn along its long side, from 64 to 4096. Default 512. Raise it for sharp icons in big tiles at 4K.</dd>
+<dt>Icon Margin</dt><dd>How much room is left around an item in its icon. 1 fits it edge to edge. Default 1.08.</dd>
+<dt>Icon Cutout Material</dt><dd>The UI material that turns a capture into a cut-out. It takes the capture as a texture parameter named <code>Render</code>.</dd>
+<dt>Key, Fill, Rim and Sky Light Intensity</dt><dd>The studio's light rig. Defaults 6, 2, 4 and 1.</dd>
+<dt>Key, Fill and Rim Light Direction</dt><dd>Where each light shines from in icons and figure previews.</dd>
+</dl>
+
+<h3>The cutout material</h3>
+<p>The capture renders colour in HDR with the background cleared, and its alpha holds inverse coverage, 0 where the subject is and 1 where it is empty. <code>M_IconCutout</code> is a translucent UI material that divides the colour down into display range and sets opacity to one minus alpha. To use your own, for example to add a rim or a tint, keep the UI domain and the <code>Render</code> texture parameter.</p>
+
+<h2>What it costs</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>Work</th><th>When it happens</th></tr></thead>
+<tbody>
+<tr><td>An icon</td><td>Once per look and size, then drawn from the cache. Spread over frames by <em>Icons Per Frame</em>.</td></tr>
+<tr><td>An icon after a UI scale change</td><td>Once more at the new size, for icons still on screen.</td></tr>
+<tr><td>A preview with <code>OnChange</code> redraw</td><td>Captures when the look changes, for about two seconds while the pose settles, and up to eight more seconds while shaders or textures finish.</td></tr>
+<tr><td>A preview with <code>Live</code> redraw</td><td>One capture every frame while it animates or is dragged. With a still pose and no input it captures only on change.</td></tr>
+<tr><td>A preview that is not painted</td><td>Nothing. A preview covered by another screen stops capturing within two frames.</td></tr>
+</tbody></table></div>
+<p>Every capture turns off Lumen global illumination, Lumen reflections, atmosphere and fog, which add nothing in an empty studio. The cost of a live capture is mostly your mesh, its materials and the capture size.</p>
+
+<h2>Setting up your own meshes</h2>
+<ul>
+<li><strong>Face the camera.</strong> The figure camera looks along -X, so a body should face +X. A model that faces +Y needs a <em>Base Offset</em> with a yaw of -90.</li>
+<li><strong>Mark skinned materials.</strong> Materials on skeletal meshes need <em>Used with Skeletal Mesh</em> ticked, or a skinned mesh draws the default material in a cooked game.</li>
+<li><strong>Name your sockets.</strong> A part's socket must exist on the base. A missing one logs <code>Look part ... names socket ..., which the base does not have; attached at the root.</code></li>
+<li><strong>Name your parts.</strong> Unique part names let the preview swap one part without rebuilding the body.</li>
+<li><strong>Use the standard bone names.</strong> Preview focus finds the head, chest, arms, legs and feet by the bone names in the table above.</li>
+<li><strong>Frame odd items.</strong> Set <em>Framing</em> on any item whose default angle shows its worst side.</li>
+<li><strong>Light to taste.</strong> If your materials read dark or blown out in icons, adjust the light intensities on your View Setup Definition before touching materials.</li>
+</ul>
+<div class="callout tip">A look asset that fails to load logs <code>Look asset ... did not load; it is left out.</code> in <code>LogNVSViewRender</code>. Check that log first when a part is missing.</div>
+
+<h2>What you see</h2>
+<p>Open the stash and the item tiles fill in a couple per frame, then stay. Open the character screen and the figure idles and turns as you drag it. The paper doll on the stash and the figure on the health screen stand still, and a preview covered by another screen stops capturing until it is seen again.</p>
+<figure class="shot"><img src="img/features/paperdoll-equipped.png" alt="The paper doll with equipped slots around a still figure"><figcaption>The paper doll's figure stands still and wears what the inventory wears.</figcaption></figure>

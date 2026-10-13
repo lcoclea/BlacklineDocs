@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Equipment · Blackline for Unreal Engine</title>
+<meta name="description" content="Give items an equip slot, wear them on the paper doll, show them on the character, and kit up from a saved loadout.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="icon" href="assets/mark.svg" type="image/svg+xml">
+<script>try{var t=localStorage.getItem("bl-theme");if(t)document.documentElement.dataset.theme=t;}catch(e){}</script>
+</head>
+<body class="layout-doc">
+<header class="topbar">
+  <button class="menu-toggle" aria-label="Open navigation">☰</button>
+  <a class="brand" href="index.html"><img src="assets/mark.svg" alt=""><span>Blackline</span><em>v1.0.0</em></a>
+  <button class="search-open" aria-label="Search"><span>Search the docs</span><kbd>/</kbd></button>
+  <nav class="top-links">
+    <a href="getting-started.html">Get started</a>
+    <a href="screens.html">Screens</a>
+    <a href="https://github.com/lcoclea/blackline-docs/issues">Support</a>
+    <button class="theme-toggle" aria-label="Switch light or dark theme">◐</button>
+  </nav>
+</header>
+<div class="shell">
+  <aside class="sidebar"><div class="nav-section"><div class="nav-title">Start here</div>
+<a href="index.html">Blackline</a>
+<a href="getting-started.html">Getting started</a>
+<a href="architecture.html">Architecture</a>
+</div>
+<div class="nav-section"><div class="nav-title">Guides</div>
+<a href="interfaces.html">Connecting your game</a>
+<a href="items.html">Items</a>
+<a href="weapons.html">Weapons</a>
+<a href="placing-weapon-parts.html">Placing weapon parts</a>
+<a href="containers.html">Containers</a>
+<a href="context-menu.html">Context menu</a>
+<a href="drag-and-drop.html">Drag and drop</a>
+<a href="equipment.html" class="active">Equipment</a>
+<a href="inspect.html">Inspect</a>
+<a href="character-looks.html">Character looks</a>
+<a href="market-and-trading.html">Market and trading</a>
+<a href="raid-loop.html">The raid loop</a>
+<a href="health-and-vitals.html">Health and vitals</a>
+<a href="hideout-and-crafting.html">Hideout and crafting</a>
+<a href="tasks-and-loadouts.html">Tasks and loadouts</a>
+</div>
+<div class="nav-section"><div class="nav-title">Systems</div>
+<a href="layers-and-screens.html">Layers and screens</a>
+<a href="viewmodels.html">Viewmodels</a>
+<a href="theming.html">Theming</a>
+<a href="settings.html">Settings</a>
+<a href="notifications.html">Notifications</a>
+<a href="rendering.html">Rendering</a>
+</div>
+<div class="nav-section"><div class="nav-title">Reference</div>
+<a href="screens.html">Screens</a>
+<a href="components.html">Components</a>
+<a href="source-interfaces.html">Source interfaces</a>
+<a href="requests.html">Requests</a>
+<a href="project-settings.html">Project settings</a>
+</div>
+<div class="nav-section"><div class="nav-title">Help</div>
+<a href="faq.html">FAQ</a>
+<a href="troubleshooting.html">Troubleshooting</a>
+</div></aside>
+  <main class="content">
+    <article>
+      <div class="eyebrow">Guides</div>
+      <h1>Equipment</h1>
+      <p class="lead">An item is worn when its definition names an <strong>equip slot</strong> and the player puts it there. This guide covers the slots, every way to equip and unequip, how worn gear shows on the character, and how Kit up wears a whole loadout at once.</p>
+
+<figure class="shot"><img src="img/features/paperdoll-equipped.png" alt="The paper doll with weapons, helmet, armour and other gear in its slots around the character figure"><figcaption>The paper doll. Each slot is a tile around the figure, and the figure wears what the slots hold.</figcaption></figure>
+
+<h2 id="equip-slots">Equip slots<a class="anchor" href="#equip-slots" aria-label="Link to this section">#</a></h2>
+<p>Slots are gameplay tags that ship with the plugin, under <code>NVS.View.Slot</code>:</p>
+<pre><code class="lang-text">Head  Ears  Eyes  Face  Armour  Rig  Pack  Secure  Medical  Legs
+Primary  Sidearm  Secondary  Melee  Watch  Tag  Gloves  Boots
+Belt1 to Belt10</code></pre>
+<p>To make an item wearable, open its Item Definition and set <em>Equip Slot</em> on its type. Weapon, Armour, Container and Gear have the field. Each item fits exactly one slot, and each slot holds one item.</p>
+<dl class="api">
+<dt>Weapon</dt><dd><code>Primary</code>, <code>Secondary</code>, <code>Sidearm</code> or <code>Melee</code>.</dd>
+<dt>Armour</dt><dd><code>Armour</code> for a plate carrier, <code>Head</code> for a helmet.</dd>
+<dt>Container</dt><dd><code>Pack</code>, <code>Rig</code> or <code>Secure</code>. A worn container's grids appear beside the doll. See <a href="containers.html">Containers</a>.</dd>
+<dt>Gear</dt><dd>Anything else worn, such as <code>Ears</code> for a headset, <code>Gloves</code>, <code>Legs</code> for trousers, <code>Boots</code> or <code>Watch</code>.</dd>
+</dl>
+
+<h3 id="the-doll-s-tiles">The doll's tiles<a class="anchor" href="#the-doll-s-tiles" aria-label="Link to this section">#</a></h3>
+<p>The paper doll (<code>W_PaperDoll</code>) lays its tiles out from its <em>Tiles</em> table, in three columns with the middle one left clear for the figure. It ships with tiles for Ears, Head, Eyes, Armour, Face, Watch (sharing a cell with Tag), Gloves, Boots, Primary, Sidearm, Secondary and Melee. Pack, Rig and Secure show as container blocks beside the grids instead.</p>
+<p>The other slots, such as <code>Legs</code>, <code>Medical</code> and the belt slots, hold items and show them on the character, but have no tile on the shipped doll. To give one a tile, add a row to <em>Tiles</em> in your own copy of the doll. Each row is a <em>Slot Id</em> (the last part of the tag, such as <code>Legs</code>), a <em>Column</em>, a <em>Row</em>, a <em>Span</em> of one or two columns, and an optional <em>Paired With</em> for two slots sharing one cell.</p>
+
+<h2 id="equip-and-unequip">Equip and unequip<a class="anchor" href="#equip-and-unequip" aria-label="Link to this section">#</a></h2>
+<p>All of these work out of the box when the player's pawn has an Inventory component.</p>
+<dl class="api">
+<dt>Alt-click a tile</dt><dd>Equips it in its slot.</dd>
+<dt>Equip row</dt><dd>The item menu's <em>Equip · SLOT</em> row. Greyed out when the slot is already taken.</dd>
+<dt>Drag onto the doll</dt><dd>Drop the tile on its slot's tile, or on an empty container block for a pack, rig or secure case.</dd>
+<dt>Inspect window button</dt><dd>The main button reads <em>Equip · SLOT</em> for an item that can be worn.</dd>
+</dl>
+<p>Equipping never swaps. The slot must be the one the item's type names, and it must be empty. Take off what is there first, or use Kit up, which does swap.</p>
+<dl class="api">
+<dt>E</dt><dd>Hover a worn item and press E to take it off into the stash.</dd>
+<dt>Ctrl-click a worn item</dt><dd>Takes it off into the stash.</dd>
+<dt>Unequip row</dt><dd>The item menu's <em>Unequip</em> row. Greyed out when the stash has no room.</dd>
+<dt>Drag off the doll</dt><dd>Drag a filled slot or a worn block onto any grid. The item lands at that cell.</dd>
+</dl>
+<p>Fixed items cannot come off. On the stash screen the pockets and the secure case are fixed.</p>
+
+<h3 id="from-blueprint">From Blueprint<a class="anchor" href="#from-blueprint" aria-label="Link to this section">#</a></h3>
+<p>The Inventory component has the same calls, so your own game code can dress the player:</p>
+<dl class="api">
+<dt>Equip Item(Instance Id, Slot)</dt><dd>Wears an entry in the slot its type names. False if the slot is wrong or taken.</dd>
+<dt>Unequip Item(Slot, Container)</dt><dd>Takes off what the slot holds into the first free cell of the container, or of any base container when Container is None.</dd>
+<dt>Get Equipped(Slot)</dt><dd>The entry worn in a slot, or false when it is empty.</dd>
+<dt>Attach Item(Instance Id, Host Instance, Slot)</dt><dd>Fits an attachment to one of a weapon's attachment slots. See <a href="weapons.html">Weapons</a>.</dd>
+</dl>
+
+<h2 id="worn-gear-on-the-character">Worn gear on the character<a class="anchor" href="#worn-gear-on-the-character" aria-label="Link to this section">#</a></h2>
+<p>The figure on the doll, on the character screen and in the world wears what the player has equipped. Where each item sits while worn is set on its Item Definition under <em>Type</em>. Only the wearable types have these fields: Weapon, Armour, Gear and Container.</p>
+<dl class="api">
+<dt>Worn On</dt><dd>The bone or socket of the body its Look mesh hangs from, such as <code>Head</code> for a helmet, <code>spine_03</code> for a rifle on the back or <code>thigh_r</code> for the SMG.</dd>
+<dt>Worn Offset</dt><dd>Location, rotation and scale relative to that bone.</dd>
+</dl>
+<p>Leave <em>Worn On</em> as None and the item shows nothing on the body, with one exception. A Gear, Armour or Container item whose Look has only a <em>Skeletal Mesh</em> follows the body's pose like clothing. A weapon always needs a bone.</p>
+<p>Gear made of several meshes works best as one mesh with a material slot for each colour. The demo's plate carrier is one mesh on <code>spine_03</code>. Its cargo trousers, boots and gloves are Ranger skeletal meshes with no <em>Worn On</em>, so they follow the body. See <a href="character-looks.html#worn-gear-on-the-body">Character looks</a>.</p>
+<p>A weapon worn on a bone, such as a rifle slung across the back, brings whatever is fitted to it, such as a scope or a magazine.</p>
+<div class="callout tip">Getting gear to sit right on a bone takes a few tries. <a href="placing-weapon-parts.html">Placing weapon parts</a> covers worn offsets and attachment slots step by step.</div>
+<p>To dress the character in your level with the same gear, see <a href="character-looks.html">Character looks</a>. For the gun in the player's hands, <strong>Show Held Item</strong> on <em>NVS View Look Library</em> puts a held entry, with everything fitted to it, on a static mesh component.</p>
+
+<h2 id="kit-up-from-a-loadout">Kit up from a loadout<a class="anchor" href="#kit-up-from-a-loadout" aria-label="Link to this section">#</a></h2>
+<p>A <strong>Loadout Definition</strong> is a named kit: what is worn, what is fitted to the guns and what is packed where. The loadout screen lists every one.</p>
+<ol class="steps">
+<li><strong>Create the asset</strong> Make a Data Asset of class <code>Loadout Definition</code>. Set <em>Display Name</em> and <em>Description</em>, the line under the name in the library.</li>
+<li><strong>Fill Items</strong> Each row is a starting item row: <em>Equip Slot</em> to wear it, <em>Fitted To Slot</em> to fit it to a worn gun, or <em>Packed In Slot</em> and <em>Packed Grid</em> to pack it into a worn bag or a rig pouch. See <a href="containers.html#starting-items">Starting items</a>.</li>
+<li><strong>Validate</strong> The asset flags packed items with nothing worn to go in, and items too big for the grid they name.</li>
+</ol>
+<p>When the player presses <em>Kit up</em>, the Inventory component wears, fits and packs the kit from what the player owns in the stash. Worn pieces go on first. Whatever was in a slot goes back to the stash to make room. A toast then says "Everything came out of your stash." or how many pieces were not there.</p>
+<figure class="shot"><img src="img/screens/loadouts.png" alt="The loadout library with saved kits and the selected kit's contents"><figcaption>The loadout library. Kit up wears the chosen kit from the stash.</figcaption></figure>
+<p>From Blueprint, call <strong>Kit Up</strong> on the Inventory component with a Loadout Definition. It returns how many pieces were missing.</p>
+
+<h2 id="result">Result<a class="anchor" href="#result" aria-label="Link to this section">#</a></h2>
+<p>Give a helmet definition <em>Equip Slot</em> <code>NVS.View.Slot.Head</code> and <em>Worn On</em> set to the <code>Head</code> bone, and put one in the player's stash. Alt-click it on the stash screen. The Head tile fills with the helmet's picture and the figure puts it on. Press E while hovering it and it goes back to the stash.</p>
+
+<div class="cards">
+<a class="card" href="placing-weapon-parts.html"><span class="card-tag">Guide</span><strong>Placing weapon parts</strong>Offsets for worn gear and attachment slots.</a>
+<a class="card" href="character-looks.html"><span class="card-tag">Guide</span><strong>Character looks</strong>Wardrobe pieces and dressing the character.</a>
+<a class="card" href="weapons.html"><span class="card-tag">Guide</span><strong>Weapons</strong>Attachment slots and magazines.</a>
+</div>
+      <nav class="pager"><a class="prev" href="drag-and-drop.html"><span>Previous</span>Drag and drop</a><a class="next" href="inspect.html"><span>Next</span>Inspect</a></nav>
+    </article>
+  </main>
+  <aside class="toc"><div class="toc-title">On this page</div><nav></nav></aside>
+</div>
+<div class="search-panel" hidden>
+  <div class="search-box">
+    <input type="search" placeholder="Search guides, screens, classes…" aria-label="Search">
+    <div class="search-results"></div>
+    <div class="search-hint"><kbd>↑</kbd><kbd>↓</kbd> to move, <kbd>Enter</kbd> to open, <kbd>Esc</kbd> to close</div>
+  </div>
+</div>
+<div class="lightbox" hidden><img alt=""><div class="lightbox-caption"></div></div>
+<script src="assets/search-index.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

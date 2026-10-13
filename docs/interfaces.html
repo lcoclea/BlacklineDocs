@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Connecting your game · Blackline for Unreal Engine</title>
+<meta name="description" content="Show your game&#x27;s own health, raid clock or cash on Blackline&#x27;s screens with a small Blueprint component. No C++ needed.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="icon" href="assets/mark.svg" type="image/svg+xml">
+<script>try{var t=localStorage.getItem("bl-theme");if(t)document.documentElement.dataset.theme=t;}catch(e){}</script>
+</head>
+<body class="layout-doc">
+<header class="topbar">
+  <button class="menu-toggle" aria-label="Open navigation">☰</button>
+  <a class="brand" href="index.html"><img src="assets/mark.svg" alt=""><span>Blackline</span><em>v1.0.0</em></a>
+  <button class="search-open" aria-label="Search"><span>Search the docs</span><kbd>/</kbd></button>
+  <nav class="top-links">
+    <a href="getting-started.html">Get started</a>
+    <a href="screens.html">Screens</a>
+    <a href="https://github.com/lcoclea/blackline-docs/issues">Support</a>
+    <button class="theme-toggle" aria-label="Switch light or dark theme">◐</button>
+  </nav>
+</header>
+<div class="shell">
+  <aside class="sidebar"><div class="nav-section"><div class="nav-title">Start here</div>
+<a href="index.html">Blackline</a>
+<a href="getting-started.html">Getting started</a>
+<a href="architecture.html">Architecture</a>
+</div>
+<div class="nav-section"><div class="nav-title">Guides</div>
+<a href="interfaces.html" class="active">Connecting your game</a>
+<a href="items.html">Items</a>
+<a href="weapons.html">Weapons</a>
+<a href="placing-weapon-parts.html">Placing weapon parts</a>
+<a href="containers.html">Containers</a>
+<a href="context-menu.html">Context menu</a>
+<a href="drag-and-drop.html">Drag and drop</a>
+<a href="equipment.html">Equipment</a>
+<a href="inspect.html">Inspect</a>
+<a href="character-looks.html">Character looks</a>
+<a href="market-and-trading.html">Market and trading</a>
+<a href="raid-loop.html">The raid loop</a>
+<a href="health-and-vitals.html">Health and vitals</a>
+<a href="hideout-and-crafting.html">Hideout and crafting</a>
+<a href="tasks-and-loadouts.html">Tasks and loadouts</a>
+</div>
+<div class="nav-section"><div class="nav-title">Systems</div>
+<a href="layers-and-screens.html">Layers and screens</a>
+<a href="viewmodels.html">Viewmodels</a>
+<a href="theming.html">Theming</a>
+<a href="settings.html">Settings</a>
+<a href="notifications.html">Notifications</a>
+<a href="rendering.html">Rendering</a>
+</div>
+<div class="nav-section"><div class="nav-title">Reference</div>
+<a href="screens.html">Screens</a>
+<a href="components.html">Components</a>
+<a href="source-interfaces.html">Source interfaces</a>
+<a href="requests.html">Requests</a>
+<a href="project-settings.html">Project settings</a>
+</div>
+<div class="nav-section"><div class="nav-title">Help</div>
+<a href="faq.html">FAQ</a>
+<a href="troubleshooting.html">Troubleshooting</a>
+</div></aside>
+  <main class="content">
+    <article>
+      <div class="eyebrow">Guides</div>
+      <h1>Connecting your game</h1>
+      <p class="lead">Blackline's screens work out of the box with example values. To show your game's real values, such as the player's health or the time left in a raid, you add one small Blueprint component that hands them over. This page builds one step by step, and you will not need any C++.</p>
+
+<h2 id="the-idea-in-one-minute">The idea in one minute<a class="anchor" href="#the-idea-in-one-minute" aria-label="Link to this section">#</a></h2>
+<p>Each screen gets its values from a <strong>source</strong>. Blackline ships a source for every screen, which is why a fresh install shows example numbers or an empty state. To connect your game, you give Blackline your own source for the values you care about. Everything else keeps working as it did.</p>
+<ol class="flow">
+<li data-title="Screen opens">The raid HUD opens and needs the player's health, food and water.</li>
+<li data-title="It asks">Blackline checks whether your game gave it a source for those values. If it did not, it uses its own.</li>
+<li data-title="You answer">Your Blueprint component fills in a short list, such as health 72 out of 100.</li>
+<li data-title="You say it changed">When health changes, your component calls <strong>Refresh Source</strong> and every open screen updates.</li>
+</ol>
+<div class="callout tip">Most of your content never needs this. Items, traders, tasks, stations and raid maps are data assets the screens find by themselves. A source is only for values your game changes while it runs.</div>
+
+<h2 id="look-at-the-demo-s-example-first">Look at the demo's example first<a class="anchor" href="#look-at-the-demo-s-example-first" aria-label="Link to this section">#</a></h2>
+<p>The Blackline Demo project has two working components you can open and copy. Both are in <code>/Game/Demo/Sources</code>.</p>
+<ul>
+<li><code>BPC_Vitals</code> hands over health, food, water and carried weight.</li>
+<li><code>BPC_RaidClock</code> hands over the time left in the raid and on the exit.</li>
+</ul>
+<p>Open <code>BPC_Vitals</code> next to this page. Each step below matches something you can see in it.</p>
+
+<h2 id="build-your-own-vitals-component">Build your own vitals component<a class="anchor" href="#build-your-own-vitals-component" aria-label="Link to this section">#</a></h2>
+<ol class="steps">
+<li><strong>Create a Blueprint component</strong> In the Content Browser, right-click and pick <em>Blueprint Class</em>, then <em>Actor Component</em>. Add it to your player controller, so it lives as long as the player does.</li>
+<li><strong>Add the interface</strong> Open <em>Class Settings</em>. Under <em>Implemented Interfaces</em>, add <em>NVS View Meter Source</em>. A meter is one value with a maximum, like health out of 100.</li>
+<li><strong>Fill in your values</strong> In the My Blueprint panel, under <em>Interfaces</em>, open <em>Get Meters</em>. Add one <em>Make NVS View Meter</em> node per value. Set its <em>Meter Id</em> from the table below, its <em>Value</em> and <em>Max Value</em> from your game, and its <em>Value Text</em> to the text the player should read. Put the nodes into a <em>Make Array</em>, connect it to <em>Out Meters</em> and return true.</li>
+<li><strong>Tell Blackline to use it</strong> On <em>Begin Play</em>, call <em>Set Screen Source</em>. Set <em>Replaces</em> to <code>NVSViewVitals</code>, which is Blackline's own vitals source, and connect <em>Self</em> to <em>Source</em>.</li>
+<li><strong>Update the screens</strong> Whenever a value changes, call <em>Refresh Source</em> with your player controller and <em>Self</em>. A looping timer is fine too. <code>BPC_Vitals</code> refreshes four times a second.</li>
+</ol>
+<p>For health, food and water, tick <em>Low Is Adverse</em> so the bar warns as it runs low. The demo warns at half and turns red at a quarter, with a <em>Warn Fraction</em> of 0.5 and a <em>Critical Fraction</em> of 0.25.</p>
+
+<h3 id="the-names-the-screens-look-for">The names the screens look for<a class="anchor" href="#the-names-the-screens-look-for" aria-label="Link to this section">#</a></h3>
+<p>A screen finds each value by its <em>Meter Id</em>. Use these names, and set <em>Replaces</em> to the source in the first column:</p>
+<table>
+<thead><tr><th>Replaces</th><th>Meter ids</th><th>Shown on</th></tr></thead>
+<tbody>
+<tr><td><code>NVSViewVitals</code></td><td><code>Vitals.Health</code>, <code>Vitals.Wind</code>, <code>Vitals.Food</code>, <code>Vitals.Water</code>, <code>Vitals.Carry</code></td><td>Raid HUD, hub, stash, raid inventory, loadouts</td></tr>
+<tr><td><code>NVSViewRaidClock</code></td><td><code>Raid.Clock</code>, <code>Raid.Exfil</code></td><td>Raid HUD</td></tr>
+<tr><td><code>NVSViewWallet</code></td><td><code>Wallet.OnHand</code>, <code>Wallet.StashValue</code></td><td>Stash, trade, market</td></tr>
+</tbody>
+</table>
+<p>The screens show <em>Value Text</em> exactly as you write it, so format it the way you want the player to read it. <code>BPC_Vitals</code> writes carried weight as <code>21.2 / 36.0 KG</code>. A <em>Max Value</em> of zero means the value has no limit, like cash, and no bar is drawn.</p>
+
+<h3 id="things-to-know">Things to know<a class="anchor" href="#things-to-know" aria-label="Link to this section">#</a></h3>
+<ul>
+<li>Call <em>Set Screen Source</em> before the first screen opens. A component on the player controller begins play before the controller does, which is early enough.</li>
+<li>One component feeds every screen that shows the same values. The raid HUD, the hub and the stash all show your health once it is connected.</li>
+<li>To go back to Blackline's own values, call <em>Set Screen Source</em> again with nothing connected to <em>Source</em>.</li>
+</ul>
+
+<h2 id="values-that-do-not-change-while-the-game-runs">Values that do not change while the game runs<a class="anchor" href="#values-that-do-not-change-while-the-game-runs" aria-label="Link to this section">#</a></h2>
+<p>For data that is the same every time, such as the player's starting injuries, you can skip the Blueprint graph and use a <strong>Screen Source Definition</strong> asset instead. Right-click in the Content Browser, pick <em>Miscellaneous &gt; Data Asset</em>, then <em>Screen Source Definition</em>, and fill it in:</p>
+<dl class="api">
+<dt>Replaces</dt><dd>Which of Blackline's sources this stands in for, such as <code>NVSViewBodyZones</code> for the health screen.</dd>
+<dt>Asset</dt><dd>A data asset of that same kind with your rows filled in.</dd>
+<dt>Class</dt><dd>Or a Blueprint class that answers instead. Used only when <em>Asset</em> is empty.</dd>
+<dt>Sort Order</dt><dd>When two definitions replace the same source, the lowest number wins.</dd>
+</dl>
+<p>The demo's <code>PDA_PlayerBodySource</code> in <code>/Game/Demo/Sources</code> works this way. It points at <code>DA_PlayerBody</code>, which lists the player's fifteen body zones with their hit points and injuries, and the health screen shows them with no graph at all.</p>
+<div class="callout important">If your game also connects a live source for the same values with <em>Set Screen Source</em>, the live one wins.</div>
+
+<h2 id="what-else-you-can-replace">What else you can replace<a class="anchor" href="#what-else-you-can-replace" aria-label="Link to this section">#</a></h2>
+<p>These are the sources games most often swap for live values. Each one is replaced the same way as vitals.</p>
+<table>
+<thead><tr><th>Replaces</th><th>Blueprint interface</th><th>What it shows</th></tr></thead>
+<tbody>
+<tr><td><code>NVSViewVitals</code></td><td>NVS View Meter Source</td><td>Health, wind, food, water and carried weight.</td></tr>
+<tr><td><code>NVSViewRaidClock</code></td><td>NVS View Meter Source</td><td>Time left in the raid and on the exit.</td></tr>
+<tr><td><code>NVSViewWallet</code></td><td>NVS View Meter Source</td><td>Cash on hand and stash value. It already follows the session's cash.</td></tr>
+<tr><td><code>NVSViewCompassMarks</code></td><td>NVS View Record Source</td><td>The marks on the HUD compass.</td></tr>
+<tr><td><code>NVSViewCrewVitals</code></td><td>NVS View Record Source</td><td>Your crewmates' rows on the HUD.</td></tr>
+<tr><td><code>NVSViewParty</code>, <code>NVSViewPartyChat</code></td><td>NVS View Record Source</td><td>The lobby's crew and chat.</td></tr>
+<tr><td><code>NVSViewMarketBoard</code></td><td>NVS View Market Source</td><td>The player market. Blackline's own board runs offline.</td></tr>
+</tbody>
+</table>
+<p>The stash, the raid inventory and the paper doll need no source of yours. Add the Inventory component to the player's pawn and they follow it on their own. See <a href="containers.html">Containers</a>.</p>
+<p>Every interface, every field and a C++ version of the vitals component are on <a href="source-interfaces.html">Source interfaces</a>.</p>
+
+<h2 id="what-you-see">What you see<a class="anchor" href="#what-you-see" aria-label="Link to this section">#</a></h2>
+<p>Play and deploy into a raid. The raid HUD shows your health, food and water, and they move as your game changes them. In the demo they run down during the raid, and the carried weight follows what you pick up.</p>
+<figure class="shot"><img src="img/screens/raid-hud.png" alt="The raid HUD with its vitals readouts"><figcaption>The raid HUD's vitals come from whichever component answers for <code>NVSViewVitals</code>.</figcaption></figure>
+
+<h2 id="next-steps">Next steps<a class="anchor" href="#next-steps" aria-label="Link to this section">#</a></h2>
+<div class="cards">
+<a class="card" href="requests.html"><span class="card-tag">Reference</span><strong>Requests</strong>Answer the buttons that change your game's data.</a>
+<a class="card" href="source-interfaces.html"><span class="card-tag">Reference</span><strong>Source interfaces</strong>Every interface and field, and the C++ version.</a>
+<a class="card" href="screens.html"><span class="card-tag">Reference</span><strong>Screens</strong>Every screen and what it reads.</a>
+</div>
+      <nav class="pager"><a class="prev" href="architecture.html"><span>Previous</span>Architecture</a><a class="next" href="items.html"><span>Next</span>Items</a></nav>
+    </article>
+  </main>
+  <aside class="toc"><div class="toc-title">On this page</div><nav></nav></aside>
+</div>
+<div class="search-panel" hidden>
+  <div class="search-box">
+    <input type="search" placeholder="Search guides, screens, classes…" aria-label="Search">
+    <div class="search-results"></div>
+    <div class="search-hint"><kbd>↑</kbd><kbd>↓</kbd> to move, <kbd>Enter</kbd> to open, <kbd>Esc</kbd> to close</div>
+  </div>
+</div>
+<div class="lightbox" hidden><img alt=""><div class="lightbox-caption"></div></div>
+<script src="assets/search-index.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

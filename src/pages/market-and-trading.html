@@ -1,0 +1,135 @@
+<!--meta {"title": "Market and trading", "section": "Guides", "order": 90, "summary": "Make traders as data assets, buy and sell with category chips, run trader jobs and the player market, and see where the cash comes from."} -->
+<p class="lead">Blackline ships three screens for moving money and goods: the trader roster, the trade screen for one trader, and a player market with auctions. Traders are data assets, and with an Inventory component on the player's pawn, buying, selling, barter and trader jobs work with no request code at all.</p>
+
+<h2>Cash</h2>
+<p>Every screen that shows or spends money shares one session wallet, <code>NVSViewCash</code>. Buying from a trader, Heal all, station upgrades and wardrobe purchases spend it. Selling to a trader and handing in a task's reward add to it.</p>
+<p>The wallet starts from the <code>Wallet.OnHand</code> meter of the wallet source the first time anything asks. The demo sets that figure in data:</p>
+<ol class="steps">
+<li><strong>Make the wallet asset</strong> Create a data asset of class <em>NVS View Wallet</em>, called <code>DA_Wallet</code> in the demo, and give it a meter with the id <code>Wallet.OnHand</code> and a value of 12480.</li>
+<li><strong>Plug it in</strong> Create a <em>Screen Source Definition</em> with <em>Replaces</em> set to <em>NVS View Wallet</em> and <em>Asset</em> set to <code>DA_Wallet</code>.</li>
+</ol>
+<p>The same wallet also answers <code>Wallet.StashValue</code>, worked out from what the player's stash holds, which the trade screen shows beside the cash.</p>
+<div class="callout warn">The cash lasts for the play session. It is not written to a save game, and there is no Blueprint node to read or set it. A game that keeps its own money answers the requests itself, as shown at the end of this page.</div>
+
+<h3>Money format</h3>
+<p>Every price on screen goes through <code>NVSViewMarket::FormatMoney</code>, which reads three fields of your <em>View Setup Definition</em>:</p>
+<dl class="api">
+<dt>Currency Symbol</dt><dd>Defaults to <code>€</code>.</dd>
+<dt>Symbol After Amount</dt><dd>Puts the symbol after the number with a space, as in <code>5,200 kr</code>.</dd>
+<dt>Thousands Separator</dt><dd>Defaults to a comma.</dd>
+</dl>
+<p>Write whole amounts. The screens read money as whole units.</p>
+
+<h2>Traders are data assets</h2>
+<p>Make one <em>Trader Definition</em> per trader. The roster and the trade screen pick it up with no configuration, ordered by <em>Sort Order</em>.</p>
+<dl class="api">
+<dt>Display Name, Trade, Location, Blurb</dt><dd>The name, what they deal in such as Guns &amp; powder, where they are, and a paragraph about them.</dd>
+<dt>Wants</dt><dd>What they buy, shown on the card, such as <code>WEAPONS · AMMO</code>.</dd>
+<dt>Loyalty, Max Loyalty</dt><dd>The player's standing at the start and the highest it goes. The standing bar fills to Loyalty over Max Loyalty.</dd>
+<dt>Buy Rate</dt><dd>The share of an item's value they pay when the player sells, from 0 to 1.</dd>
+<dt>Accent</dt><dd>The colour role their card and selection use.</dd>
+<dt>Shelf</dt><dd>What they sell. Each entry has an <em>Item</em>, a <em>Stock</em> count, a <em>Price</em> (zero sells at the item's value) and an optional <em>Barter</em> list of items and counts they take instead of money.</dd>
+</dl>
+<p>The demo's three traders, from <code>make_content.py</code>:</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Trader</th><th>Trade</th><th>Loyalty</th><th>Buy Rate</th><th>Barter example</th></tr></thead>
+<tbody>
+<tr><td>Brigitte</td><td>Salvage &amp; supply</td><td>2</td><td>0.7</td><td>Pump house key for 6 copper spools</td></tr>
+<tr><td>Oskar</td><td>Guns &amp; powder</td><td>3</td><td>0.62</td><td>4x scope for 2 fuel cans</td></tr>
+<tr><td>Mira</td><td>Field medicine</td><td>1</td><td>0.78</td><td>Plate carrier for 2 field med kits</td></tr>
+</tbody></table></div>
+<figure class="shot"><img src="img/screens/traders.png" alt="The trader roster with trader cards in a row and the cash figure in the header"><figcaption>The trader roster. Each card is one Trader Definition.</figcaption></figure>
+<p>Choosing a card opens the screen set in the roster's <em>Counter Destination</em>, which is the trade screen, showing that trader.</p>
+
+<h2>The trade screen</h2>
+<p>The trade screen (<code>W_TradeScreen</code>) shows the trader's shelf on the left, a deal column with <em>Buy</em> and <em>Sell</em> tabs in the middle, and the player's stash on the right. A second view lists the trader's jobs.</p>
+<figure class="shot"><img src="img/screens/trade.png" alt="The trade screen with the trader's stock, the deal column and the stash"><figcaption>The trade screen with a shelf item picked and the buy tab open.</figcaption></figure>
+
+<h3>Category chips</h3>
+<p>The chips beside the shelf and the stash are All plus one chip per <em>Item Category Definition</em>, in sort order. A category takes every item whose tags carry its <em>Tag</em> or a tag below it, so a category with <code>Item.Weapon</code> holds <code>Item.Weapon.Rifle</code>. Set <em>Icon</em> on the category to show an icon on its chip instead of its name.</p>
+
+<h3>Buying</h3>
+<p>The player picks a shelf item, sets a quantity and presses Buy. The screen raises <code>Item.Buy</code>. The player's Inventory component answers it. It charges the shelf price times the quantity from the cash, puts the items in the stash, and refunds any that did not fit. When the cash is short, nothing changes.</p>
+<p>A shelf entry with a Barter list is barter only. The deal column shows the terms instead of a quantity, and the button raises <code>Trade.Swap</code>. The inventory checks the player holds every item asked for, takes them, and hands over the item.</p>
+
+<h3>Selling</h3>
+<p>The player drags items from the stash onto the counter tray. The tray total is each item's value times the trader's Buy Rate. <em>Sell it all</em> raises one <code>Item.Sell</code> per item, carrying that figure as <code>Amount</code>. The inventory removes the item and adds the amount to the cash. Items left on the tray go back to the stash when the screen closes.</p>
+
+<h3>Trader jobs</h3>
+<p>A <em>Task Definition</em> whose <em>Giver</em> is this trader shows in the jobs view. The action button takes a job that reads <code>ON OFFER</code> and hands in one that reads <code>READY TO HAND IN</code>. Handing in takes the items the task asks for out of the player's inventory, pays the task's <em>Reward Cash</em> once, and the job reads <code>TURNED IN</code>. The task log follows the same state. <a href="tasks-and-loadouts.html">Tasks and loadouts</a> covers the task fields.</p>
+
+<h2>The market</h2>
+<p>The market (<code>W_MarketScreen</code>) is a player market with buyouts and auctions. It has three views: browse, the player's own listings, and the watchlist. A detail panel shows a listing's price against the average, the seller, recent bids and the bid controls. A sell box beside the stash lists one item at a time.</p>
+<figure class="shot"><img src="img/screens/market.png" alt="The market with the listing table, a listing's detail and bid panel, and the stash with the sell box"><figcaption>The market. The header shows cash, escrow, listing slots and money to collect.</figcaption></figure>
+<p>Its built-in source, <code>UNVSViewMarketBoard</code>, runs a market offline. It fills the catalogue from every Item Definition with a <em>Value</em>, groups listings by your item categories, and opens a few listings per item under the names in <em>Seller Names</em>, which comes filled with eight names. Empty that list and the board opens with no listings. To change these fields, make a data asset of class <em>NVS View Market Board</em> and plug it in with a Screen Source Definition. Its clock runs in real time from the market's first open this session. Rivals outbid the player after <em>Rival Delay</em> seconds, a fairly priced buyout of the player's sells after <em>Sell After</em> seconds, and the player's auctions take a bid every <em>Bid Every</em> seconds up to <em>Max Bids</em>. When it has no cash of its own it uses the session cash.</p>
+<p>It is there to show the market working offline. A game with a real market supplies its own source:</p>
+<pre><code class="lang-cpp">// Interfaces/NVSViewMarketSource.h. The screen asks again every RereadSeconds, 1 by default.
+bool DescribeMarket(const FGuid&amp; ContextId, FNVSViewMarket&amp; OutMarket);</code></pre>
+<p>An <code>FNVSViewMarket</code> holds <code>Listings</code>, the player's <code>MyListings</code>, the <code>Catalogue</code> of every item type with its average price, and the <code>Wallet</code>. The screen re-reads straight after every request it raises, and posts a toast when the player is outbid, gets a bid or sells.</p>
+
+<h3>The market's rules</h3>
+<p>The wallet inside the market sets the rules, so each game can run its own economy:</p>
+<dl class="api">
+<dt>On Hand, Escrow, To Collect</dt><dd>Cash to spend, money held in bids the player leads, and sale money not yet collected.</dd>
+<dt>Slots Max</dt><dd>How many listings the player can run at once. Default 6.</dd>
+<dt>Listing Fee Rate, Minimum Fee</dt><dd>The fee to list, as a share of the higher of the buyout and the opening bid, and its floor. Defaults 3 percent and 20.</dd>
+<dt>Sale Tax Rate</dt><dd>Taken from the final price when a listing sells. Default 7 percent.</dd>
+<dt>Minimum Raise Rate</dt><dd>How much a new bid must beat the top bid by. Default 5 percent.</dd>
+<dt>Duration Hours</dt><dd>The listing lengths the sell box offers. Default 12, 24 and 48.</dd>
+</dl>
+
+<h3>What the market raises</h3>
+<div class="table-wrap"><table>
+<thead><tr><th>Request</th><th>When</th></tr></thead>
+<tbody>
+<tr><td><code>Market.Bid</code></td><td>The player bids. <code>Amount</code> is the bid.</td></tr>
+<tr><td><code>Market.Buy</code></td><td>The player buys a listing outright.</td></tr>
+<tr><td><code>Market.Watch</code>, <code>Market.Unwatch</code></td><td>The player pins or unpins a listing.</td></tr>
+<tr><td><code>Market.List</code></td><td>The player lists the sell box item. <code>Draft</code> holds the terms.</td></tr>
+<tr><td><code>Market.Cancel</code>, <code>Market.Reclaim</code></td><td>The player pulls a live listing with no bids, or takes back an expired one.</td></tr>
+<tr><td><code>Market.Collect</code></td><td>The player collects a sale, or every sale when there is no subject.</td></tr>
+<tr><td><code>Market.Deliver</code>, <code>Market.Refund</code></td><td>A listing reads Won. Deliver when the stash has room, Refund when it does not.</td></tr>
+</tbody></table></div>
+<p>The Inventory component answers the item side. A listed item leaves the stash, and a bought, delivered, cancelled or reclaimed one arrives in it.</p>
+<div class="callout important">The screen raises <code>Market.Deliver</code> or <code>Market.Refund</code> by itself for every listing that reads Won. If your server settles wins on its own, move a listing out of Won as soon as it is settled, so a win is not settled twice.</div>
+
+<h2>Answer the requests yourself</h2>
+<p>A game with its own economy binds <em>On Request</em> on the local player's <em>NVS View Request Subsystem</em> and handles the request tags it cares about.</p>
+<div class="tabs">
+<div class="tab" data-label="Blueprint">
+<ol class="steps">
+<li><strong>Get the subsystem</strong> In your player controller, add <em>Get LocalPlayer Subsystem</em> and pick <em>NVSViewRequestSubsystem</em>.</li>
+<li><strong>Bind the event</strong> From it, add <em>Bind Event to On Request</em> and create a custom event with the request as its input.</li>
+<li><strong>Check the tag</strong> Break the <em>NVSViewRequest</em> and compare <em>Request Id</em> with tags such as <code>NVS.View.Request.Item.Buy</code>, <code>NVS.View.Request.Item.Sell</code> and <code>NVS.View.Request.Market.Bid</code>.</li>
+<li><strong>Change your data</strong> Read <em>Subject Id</em> (the trader or listing), <em>Item Id</em> and <em>Amount</em> and call your own logic. Then call <strong>Refresh Source</strong> for any source of yours that changed.</li>
+</ol>
+</div>
+<div class="tab" data-label="C++">
+<pre><code class="lang-cpp">#include "Subsystems/NVSViewRequestSubsystem.h"
+
+// Declared as UFUNCTION() void HandleViewRequest(const FNVSViewRequest&amp; Request);
+void UMyEconomyComponent::HandleViewRequest(const FNVSViewRequest&amp; Request)
+{
+	if (Request.RequestId == NVSViewRequests::ItemBuy())
+	{
+		// SubjectId is the trader, ItemId the shelf item and Amount the quantity.
+		ServerBuyFromTrader(Request.SubjectId, Request.ItemId, static_cast&lt;int32&gt;(Request.Amount));
+	}
+	else if (Request.RequestId == NVSViewRequests::MarketBid())
+	{
+		ServerPlaceBid(Request.SubjectId, Request.Amount);
+	}
+}</code></pre>
+<p>Bind it with <code>Requests-&gt;OnRequest.AddDynamic(this, &amp;UMyEconomyComponent::HandleViewRequest)</code>. The <code>Server</code> functions stand for your own code.</p>
+</div>
+</div>
+<p>The request tags and their fields are listed in <a href="requests.html">Requests</a>.</p>
+
+<h2>Result</h2>
+<p>In the demo, open Traders, pick Oskar and buy an AR-4 magazine. The cash in the header drops by its price and the magazine appears in your stash. Drag it back onto the counter and press <em>Sell it all</em>, and the cash rises by its value times 0.62. In the market, a bid you place moves into escrow, and a fairly priced listing of yours sells after a short wait with a toast and a figure to collect.</p>
+
+<div class="cards">
+<a class="card" href="tasks-and-loadouts.html"><span class="card-tag">Guide</span><strong>Tasks and loadouts</strong>Trader jobs, the task log and saved kits.</a>
+<a class="card" href="requests.html"><span class="card-tag">Reference</span><strong>Requests</strong>Every request tag and the fields it carries.</a>
+<a class="card" href="items.html"><span class="card-tag">Guide</span><strong>Items</strong>Item definitions and categories.</a>
+</div>

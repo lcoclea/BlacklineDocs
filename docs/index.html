@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Blackline · Blackline for Unreal Engine</title>
+<meta name="description" content="A complete extraction-shooter interface for Unreal Engine 5.8: twenty-one CommonUI screens that you fill with data assets and Blueprints.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="icon" href="assets/mark.svg" type="image/svg+xml">
+<script>try{var t=localStorage.getItem("bl-theme");if(t)document.documentElement.dataset.theme=t;}catch(e){}</script>
+</head>
+<body class="layout-home">
+<header class="topbar">
+  <button class="menu-toggle" aria-label="Open navigation">☰</button>
+  <a class="brand" href="index.html"><img src="assets/mark.svg" alt=""><span>Blackline</span><em>v1.0.0</em></a>
+  <button class="search-open" aria-label="Search"><span>Search the docs</span><kbd>/</kbd></button>
+  <nav class="top-links">
+    <a href="getting-started.html">Get started</a>
+    <a href="screens.html">Screens</a>
+    <a href="https://github.com/lcoclea/blackline-docs/issues">Support</a>
+    <button class="theme-toggle" aria-label="Switch light or dark theme">◐</button>
+  </nav>
+</header>
+<div class="shell">
+  <aside class="sidebar"><div class="nav-section"><div class="nav-title">Start here</div>
+<a href="index.html" class="active">Blackline</a>
+<a href="getting-started.html">Getting started</a>
+<a href="architecture.html">Architecture</a>
+</div>
+<div class="nav-section"><div class="nav-title">Guides</div>
+<a href="interfaces.html">Connecting your game</a>
+<a href="items.html">Items</a>
+<a href="weapons.html">Weapons</a>
+<a href="placing-weapon-parts.html">Placing weapon parts</a>
+<a href="containers.html">Containers</a>
+<a href="context-menu.html">Context menu</a>
+<a href="drag-and-drop.html">Drag and drop</a>
+<a href="equipment.html">Equipment</a>
+<a href="inspect.html">Inspect</a>
+<a href="character-looks.html">Character looks</a>
+<a href="market-and-trading.html">Market and trading</a>
+<a href="raid-loop.html">The raid loop</a>
+<a href="health-and-vitals.html">Health and vitals</a>
+<a href="hideout-and-crafting.html">Hideout and crafting</a>
+<a href="tasks-and-loadouts.html">Tasks and loadouts</a>
+</div>
+<div class="nav-section"><div class="nav-title">Systems</div>
+<a href="layers-and-screens.html">Layers and screens</a>
+<a href="viewmodels.html">Viewmodels</a>
+<a href="theming.html">Theming</a>
+<a href="settings.html">Settings</a>
+<a href="notifications.html">Notifications</a>
+<a href="rendering.html">Rendering</a>
+</div>
+<div class="nav-section"><div class="nav-title">Reference</div>
+<a href="screens.html">Screens</a>
+<a href="components.html">Components</a>
+<a href="source-interfaces.html">Source interfaces</a>
+<a href="requests.html">Requests</a>
+<a href="project-settings.html">Project settings</a>
+</div>
+<div class="nav-section"><div class="nav-title">Help</div>
+<a href="faq.html">FAQ</a>
+<a href="troubleshooting.html">Troubleshooting</a>
+</div></aside>
+  <main class="content">
+    <article>
+      <div class="eyebrow">Start here</div>
+      <h1>Blackline</h1>
+      <div class="hero">
+  <div class="eyebrow">UI plugin for Unreal Engine 5.8</div>
+  <h2 id="the-whole-game-ui-already-built">The whole game UI.<br><em>Already built.</em><a class="anchor" href="#the-whole-game-ui-already-built" aria-label="Link to this section">#</a></h2>
+  <p>Blackline is twenty-one screens on CommonUI, from the hub to the raid debrief, with the stash, raid inventory, traders, market, hideout crafting, health and raid HUD in between. You fill them with data assets, one asset per item, trader, task, station and raid map. Most of it needs no C++.</p>
+  <div class="actions">
+    <a class="btn primary" href="getting-started.html">Get started</a>
+    <a class="btn" href="screens.html">See every screen</a>
+    <a class="btn" href="architecture.html">How it fits together</a>
+  </div>
+  <div class="hero-shot"><img src="img/features/context-menu.png" alt="The stash screen with an item's context menu open"></div>
+</div>
+
+<div class="stats">
+  <div><b>21</b><span>screens</span></div>
+  <div><b>48</b><span>widget components</span></div>
+  <div><b>16</b><span>kinds of data asset</span></div>
+  <div><b>58</b><span>request tags your game can answer</span></div>
+</div>
+
+<h2 id="what-you-get">What you get<a class="anchor" href="#what-you-get" aria-label="Link to this section">#</a></h2>
+<div class="gallery">
+  <figure><img src="img/screens/stash.png" alt="Stash"><figcaption>Stash and paper doll</figcaption></figure>
+  <figure><img src="img/screens/raid-inventory.png" alt="Raid inventory"><figcaption>Looting in a raid</figcaption></figure>
+  <figure><img src="img/screens/workbench.png" alt="Workbench"><figcaption>Hideout crafting</figcaption></figure>
+  <figure><img src="img/screens/trade.png" alt="Trade"><figcaption>Trading</figcaption></figure>
+  <figure><img src="img/screens/raid-hud.png" alt="Raid HUD"><figcaption>Raid HUD</figcaption></figure>
+  <figure><img src="img/screens/lobby.png" alt="Lobby"><figcaption>Lobby and deploy queue</figcaption></figure>
+</div>
+
+<h2 id="see-it-filled">See it filled first<a class="anchor" href="#see-it-filled" aria-label="Link to this section">#</a></h2>
+<p>A fresh install has no game content in it. Screens that list items, traders or stations show a short <a href="screens.html#empty-states">empty state</a> card until you add some. To see every screen working, get the free Blackline Demo. It comes in three downloads.</p>
+<ul>
+  <li><strong>BlacklineDemo-Win64.zip</strong> is a playable Windows build. Unzip it and run <code>BlacklineDemo.exe</code>.</li>
+  <li><strong>BlacklineDemo-Linux.zip</strong> is a playable Linux build. Unzip it and run <code>BlacklineDemo.sh</code>.</li>
+  <li><strong>BlacklineDemo-Project.zip</strong> is the Unreal project with all its Blueprints and data assets, ready to open with the plugin and copy from. Add the free FPS Weapon Bundle from Fab first, as <a href="getting-started.html#demo-project">Getting started</a> explains.</li>
+</ul>
+<p>The demo is a small playable raid loop. You pick a map, deploy, loot a crate and a body, extract, then craft, trade, heal and kit up at home. It is built only from Blueprints and data assets.</p>
+
+<h2 id="start-with-a-guide">Start with a guide<a class="anchor" href="#start-with-a-guide" aria-label="Link to this section">#</a></h2>
+<div class="cards">
+  <a class="card" href="getting-started.html"><span class="card-tag">Start here</span><strong>Getting started</strong>Enable the plugin, put the hub on screen from Blueprint and add your first data asset.</a>
+  <a class="card" href="items.html"><span class="card-tag">Guide</span><strong>Items</strong>Item definitions with their types, traits, footprints and prices.</a>
+  <a class="card" href="weapons.html"><span class="card-tag">Guide</span><strong>Weapons</strong>Attachment slots, magazines and the HUD's ammo readout.</a>
+  <a class="card" href="containers.html"><span class="card-tag">Guide</span><strong>Containers</strong>Bags, rigs and crates as grids that open in their own windows.</a>
+  <a class="card" href="context-menu.html"><span class="card-tag">Guide</span><strong>Context menu</strong>The right-click rows, each one a data asset with its click and key.</a>
+  <a class="card" href="character-looks.html"><span class="card-tag">Guide</span><strong>Character looks</strong>The wardrobe, try-on and buying.</a>
+  <a class="card" href="theming.html"><span class="card-tag">System</span><strong>Theming</strong>Colour roles, type steps and fonts on one style asset.</a>
+  <a class="card" href="requests.html"><span class="card-tag">Reference</span><strong>Requests</strong>Every request a screen raises and who answers it.</a>
+</div>
+
+<h2 id="how-it-plugs-into-your-game">How it plugs into your game<a class="anchor" href="#how-it-plugs-into-your-game" aria-label="Link to this section">#</a></h2>
+<p>Screens read your content from data assets and your live game state from sources, such as a Blueprint component on the player. When the player presses something that changes the game, the screen raises a request your game can answer. The plugin answers the common ones itself, such as cash, crafting, healing and tasks, so a game can get far without writing any request code.</p>
+<div class="plug">
+  <div class="plug-box"><span class="card-tag">Your game</span><strong>Data assets and Blueprints</strong>Items, traders, tasks and maps as data assets. Live values such as health from a Blueprint component.</div>
+  <div class="plug-arrows"><span>values in &rarr;</span><span>&larr; requests out</span></div>
+  <div class="plug-box plug-mid"><span class="card-tag">Blackline</span><strong>Screens</strong>Twenty-one screens that show your values and turn the player's clicks into requests.</div>
+  <div class="plug-arrows"><span>draws &rarr;</span><span>&larr; clicks</span></div>
+  <div class="plug-box"><span class="card-tag">The player</span><strong>Mouse and keyboard</strong>Drags, clicks and keys on the screen.</div>
+</div>
+
+<h2 id="know-the-limits">Know the limits<a class="anchor" href="#know-the-limits" aria-label="Link to this section">#</a></h2>
+<ul>
+  <li>It is single player. The Inventory component does not replicate.</li>
+  <li>The raid HUD's ammo readout shows the fitted magazine's capacity. It does not count shots.</li>
+</ul>
+<p>The <a href="faq.html">FAQ</a> covers the rest.</p>
+      <nav class="pager"><a class="next" href="getting-started.html"><span>Next</span>Getting started</a></nav>
+    </article>
+  </main>
+  <aside class="toc"><div class="toc-title">On this page</div><nav></nav></aside>
+</div>
+<div class="search-panel" hidden>
+  <div class="search-box">
+    <input type="search" placeholder="Search guides, screens, classes…" aria-label="Search">
+    <div class="search-results"></div>
+    <div class="search-hint"><kbd>↑</kbd><kbd>↓</kbd> to move, <kbd>Enter</kbd> to open, <kbd>Esc</kbd> to close</div>
+  </div>
+</div>
+<div class="lightbox" hidden><img alt=""><div class="lightbox-caption"></div></div>
+<script src="assets/search-index.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

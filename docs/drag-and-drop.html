@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Drag and drop · Blackline for Unreal Engine</title>
+<meta name="description" content="Every gesture the player has for moving items: drags, Ctrl, Alt and Shift clicks, double-click and the item keys, and what decides each one.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="icon" href="assets/mark.svg" type="image/svg+xml">
+<script>try{var t=localStorage.getItem("bl-theme");if(t)document.documentElement.dataset.theme=t;}catch(e){}</script>
+</head>
+<body class="layout-doc">
+<header class="topbar">
+  <button class="menu-toggle" aria-label="Open navigation">☰</button>
+  <a class="brand" href="index.html"><img src="assets/mark.svg" alt=""><span>Blackline</span><em>v1.0.0</em></a>
+  <button class="search-open" aria-label="Search"><span>Search the docs</span><kbd>/</kbd></button>
+  <nav class="top-links">
+    <a href="getting-started.html">Get started</a>
+    <a href="screens.html">Screens</a>
+    <a href="https://github.com/lcoclea/blackline-docs/issues">Support</a>
+    <button class="theme-toggle" aria-label="Switch light or dark theme">◐</button>
+  </nav>
+</header>
+<div class="shell">
+  <aside class="sidebar"><div class="nav-section"><div class="nav-title">Start here</div>
+<a href="index.html">Blackline</a>
+<a href="getting-started.html">Getting started</a>
+<a href="architecture.html">Architecture</a>
+</div>
+<div class="nav-section"><div class="nav-title">Guides</div>
+<a href="interfaces.html">Connecting your game</a>
+<a href="items.html">Items</a>
+<a href="weapons.html">Weapons</a>
+<a href="placing-weapon-parts.html">Placing weapon parts</a>
+<a href="containers.html">Containers</a>
+<a href="context-menu.html">Context menu</a>
+<a href="drag-and-drop.html" class="active">Drag and drop</a>
+<a href="equipment.html">Equipment</a>
+<a href="inspect.html">Inspect</a>
+<a href="character-looks.html">Character looks</a>
+<a href="market-and-trading.html">Market and trading</a>
+<a href="raid-loop.html">The raid loop</a>
+<a href="health-and-vitals.html">Health and vitals</a>
+<a href="hideout-and-crafting.html">Hideout and crafting</a>
+<a href="tasks-and-loadouts.html">Tasks and loadouts</a>
+</div>
+<div class="nav-section"><div class="nav-title">Systems</div>
+<a href="layers-and-screens.html">Layers and screens</a>
+<a href="viewmodels.html">Viewmodels</a>
+<a href="theming.html">Theming</a>
+<a href="settings.html">Settings</a>
+<a href="notifications.html">Notifications</a>
+<a href="rendering.html">Rendering</a>
+</div>
+<div class="nav-section"><div class="nav-title">Reference</div>
+<a href="screens.html">Screens</a>
+<a href="components.html">Components</a>
+<a href="source-interfaces.html">Source interfaces</a>
+<a href="requests.html">Requests</a>
+<a href="project-settings.html">Project settings</a>
+</div>
+<div class="nav-section"><div class="nav-title">Help</div>
+<a href="faq.html">FAQ</a>
+<a href="troubleshooting.html">Troubleshooting</a>
+</div></aside>
+  <main class="content">
+    <article>
+      <div class="eyebrow">Guides</div>
+      <h1>Drag and drop</h1>
+      <p class="lead">Players move items by dragging them, by clicking with a modifier and by pressing a key over them. With an Inventory component on the pawn, every gesture on this page works out of the box. This page lists them all and says what decides whether each one goes through.</p>
+
+<h2 id="dragging">Dragging<a class="anchor" href="#dragging" aria-label="Link to this section">#</a></h2>
+<p>Press on a tile and move the mouse to pick it up. A ghost the size of the item follows the pointer, held where you grabbed it, and repaints for whatever is under it. Let go somewhere that does not take it and the item goes back where it was.</p>
+<dl class="api">
+<dt>Onto a grid</dt><dd>Moves the item so its top left corner lands on the cell under the ghost. The covered cells light in the valid or invalid colour while you hover. It goes through when the item stays inside the grid, overlaps nothing and the container's <em>Accepts</em> takes it.</dd>
+<dt>R while dragging</dt><dd>Turns the item a quarter about the pointer. It lands turned. The key is the one on the shipped Rotate row.</dd>
+<dt>Onto a weapon tile</dt><dd>Fits a magazine, scope or other attachment into the free slot of its kind on that weapon.</dd>
+<dt>Onto a worn weapon on the doll</dt><dd>Fits the attachment the same way, onto the gun the player wears.</dd>
+<dt>Onto a doll slot</dt><dd>Equips the item when the slot is the one it fits and is empty.</dd>
+<dt>Onto an empty container block</dt><dd>Equips a pack, rig or secure case in that slot.</dd>
+<dt>Onto the inspect window</dt><dd>Drop an attachment on one of the window's slots, or anywhere on the window, and it fits into the slot of its kind on the item being inspected.</dd>
+<dt>A worn slot or block onto a grid</dt><dd>Takes the item off and puts it at that cell. Fixed items, such as the pockets and the secure case on the stash screen, cannot be dragged.</dd>
+<dt>A fitted attachment out of the inspect window</dt><dd>Drag a filled slot from the window onto a grid to take the part off the weapon.</dd>
+<dt>Onto a workbench part slot</dt><dd>Loads the part into a recipe. Each slot shows the item it wants and takes only that item, and only while it is empty.</dd>
+<dt>Between your gear and loot</dt><dd>Moves the item from a crate or body into your gear, or back, with everything inside it or fitted to it. Loot rules can refuse it. See <a href="containers.html">Containers</a>.</dd>
+</dl>
+
+<figure class="shot"><img src="img/screens/raid-inventory.png" alt="The raid inventory with the player's carried containers beside a loot pane"><figcaption>The raid inventory. Items drag between your gear, the loot and the doll.</figcaption></figure>
+
+<h2 id="clicks">Clicks<a class="anchor" href="#clicks" aria-label="Link to this section">#</a></h2>
+<dl class="api">
+<dt>Ctrl-click</dt><dd>Moves the item to where it obviously goes. If a container window is open in front, the item goes into it. Otherwise an item in the stash goes into your gear, trying the rig's pouches, then the pockets, then the pack. A bag only goes into the pack. An item in the pack, rig or pockets goes to the stash. Loot goes into your gear. A worn item comes off into the stash.</dd>
+<dt>Alt-click</dt><dd>Equips the item in its slot.</dd>
+<dt>Shift-click</dt><dd>Splits a stack in half. The new stack goes to the first free cell of the same grid.</dd>
+<dt>Double-click</dt><dd>Opens a bag or crate in a window. Anything else opens the inspect window.</dd>
+<dt>Right-click</dt><dd>Opens the item menu. See <a href="context-menu.html">Context menu</a>.</dd>
+</dl>
+
+<h2 id="keys">Keys<a class="anchor" href="#keys" aria-label="Link to this section">#</a></h2>
+<p>These act on the item under the pointer, or on the item whose menu is open.</p>
+<dl class="api">
+<dt>R</dt><dd>Rotates the item a quarter where it lies, when it fits that way.</dd>
+<dt>Delete</dt><dd>Drops the item. Worn gear has to come off first.</dd>
+<dt>E</dt><dd>Takes a worn item off into the stash.</dd>
+</dl>
+
+<h2 id="when-a-move-cannot-happen">When a move cannot happen<a class="anchor" href="#when-a-move-cannot-happen" aria-label="Link to this section">#</a></h2>
+<p>A refused move tells the player why. If the target has no room, a NO ROOM toast says "Nothing fits in" and names the container. If a container's accept rule refuses the item, a REFUSED toast shows its refusal text. If a loot rule keeps the item on a body, a toast with the item's name says why.</p>
+
+<h2 id="change-the-gestures">Change the gestures<a class="anchor" href="#change-the-gestures" aria-label="Link to this section">#</a></h2>
+<p>Every click and key above, except dragging, is a row of the item menu. Each row is an <strong>Item Action Definition</strong> data asset with a <em>Gesture</em> and a <em>Key</em>, so you change a shortcut by editing or replacing that asset. Changing the Rotate row's key also changes the key that turns an item while dragging. See <a href="context-menu.html">Context menu</a>.</p>
+
+<h2 id="what-reaches-your-game">What reaches your game<a class="anchor" href="#what-reaches-your-game" aria-label="Link to this section">#</a></h2>
+<p>Each gesture raises a request with a tag under <code>NVS.View.Request.Item</code>, such as <code>NVS.View.Request.Item.Move</code>, on the <em>NVS View Request Subsystem</em>. The Inventory component applies it to itself and the screens redraw. You do not need to handle these requests.</p>
+<p>To react to a move, bind <strong>On Inventory Changed</strong> on the component, or bind <strong>On Request</strong> on the subsystem and check the request's tag. A game with its own inventory receives each request in <strong>Handle Request</strong> on the <code>NVS View Item Holder</code> interface. See <a href="requests.html">Requests</a>.</p>
+<figure class="shot"><img src="img/screens/workbench.png" alt="The workbench with a recipe's part slots, each showing the item it wants"><figcaption>The workbench. Each part slot shows the item it wants, and parts are dragged in from the stash.</figcaption></figure>
+
+<h2 id="result">Result<a class="anchor" href="#result" aria-label="Link to this section">#</a></h2>
+<p>Play the demo and open the stash from the hub. Drag a KA-47 magazine onto the KA-47 rifle tile in the stash and it fits. Ctrl-click a ration in the stash and it goes into your gear. Shift-click a stack to split it, hover a tile and press R to turn it, and drag your pack off the doll onto the stash grid to take it off.</p>
+
+<div class="cards">
+<a class="card" href="context-menu.html"><span class="card-tag">Guide</span><strong>Context menu</strong>The rows behind every click and key.</a>
+<a class="card" href="containers.html"><span class="card-tag">Guide</span><strong>Containers</strong>Grids, bags, crates and loot rules.</a>
+<a class="card" href="equipment.html"><span class="card-tag">Guide</span><strong>Equipment</strong>Equip slots and the doll.</a>
+</div>
+      <nav class="pager"><a class="prev" href="context-menu.html"><span>Previous</span>Context menu</a><a class="next" href="equipment.html"><span>Next</span>Equipment</a></nav>
+    </article>
+  </main>
+  <aside class="toc"><div class="toc-title">On this page</div><nav></nav></aside>
+</div>
+<div class="search-panel" hidden>
+  <div class="search-box">
+    <input type="search" placeholder="Search guides, screens, classes…" aria-label="Search">
+    <div class="search-results"></div>
+    <div class="search-hint"><kbd>↑</kbd><kbd>↓</kbd> to move, <kbd>Enter</kbd> to open, <kbd>Esc</kbd> to close</div>
+  </div>
+</div>
+<div class="lightbox" hidden><img alt=""><div class="lightbox-caption"></div></div>
+<script src="assets/search-index.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

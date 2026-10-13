@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Character looks · Blackline for Unreal Engine</title>
+<meta name="description" content="Give items a look, build the player&#x27;s figure from Wardrobe Piece data assets, show worn gear on it, and dress the character in your level the same way.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="icon" href="assets/mark.svg" type="image/svg+xml">
+<script>try{var t=localStorage.getItem("bl-theme");if(t)document.documentElement.dataset.theme=t;}catch(e){}</script>
+</head>
+<body class="layout-doc">
+<header class="topbar">
+  <button class="menu-toggle" aria-label="Open navigation">☰</button>
+  <a class="brand" href="index.html"><img src="assets/mark.svg" alt=""><span>Blackline</span><em>v1.0.0</em></a>
+  <button class="search-open" aria-label="Search"><span>Search the docs</span><kbd>/</kbd></button>
+  <nav class="top-links">
+    <a href="getting-started.html">Get started</a>
+    <a href="screens.html">Screens</a>
+    <a href="https://github.com/lcoclea/blackline-docs/issues">Support</a>
+    <button class="theme-toggle" aria-label="Switch light or dark theme">◐</button>
+  </nav>
+</header>
+<div class="shell">
+  <aside class="sidebar"><div class="nav-section"><div class="nav-title">Start here</div>
+<a href="index.html">Blackline</a>
+<a href="getting-started.html">Getting started</a>
+<a href="architecture.html">Architecture</a>
+</div>
+<div class="nav-section"><div class="nav-title">Guides</div>
+<a href="interfaces.html">Connecting your game</a>
+<a href="items.html">Items</a>
+<a href="weapons.html">Weapons</a>
+<a href="placing-weapon-parts.html">Placing weapon parts</a>
+<a href="containers.html">Containers</a>
+<a href="context-menu.html">Context menu</a>
+<a href="drag-and-drop.html">Drag and drop</a>
+<a href="equipment.html">Equipment</a>
+<a href="inspect.html">Inspect</a>
+<a href="character-looks.html" class="active">Character looks</a>
+<a href="market-and-trading.html">Market and trading</a>
+<a href="raid-loop.html">The raid loop</a>
+<a href="health-and-vitals.html">Health and vitals</a>
+<a href="hideout-and-crafting.html">Hideout and crafting</a>
+<a href="tasks-and-loadouts.html">Tasks and loadouts</a>
+</div>
+<div class="nav-section"><div class="nav-title">Systems</div>
+<a href="layers-and-screens.html">Layers and screens</a>
+<a href="viewmodels.html">Viewmodels</a>
+<a href="theming.html">Theming</a>
+<a href="settings.html">Settings</a>
+<a href="notifications.html">Notifications</a>
+<a href="rendering.html">Rendering</a>
+</div>
+<div class="nav-section"><div class="nav-title">Reference</div>
+<a href="screens.html">Screens</a>
+<a href="components.html">Components</a>
+<a href="source-interfaces.html">Source interfaces</a>
+<a href="requests.html">Requests</a>
+<a href="project-settings.html">Project settings</a>
+</div>
+<div class="nav-section"><div class="nav-title">Help</div>
+<a href="faq.html">FAQ</a>
+<a href="troubleshooting.html">Troubleshooting</a>
+</div></aside>
+  <main class="content">
+    <article>
+      <div class="eyebrow">Guides</div>
+      <h1>Character looks</h1>
+      <p class="lead">Blackline draws item pictures, the player's figure and the wardrobe from data you fill in the Details panel. Items carry a <strong>Look</strong> and their type says how they are worn, and the figure is built from <strong>Wardrobe Piece Definition</strong> assets. This guide shows how each part works and how to dress the character in your level with the same outfit.</p>
+
+<h2 id="where-the-pictures-come-from">Where the pictures come from<a class="anchor" href="#where-the-pictures-come-from" aria-label="Link to this section">#</a></h2>
+<ul>
+<li><strong>Item tiles and the inspect window</strong> render the item's <em>Look</em> from its Item Definition.</li>
+<li><strong>The figure</strong> on the doll, the character screen and the health screen is built from the wardrobe pieces the player wears, with their equipped items on top.</li>
+<li><strong>Your level</strong> gets the same figure through <strong>Dress Character</strong>, so the character in the world wears what the menus show.</li>
+</ul>
+<p>Every mesh, material and animation in a look is a soft reference. Nothing loads until something shows it.</p>
+
+<h2 id="an-item-s-look">An item's look<a class="anchor" href="#an-item-s-look" aria-label="Link to this section">#</a></h2>
+<p>Open an Item Definition and expand <em>Look</em>. It names what draws the item on tiles, in the inspect window and on the body while it is worn.</p>
+<dl class="api">
+<dt>Static Mesh</dt><dd>The item's mesh. Most items use this one.</dd>
+<dt>Skeletal Mesh</dt><dd>Used when <em>Static Mesh</em> is empty. Clothing such as trousers uses one so it can follow the body.</dd>
+<dt>Pickup Actor</dt><dd>An actor shown instead of the mesh, such as a fully built rifle Blueprint. Its meshes are framed and lit like any other.</dd>
+<dt>Framing</dt><dd>Overrides the automatic camera angle, zoom and offset. See <a href="inspect.html">Inspect</a>.</dd>
+</dl>
+<p>Gear made of several pieces works best as one mesh with a material slot for each colour. The demo's gear and small items, such as the plate carrier, the helmet, the med kit and the fuel can, are each built that way.</p>
+<p>Fitted attachments show on the item's picture everywhere it is drawn, on the tile, in the inspect window and on the gun slung on the character. Where each one sits is set on the weapon's attachment slot. See <a href="placing-weapon-parts.html">Placing weapon parts</a>.</p>
+
+<h2 id="the-body-figure-s-look">The body figure's look<a class="anchor" href="#the-body-figure-s-look" aria-label="Link to this section">#</a></h2>
+<p>A body piece's <em>Figure</em> is the base every wardrobe piece is added to, so it has more fields than an item's look. You set it on a Wardrobe Piece Definition, as described in <a href="#the-wardrobe">The wardrobe</a>. A figure is a base plus a list of parts.</p>
+<dl class="api">
+<dt>Static Base / Skeletal Base / Actor Base</dt><dd>The base. Set one. <em>Actor Base</em> spawns an actor instead of a mesh. A figure without a base draws nothing.</dd>
+<dt>Base Offset</dt><dd>A transform applied to the base, to turn a model to face the camera or to scale it.</dd>
+<dt>Base Material</dt><dd>Replaces the base's first material.</dd>
+<dt>Base Scalars</dt><dd>Scalar parameters set on the base's material.</dd>
+<dt>Parts</dt><dd>Extra meshes added to the base. See the part fields below.</dd>
+<dt>Character Preview Animation</dt><dd>The animation the character preview loops. A still preview holds its first frame.</dd>
+<dt>Framing</dt><dd>Overrides the automatic camera angle, zoom and offset.</dd>
+</dl>
+<p>When a preview turns to a part of the body, it looks for the standard bone names <code>head</code>, <code>spine_03</code>, <code>upperarm_l</code>, <code>thigh_l</code> and <code>calf_l</code>, or the matching part of the built-in mannequin of shapes. A skeleton with those names needs nothing more.</p>
+<p>Each part in a figure has these fields:</p>
+<dl class="api">
+<dt>Part Name</dt><dd>A name for the part. The live preview rebuilds only parts whose name or content changed.</dd>
+<dt>Static Mesh / Skeletal Mesh</dt><dd>The part's mesh. A skeletal part on a skeletal base follows the base's pose.</dd>
+<dt>Socket</dt><dd>The socket or bone to attach to. None attaches at the base's root.</dd>
+<dt>Offset</dt><dd>A transform relative to the socket.</dd>
+<dt>Tint</dt><dd>A colour applied through the engine's basic shape material. Leave it transparent to keep the mesh's own material.</dd>
+<dt>Material</dt><dd>Replaces the part's first material, for a colourway of the same mesh.</dd>
+<dt>Equipment</dt><dd>Marks worn or carried gear, as opposed to the body and clothing.</dd>
+</dl>
+
+<h2 id="worn-gear-on-the-body">Worn gear on the body<a class="anchor" href="#worn-gear-on-the-body" aria-label="Link to this section">#</a></h2>
+<p>An equipped item shows its Look on the body in one of two ways. Both are set on the Item Definition under <em>Type</em>, and only the wearable types have the fields: Weapon, Armour, Gear and Container. Worn items are added on top of the wardrobe, and they come and go as the player equips and unequips.</p>
+<ul>
+<li><strong>Rigid gear</strong> such as a helmet or a slung rifle: set <em>Worn On</em> to a bone or socket and <em>Worn Offset</em> to where it sits. The item's Look mesh hangs there. The demo's helmet sits on <code>Head</code>, its rifles and knife on <code>spine_03</code> and its SMG on <code>thigh_r</code>.</li>
+<li><strong>Clothing</strong> such as trousers, boots or gloves: give the item a Look with only a <em>Skeletal Mesh</em> and leave <em>Worn On</em> as None. The mesh follows the body's pose. This works for Gear, Armour and Container items. A weapon always needs a bone. The demo's cargo trousers, boots and gloves use the CC0 Ranger legs, boots and arms meshes this way.</li>
+</ul>
+<p>Any other item with <em>Worn On</em> left as None shows nothing on the body. Whatever is fitted to a weapon, such as a scope or a magazine, rides along with it when it is slung.</p>
+<p>Worn clothing is drawn on top of the wardrobe and does not hide the wardrobe piece underneath. If both show, change the wardrobe outfit to suit, for example a piece in that slot that sits under the clothing, or none.</p>
+<p>See <a href="equipment.html">Equipment</a> for how worn gear behaves, and <a href="placing-weapon-parts.html">Placing weapon parts</a> for getting offsets right.</p>
+
+<h2 id="the-wardrobe">The wardrobe<a class="anchor" href="#the-wardrobe" aria-label="Link to this section">#</a></h2>
+<p>The character screen shows the figure on one side and a filterable grid of wardrobe pieces on the other. Each piece is a <strong>Wardrobe Piece Definition</strong> data asset. Create them the same way as items, as Data Assets of class <code>Wardrobe Piece Definition</code>. The plugin finds them by itself.</p>
+<figure class="shot"><img src="img/screens/character.png" alt="The character screen with the figure on one side and the wardrobe grid on the other"><figcaption>The character screen. The figure wears the chosen pieces and the worn strip sits under it.</figcaption></figure>
+<dl class="api">
+<dt>Display Name</dt><dd>The piece's name.</dd>
+<dt>Category</dt><dd>The wardrobe filter it is listed under, such as Jacket.</dd>
+<dt>Slot</dt><dd>The wardrobe slot it is worn in, such as <code>Top</code>, <code>Legs</code>, <code>Feet</code>, <code>Head</code>, <code>Hair</code> or <code>Body</code>. Wearing it takes off whatever else is in that slot. These are names you choose, separate from the equip slots.</dd>
+<dt>Focus Zone</dt><dd>Where the camera frames while the piece is chosen: head, chest, arms, legs or feet. None frames the whole figure.</dd>
+<dt>Source</dt><dd>Where it comes from, such as <code>Trader · Vulture</code>.</dd>
+<dt>Price</dt><dd>Zero means the player owns it from the start.</dd>
+<dt>Worn At Start</dt><dd>Worn by a new player. One per slot.</dd>
+<dt>Figure</dt><dd>Set only on a <strong>body piece</strong>. This is the base figure every other piece is added to: a <em>Skeletal Base</em>, a <em>Character Preview Animation</em> and any always-on parts such as eyes. See <a href="#the-body-figure-s-look">The body figure's look</a>.</dd>
+<dt>Looks</dt><dd>How the piece looks on each body. Each entry has <em>On Body</em> (the body piece it fits, or None for any body), <em>Parts</em>, a <em>Body Material</em> that replaces the body's material such as a skin tone, and <em>Body Scalars</em> set on the body's material.</dd>
+<dt>Covers</dt><dd>Slots this piece hides while worn, such as a hood covering <code>Hair</code>.</dd>
+</dl>
+
+<h3 id="how-the-figure-is-built">How the figure is built<a class="anchor" href="#how-the-figure-is-built" aria-label="Link to this section">#</a></h3>
+<ol class="flow">
+<li data-title="Body">The worn body piece's <em>Figure</em> becomes the base. Without a body piece among the worn pieces, there is no wardrobe figure.</li>
+<li data-title="Pieces">Every other worn piece adds the parts from its look for that body. A piece in a slot another piece covers is skipped.</li>
+<li data-title="Skin">A piece's <em>Body Material</em> replaces the body's material, and its <em>Body Scalars</em> are set on it.</li>
+<li data-title="Gear">Every item the player has equipped is added on top. Worn items do not remove any wardrobe piece.</li>
+</ol>
+<p>With no wardrobe pieces in the project at all, the figure is a simple mannequin of cylinders and a sphere, with no skeleton and no animation, and the character screen says there is nothing to wear yet.</p>
+
+<h3 id="clothing-that-hides-the-skin">Clothing that hides the skin<a class="anchor" href="#clothing-that-hides-the-skin" aria-label="Link to this section">#</a></h3>
+<p><em>Body Scalars</em> let a piece tell the body's material which regions to hide, so skin does not poke through clothes. The demo's clothing pieces set <code>HideTop</code>, <code>HideLegs</code> or <code>HideFeet</code> to 1, together with the body's rest heights <code>NeckZ</code>, <code>ArmX</code>, <code>WaistZ</code> and <code>AnkleZ</code> in centimetres. If your body material has parameters like these, set them the same way.</p>
+
+<h3 id="try-on-buy-and-wear">Try on, buy and wear<a class="anchor" href="#try-on-buy-and-wear" aria-label="Link to this section">#</a></h3>
+<ul>
+<li>Choosing any tile tries the piece on the figure, owned or not, and eases the camera to its <em>Focus Zone</em>. Nothing in your game changes.</li>
+<li>A piece with a price shows <em>Buy</em> with the price. If the player cannot afford it, the button reads <em>Not enough cash</em> and stays disabled, but the piece still shows on the figure.</li>
+<li>Buying spends the session's cash, wears the piece at once and keeps it owned, so the player can switch back to it later for free.</li>
+<li>An owned piece shows <em>Wear it</em>, or <em>Already worn</em>.</li>
+<li><em>Reset the look</em> puts the starting outfit back on and keeps everything that was bought.</li>
+</ul>
+<div class="shots">
+<figure class="shot"><img src="img/features/character-try-on.png" alt="An unbought piece shown on the figure with the buy button showing its price"><figcaption>Trying on a piece the player has not bought.</figcaption></figure>
+<figure class="shot"><img src="img/features/wardrobe-buy.png" alt="The wardrobe after a purchase, with the piece marked worn and the cash reduced"><figcaption>After buying, the piece is worn and the cash has dropped.</figcaption></figure>
+</div>
+
+<h2 id="the-example-characters">The example characters<a class="anchor" href="#the-example-characters" aria-label="Link to this section">#</a></h2>
+<p>The example characters, their outfits, hairstyles and idle animation are CC0 Quaternius packs. They ship with the free <strong>Blackline Demo</strong> project, not with the plugin. The demo keeps the meshes under <code>/Game/Examples/Character</code> and its wardrobe pieces under <code>/Game/Wardrobe</code>. Without them, the plugin falls back to the simple mannequin. The demo opens on <code>/Game/Maps/L_BlacklineDemo</code>. Press Play, open the stash from the hub, and switch to the character screen from the stash's tabs.</p>
+<p>The demo's pieces are a good model for your own:</p>
+<dl class="api">
+<dt>PDA_BodyMale</dt><dd>A body piece in slot <code>Body</code>, worn at start. Its <em>Figure</em> has the male mesh as <em>Skeletal Base</em>, a standing idle loop, eye and eyebrow parts, and a <em>Base Offset</em> yaw of -90 because the model faces +Y.</dd>
+<dt>PDA_BodyFemale</dt><dd>A second body piece in the same slot, priced 3000. Every clothing piece has one look per body, so changing the body swaps all the clothes with it.</dd>
+<dt>PDA_SkinLight</dt><dd>A <code>Skin</code> piece whose looks only set <em>Body Material</em>, one per body.</dd>
+<dt>PDA_RangerHood</dt><dd>A <code>Head</code> piece with <em>Covers</em> set to <code>Hair</code>.</dd>
+</dl>
+<p>The demo's rigid gear, such as the helmet, headset, plate carrier, rig, pack and watch, is a set of low-poly meshes made for the demo in Blender. They live in the demo project under <code>/Game/Items/Gear/Meshes</code> and are not part of the plugin. Its cargo trousers, boots and gloves use the CC0 male Ranger meshes from the example characters.</p>
+
+<h2 id="dress-your-in-game-character">Dress your in-game character<a class="anchor" href="#dress-your-in-game-character" aria-label="Link to this section">#</a></h2>
+<p><strong>Dress Character</strong> on <em>NVS View Look Library</em> puts the same figure on a skeletal mesh component in your level: the wardrobe pieces and the worn gear. Skinned parts follow your own animation.</p>
+<div class="tabs">
+<div class="tab" data-label="Blueprint">
+<ol class="steps">
+<li><strong>Open your character Blueprint</strong> Go to the Event Graph.</li>
+<li><strong>Add the call</strong> From <em>Event BeginPlay</em>, add <em>Dress Character</em> (category NVS | View | Look).</li>
+<li><strong>Connect the body</strong> Drag the <em>Mesh</em> component into <em>Body</em>.</li>
+<li><strong>Pick the context</strong> Leave <em>Context Id</em> empty for the local player.</li>
+<li><strong>Choose the base</strong> Keep <em>Apply Base</em> ticked to take the wardrobe's body mesh, skin and clothing mask, or untick it to keep your own body and only add parts.</li>
+<li><strong>Dress again on change</strong> Call <em>Dress Character</em> again after the outfit or the gear changes, for example from the Inventory component's <em>On Inventory Changed</em>. It removes what it added last time first.</li>
+</ol>
+</div>
+<div class="tab" data-label="C++">
+<pre><code class="lang-cpp">#include "NVSViewLookLibrary.h"
+
+void AMyCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+	UNVSViewLookLibrary::DressCharacter(this, GetMesh(), FGuid(), true);
+}</code></pre>
+<p><code>DressWithLook(Body, Look, bApplyBase)</code> dresses a body with an <code>FNVSViewLook</code> your game already has. Everything either function adds carries the component tag <code>DressedTag()</code>, which is <code>NVSViewDressed</code>.</p>
+</div>
+</div>
+<p>For the gun in the player's hands, use <strong>Show Held Item</strong> on the same library. It shows an inventory entry, with its scope and magazine, on a static mesh component.</p>
+
+<h2 id="result">Result<a class="anchor" href="#result" aria-label="Link to this section">#</a></h2>
+<p>Make a body piece with your character mesh and an idle, and one jacket piece with a look for that body, both worn at start. Press Play and open the character screen. The figure stands in your mesh wearing the jacket. Equip a helmet worn on <code>Head</code> and it appears on the head. Call Dress Character on your pawn's mesh and it wears the same outfit in the level.</p>
+
+<div class="cards">
+<a class="card" href="equipment.html"><span class="card-tag">Guide</span><strong>Equipment</strong>Equip slots, worn gear and Kit up.</a>
+<a class="card" href="placing-weapon-parts.html"><span class="card-tag">Guide</span><strong>Placing weapon parts</strong>Offsets for worn gear and attachment slots.</a>
+<a class="card" href="rendering.html"><span class="card-tag">Systems</span><strong>Rendering</strong>How icons and live figures are made.</a>
+</div>
+      <nav class="pager"><a class="prev" href="inspect.html"><span>Previous</span>Inspect</a><a class="next" href="market-and-trading.html"><span>Next</span>Market and trading</a></nav>
+    </article>
+  </main>
+  <aside class="toc"><div class="toc-title">On this page</div><nav></nav></aside>
+</div>
+<div class="search-panel" hidden>
+  <div class="search-box">
+    <input type="search" placeholder="Search guides, screens, classes…" aria-label="Search">
+    <div class="search-results"></div>
+    <div class="search-hint"><kbd>↑</kbd><kbd>↓</kbd> to move, <kbd>Enter</kbd> to open, <kbd>Esc</kbd> to close</div>
+  </div>
+</div>
+<div class="lightbox" hidden><img alt=""><div class="lightbox-caption"></div></div>
+<script src="assets/search-index.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

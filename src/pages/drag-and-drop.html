@@ -1,0 +1,57 @@
+<!--meta {"title": "Drag and drop", "section": "Guides", "order": 50, "summary": "Every gesture the player has for moving items: drags, Ctrl, Alt and Shift clicks, double-click and the item keys, and what decides each one."} -->
+<p class="lead">Players move items by dragging them, by clicking with a modifier and by pressing a key over them. With an Inventory component on the pawn, every gesture on this page works out of the box. This page lists them all and says what decides whether each one goes through.</p>
+
+<h2>Dragging</h2>
+<p>Press on a tile and move the mouse to pick it up. A ghost the size of the item follows the pointer, held where you grabbed it, and repaints for whatever is under it. Let go somewhere that does not take it and the item goes back where it was.</p>
+<dl class="api">
+<dt>Onto a grid</dt><dd>Moves the item so its top left corner lands on the cell under the ghost. The covered cells light in the valid or invalid colour while you hover. It goes through when the item stays inside the grid, overlaps nothing and the container's <em>Accepts</em> takes it.</dd>
+<dt>R while dragging</dt><dd>Turns the item a quarter about the pointer. It lands turned. The key is the one on the shipped Rotate row.</dd>
+<dt>Onto a weapon tile</dt><dd>Fits a magazine, scope or other attachment into the free slot of its kind on that weapon.</dd>
+<dt>Onto a worn weapon on the doll</dt><dd>Fits the attachment the same way, onto the gun the player wears.</dd>
+<dt>Onto a doll slot</dt><dd>Equips the item when the slot is the one it fits and is empty.</dd>
+<dt>Onto an empty container block</dt><dd>Equips a pack, rig or secure case in that slot.</dd>
+<dt>Onto the inspect window</dt><dd>Drop an attachment on one of the window's slots, or anywhere on the window, and it fits into the slot of its kind on the item being inspected.</dd>
+<dt>A worn slot or block onto a grid</dt><dd>Takes the item off and puts it at that cell. Fixed items, such as the pockets and the secure case on the stash screen, cannot be dragged.</dd>
+<dt>A fitted attachment out of the inspect window</dt><dd>Drag a filled slot from the window onto a grid to take the part off the weapon.</dd>
+<dt>Onto a workbench part slot</dt><dd>Loads the part into a recipe. Each slot shows the item it wants and takes only that item, and only while it is empty.</dd>
+<dt>Between your gear and loot</dt><dd>Moves the item from a crate or body into your gear, or back, with everything inside it or fitted to it. Loot rules can refuse it. See <a href="containers.html">Containers</a>.</dd>
+</dl>
+
+<figure class="shot"><img src="img/screens/raid-inventory.png" alt="The raid inventory with the player's carried containers beside a loot pane"><figcaption>The raid inventory. Items drag between your gear, the loot and the doll.</figcaption></figure>
+
+<h2>Clicks</h2>
+<dl class="api">
+<dt>Ctrl-click</dt><dd>Moves the item to where it obviously goes. If a container window is open in front, the item goes into it. Otherwise an item in the stash goes into your gear, trying the rig's pouches, then the pockets, then the pack. A bag only goes into the pack. An item in the pack, rig or pockets goes to the stash. Loot goes into your gear. A worn item comes off into the stash.</dd>
+<dt>Alt-click</dt><dd>Equips the item in its slot.</dd>
+<dt>Shift-click</dt><dd>Splits a stack in half. The new stack goes to the first free cell of the same grid.</dd>
+<dt>Double-click</dt><dd>Opens a bag or crate in a window. Anything else opens the inspect window.</dd>
+<dt>Right-click</dt><dd>Opens the item menu. See <a href="context-menu.html">Context menu</a>.</dd>
+</dl>
+
+<h2>Keys</h2>
+<p>These act on the item under the pointer, or on the item whose menu is open.</p>
+<dl class="api">
+<dt>R</dt><dd>Rotates the item a quarter where it lies, when it fits that way.</dd>
+<dt>Delete</dt><dd>Drops the item. Worn gear has to come off first.</dd>
+<dt>E</dt><dd>Takes a worn item off into the stash.</dd>
+</dl>
+
+<h2>When a move cannot happen</h2>
+<p>A refused move tells the player why. If the target has no room, a NO ROOM toast says "Nothing fits in" and names the container. If a container's accept rule refuses the item, a REFUSED toast shows its refusal text. If a loot rule keeps the item on a body, a toast with the item's name says why.</p>
+
+<h2>Change the gestures</h2>
+<p>Every click and key above, except dragging, is a row of the item menu. Each row is an <strong>Item Action Definition</strong> data asset with a <em>Gesture</em> and a <em>Key</em>, so you change a shortcut by editing or replacing that asset. Changing the Rotate row's key also changes the key that turns an item while dragging. See <a href="context-menu.html">Context menu</a>.</p>
+
+<h2>What reaches your game</h2>
+<p>Each gesture raises a request with a tag under <code>NVS.View.Request.Item</code>, such as <code>NVS.View.Request.Item.Move</code>, on the <em>NVS View Request Subsystem</em>. The Inventory component applies it to itself and the screens redraw. You do not need to handle these requests.</p>
+<p>To react to a move, bind <strong>On Inventory Changed</strong> on the component, or bind <strong>On Request</strong> on the subsystem and check the request's tag. A game with its own inventory receives each request in <strong>Handle Request</strong> on the <code>NVS View Item Holder</code> interface. See <a href="requests.html">Requests</a>.</p>
+<figure class="shot"><img src="img/screens/workbench.png" alt="The workbench with a recipe's part slots, each showing the item it wants"><figcaption>The workbench. Each part slot shows the item it wants, and parts are dragged in from the stash.</figcaption></figure>
+
+<h2>Result</h2>
+<p>Play the demo and open the stash from the hub. Drag a KA-47 magazine onto the KA-47 rifle tile in the stash and it fits. Ctrl-click a ration in the stash and it goes into your gear. Shift-click a stack to split it, hover a tile and press R to turn it, and drag your pack off the doll onto the stash grid to take it off.</p>
+
+<div class="cards">
+<a class="card" href="context-menu.html"><span class="card-tag">Guide</span><strong>Context menu</strong>The rows behind every click and key.</a>
+<a class="card" href="containers.html"><span class="card-tag">Guide</span><strong>Containers</strong>Grids, bags, crates and loot rules.</a>
+<a class="card" href="equipment.html"><span class="card-tag">Guide</span><strong>Equipment</strong>Equip slots and the doll.</a>
+</div>

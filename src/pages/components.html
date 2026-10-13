@@ -1,0 +1,228 @@
+<!--meta {"title": "Components", "section": "Reference", "order": 20, "summary": "The reusable widget components in NVSViewWidgets, grouped by job, with their main editable properties and events."} -->
+<p class="lead">The screens are built from about fifty themed components in the <code>NVSViewWidgets</code> module. You can place them in your own Widget Blueprints. This page says what each one is for, which properties you set, and which events you can bind.</p>
+
+<h2>How components work</h2>
+<p>Every component except the button, tab strips and cut border derives from <code>UNVSViewStyledWidget</code>. Components never hold a colour, size or duration of their own. They name a role, such as <code>ENVSViewColorRole::Accent</code> or <code>ENVSViewTypeRole::Heading</code>, and resolve it from the style asset. Leave the <code>Style</code> property unset to use the style asset of the View Setup Definition in force. See <a href="theming.html">Theming</a>.</p>
+<p>Most C++ classes are <code>Abstract</code> and have a shipped Widget Blueprint in <code>/NVSBlackline/Widgets</code>, named in the headings below, which carries the widget tree. Base classes have none. Subclass that asset, or place it as it is. Most components also expose many colour role properties, one per state. They are left out below because they only retint.</p>
+<p>Events come in two kinds. Properties marked Blueprint below are <code>BlueprintAssignable</code> and appear in a Blueprint's event list. The rest are native delegates you bind from C++.</p>
+<pre><code class="lang-cpp">// A native event, bound from C++.
+Tile-&gt;OnChosen().AddUObject(this, &amp;UMyWidget::HandleTileChosen);
+
+// A Blueprint event, also bindable from C++ as a dynamic delegate.
+Tile-&gt;OnDoubleClicked.AddDynamic(this, &amp;UMyWidget::HandleDoubleClicked);</code></pre>
+
+<h2>Foundations</h2>
+<h3>UNVSViewStyledWidget</h3>
+<p>The base for most components. It holds the optional <code>Style</code> asset and the resolvers, all Blueprint pure: <code>ResolveColor</code>, <code>ResolveColorAtEmphasis</code>, <code>ResolveSpacing</code>, <code>ResolveMetric</code>, <code>ResolveTypeStep</code> and <code>ResolveDurationSeconds</code>. Derive your own components from it to share the theme.</p>
+
+<h3>Text, W_Text</h3>
+<p><code>UNVSViewText</code> is one line of text in a colour role and a type step. Headings, eyebrows and notes differ only in those two.</p>
+<ul>
+<li><code>Text</code>, <code>ColorRole</code>, <code>TypeRole</code>. What it says and how it looks.</li>
+<li><code>bWrap</code>. Wraps onto further lines. Off by default.</li>
+<li><code>LineHeight</code>. Overrides the step's line height. Zero keeps the step's own.</li>
+<li><code>Justification</code>. Horizontal alignment.</li>
+</ul>
+<p>Blueprint callable: <code>SetText</code>, <code>SetColorRole</code>, <code>SetTypeRole</code>.</p>
+
+<h3>Button, W_Button</h3>
+<p><code>UNVSViewButton</code> derives from <code>UCommonButtonBase</code>, so it keeps CommonUI's focus, hold and input action behaviour. It maps the reported state (normal, hovered, pressed, selected, disabled, focused) to token colours.</p>
+<ul>
+<li><code>Label</code>. The caption. A button bound to an input action shows the action's name instead.</li>
+<li><code>Variant</code>. A preset of roles, one of <code>Secondary</code>, <code>Primary</code>, <code>GhostChip</code>, <code>Positive</code>, <code>Danger</code>, <code>Clipped</code>, <code>RailChip</code>, <code>MenuRow</code> or <code>Tab</code>. Changing it rewrites the role properties, so set the variant before tuning roles by hand.</li>
+<li><code>SubText</code>, <code>SelectedSubText</code>. A second line under the caption.</li>
+<li><code>CountText</code>. A figure in the plate's corner, such as a filter count.</li>
+<li><code>KeyCapText</code>. A key drawn in a ruled square before the caption, such as ESC.</li>
+<li><code>Icon</code>, <code>bShowIcon</code>, <code>bIconTrailing</code>, <code>bShowIconPlate</code>. An icon and where it sits.</li>
+<li><code>FillFraction</code>, <code>FillRole</code>. A progress fill across the plate.</li>
+<li><code>PlateRadius</code>, <code>PlateCut</code>, <code>PlatePadding</code>, <code>PlateSize</code>. The plate's shape and size.</li>
+<li><code>StyleTokens</code>. The style asset. Named this way because the base class already has a <code>Style</code> property.</li>
+</ul>
+<p>Blueprint callable: <code>SetLabel</code>. Click events are CommonUI's own, such as <code>OnClicked()</code>.</p>
+
+<h3>Text input, W_TextInput</h3>
+<p><code>UNVSViewTextInput</code> is a single-line field for search and chat. It wraps <code>UEditableTextBox</code> and applies every colour from the theme.</p>
+<ul>
+<li><code>Hint</code>. Shown while the field is empty.</li>
+<li><code>Variant</code>. Either <code>Search</code> (a plate with an icon, a count and a clear button) or <code>InlineRename</code> (a bottom rule only, at a larger size).</li>
+<li><code>CountText</code>. A figure at the right, such as 42 ITEMS.</li>
+<li><code>bShowsClearMark</code>, <code>LeadingIcon</code>, <code>ClearIcon</code>.</li>
+</ul>
+<p>Blueprint callable: <code>GetText</code>, <code>SetText</code>, <code>SetHint</code>. Native events: <code>OnCommitted()</code> on Enter and <code>OnEdited()</code> on every change, both with the text.</p>
+
+<h3>Key hint, W_KeyHint</h3>
+<p><code>UNVSViewKeyHint</code> is an input action icon with a caption. The icon, name and hold state come from the wrapped <code>UCommonActionWidget</code>.</p>
+<ul>
+<li><code>Label</code>, <code>KeyText</code> (the letter drawn while no action is bound), <code>Form</code> (<code>Caption</code>, <code>Prompt</code> or <code>Quiet</code>).</li>
+</ul>
+<p>Blueprint callable: <code>SetEnhancedInputAction</code>, <code>SetInputActionRow</code>, <code>SetInputActionBinding</code>, <code>SetLabel</code>.</p>
+
+<h3>UNVSViewCutBorder</h3>
+<p>A <code>UBorder</code> with two opposite corners cut off, drawn as a polygon. <code>CornerCut</code> sets the cut in local units. Zero paints an ordinary border. It has no Widget Blueprint and appears in the palette like any border.</p>
+
+<h2>Navigation</h2>
+<h3>Tab header, W_TabHeader</h3>
+<p><code>UNVSViewTabHeader</code> is a themed <code>UCommonTabListWidgetBase</code>. CommonUI keeps the tab registry, selection and button pool. It adds active and inactive label and rule colours and passes its <code>StyleTokens</code> to each tab button. Blueprint pure: <code>IsTabActive(FName TabNameID)</code>.</p>
+
+<h3>Sub nav, W_SubNav</h3>
+<p><code>UNVSViewSubNav</code> is the contextual tab row at the top of a sectioned screen. It grows taller only when a tab carries a portrait plate, and draws nothing when the screen registers no tabs. <code>FaceStandIn</code> sets the text in an empty portrait. Screens fill it from their <code>TabBindings</code>.</p>
+
+<h3>Bottom chrome, W_BottomChrome</h3>
+<p><code>UNVSViewBottomChrome</code> is the bottom bar with section tabs, contextual buttons and Deploy. Deploy follows the deploy queue's state wherever the bar is drawn.</p>
+<ul>
+<li><code>DeployCaption</code>. Deploy's resting caption.</li>
+<li><code>LeaveCaption</code>. Empty draws no leave button.</li>
+<li><code>SectionWithOwnDeploy</code>. The section whose screen has its own deploy button. Default <code>Crew</code>.</li>
+<li><code>DeployCut</code>, <code>LockedOpacity</code>.</li>
+</ul>
+<p>A screen describes its contextual buttons with <code>FNVSViewChromeAction</code> (<code>ButtonName</code>, <code>Caption</code>, <code>Variant</code>, <code>bQueueHero</code>) in its <code>ChromeActions</code> array, and binds them by name.</p>
+
+<h3>Menu row, W_MenuRow</h3>
+<p><code>UNVSViewMenuRow</code> is one item menu row with its word on the left and its key on the right. <code>Label</code>, <code>KeyText</code>, <code>bActs</code> (a row that cannot act is dimmed and takes no click) and <code>InertOpacity</code>.</p>
+
+<h2>Items and containers</h2>
+<p>See <a href="items.html">Items</a>, <a href="containers.html">Containers</a> and <a href="drag-and-drop.html">Drag and drop</a> for how screens use these.</p>
+<h3>Grid view, W_InventoryGrid</h3>
+<p><code>UNVSViewGridView</code> draws a cell lattice and places one tile per entry. It never touches data. A drop fires an event and the screen raises the request.</p>
+<ul>
+<li><code>GridSize</code>. Size in cells. Zero takes no room.</li>
+<li><code>Entries</code>. An array of <code>FNVSViewGridEntry</code>, each with <code>TopLeft</code>, <code>Footprint</code>, <code>EntryId</code>, <code>DisplayName</code>, <code>TagText</code>, <code>SecondaryValue</code> and the item flags.</li>
+<li><code>EntryWidgetClass</code>. The tile class. A grid with none draws only the lattice.</li>
+<li><code>TagArt</code>, <code>UntaggedArt</code>. Icon and watermark per item tag, so a new category needs only a new row.</li>
+<li><code>Accepts</code>. A gameplay tag query for which items a drop may bring, set from the container's description. Empty takes anything.</li>
+</ul>
+<p>Blueprint callable: <code>SetEntries</code> (sets entries and rebuilds the tiles in one call) and <code>RebuildEntryWidgets</code>. Blueprint pure placement helpers: <code>GetCellPosition</code>, <code>GetEntrySize</code>, <code>GetDesiredGridSize</code>, <code>IsEntryInBounds</code>. Native events: <code>OnEntryDropped</code> (grid, drag, top-left cell), <code>OnEntryDroppedOnItem</code>, which returns whether the drop was taken, and <code>OnEntryRefused</code> when <code>Accepts</code> turns a drop away.</p>
+
+<h3>Item tile, W_ItemTile</h3>
+<p><code>UNVSViewItemTile</code> is one rendered item. It knows its footprint but not its position, so it also works in lists.</p>
+<ul>
+<li><code>ItemId</code>, <code>DisplayName</code>, <code>TagText</code>, <code>SecondaryValue</code>, <code>Footprint</code>.</li>
+<li><code>bShowTag</code>, <code>bShowSecondaryValue</code>.</li>
+<li><code>ItemTags</code>, <code>FitsSlot</code>, <code>InsideId</code>, <code>AttachKind</code>, <code>bUsable</code>, <code>Price</code>, <code>Count</code>, <code>RenderArt</code>. Carried to drags, the item menu and the inspect window. <code>FitsSlot</code> is a slot tag under <code>NVS.View.Slot</code> and <code>AttachKind</code> an attachment kind tag.</li>
+<li><code>bQuestLit</code>, <code>bUnaffordable</code>, <code>bLitBySearch</code>, <code>bFadedBySearch</code>. States set by the host.</li>
+<li><code>Icon</code>, <code>Watermark</code>. Set by the grid from its tag table.</li>
+</ul>
+<p>Blueprint events: <code>OnPressed</code>, <code>OnClicked</code>, <code>OnContextMenuRequested</code>, <code>OnDoubleClicked</code>, <code>OnHoverBegin</code>, <code>OnHoverEnd</code>. Native event: <code>OnChosen()</code> with the tile.</p>
+
+<h3>Equip slot, W_EquipSlot</h3>
+<p><code>UNVSViewItemSlot</code> is a labelled single-item socket, in an inline row form or a square tile form.</p>
+<ul>
+<li><code>SlotId</code>, <code>Accepts</code>. Which socket, and a gameplay tag query for extra items it takes on top of items made to be worn there.</li>
+<li><code>Label</code>, <code>ItemName</code>, <code>bFilled</code>, <code>bStripped</code>.</li>
+<li><code>bFixed</code>, <code>bKeptOn</code>. A worn item that cannot be taken, like trousers on a body, shown faded. Or one that stays on, like your own secure case, which looks normal but cannot be dragged or taken off.</li>
+<li><code>bTile</code>, <code>InlineForm</code>, <code>TileForm</code>. The two layouts.</li>
+<li><code>MountCount</code>, <code>FittedCount</code>, <code>MountsFormat</code>. The mounts line.</li>
+<li><code>bAttachment</code>, <code>AcceptsKinds</code>, <code>bDragsOut</code>, <code>FittedItemId</code>, <code>SlotAddress</code>. For a slot on an item instead of on the figure. With <code>AcceptsKinds</code> set, it takes any attachment and the drop finds the matching slot.</li>
+<li><code>EmptyText</code>, <code>DropValidText</code>, <code>DropInvalidText</code>, <code>StrippedText</code>.</li>
+</ul>
+<p>Blueprint events: <code>OnPressed</code>, <code>OnContextMenuRequested</code>, <code>OnDoubleClicked</code>, <code>OnHoverBegin</code>. Native event: <code>OnItemDropped</code> with the slot and the drag.</p>
+
+<h3>Belt cell, W_BeltCell</h3>
+<p><code>UNVSViewBeltCell</code> is a quick belt cell, a socket like the doll's with its key at the top left. Adds <code>KeyText</code> (1 to 8) and <code>EmptyBeltText</code>.</p>
+
+<h3>Paper doll, W_PaperDoll</h3>
+<p><code>UNVSViewPaperDoll</code> is three tracks by five rows of fixed cells, with the character render in the clear middle track. Its tiles are equip slots in tile form, built at runtime.</p>
+<ul>
+<li><code>Tiles</code>. One <code>FNVSViewDollTile</code> per socket, with <code>SlotId</code>, <code>Column</code>, <code>Row</code>, <code>Span</code> and <code>PairedWith</code>.</li>
+<li><code>Columns</code>. The number of column tracks. The middle one stays clear for the figure.</li>
+<li><code>SocketArt</code>, <code>TileClass</code>, <code>TilePrefix</code>, <code>FigureNoteText</code>.</li>
+<li><code>TilePlateOpacity</code>, <code>EmptyTilePlateOpacity</code>. So the figure shows through.</li>
+<li><code>PreviewProfile</code>. How the figure behaves here. The shipped doll uses <code>PP_Doll</code>, a still figure. See <a href="rendering.html">Rendering</a>.</li>
+<li><code>bFitsHeight</code>, <code>bSpreadsRows</code>.</li>
+</ul>
+<figure class="shot"><img src="img/features/paperdoll-equipped.png" alt="The paper doll with equipped slots"><figcaption>W_PaperDoll on the stash.</figcaption></figure>
+
+<h3>Container block, W_ContainerBlock</h3>
+<p><code>UNVSViewContainerBlock</code> is the labelled square beside a worn container's grids. Its capacity line is summed from <code>Pouches</code>, one <code>FNVSViewContainerPouch</code> (<code>PouchId</code>, <code>GridSize</code>, <code>OccupiedCells</code>) per grid. Also <code>Label</code>, <code>ContainerName</code>, <code>CapacityFormat</code>, <code>Icon</code> and <code>Watermark</code>. Blueprint events: <code>OnPressed</code>, <code>OnContextMenuRequested</code>, <code>OnDoubleClicked</code>, <code>OnHoverBegin</code>.</p>
+
+<h3>Search veil, W_SearchVeil, and search badge, W_SearchBadge</h3>
+<p><code>UNVSViewSearchVeil</code> is an opaque hatched cover over an unsearched grid. It has no clock, so the caller drives <code>Progress</code> from 0 to 1 and can scrub or cancel. Also <code>GridSize</code>, <code>bSearching</code>, <code>bSearched</code>, <code>bCompact</code> and <code>DurationSeconds</code>. <code>UNVSViewSearchBadge</code> draws a container's search <code>State</code> as a coloured word.</p>
+
+<h3>Drop slot, W_DropSlot</h3>
+<p><code>UNVSViewDropSlot</code> is a crafting or upgrade part slot filled by dragging from the stash. <code>State</code> is <code>Empty</code>, <code>Loaded</code> or <code>InTheJob</code>, with <code>ItemName</code>, <code>WantsText</code> and the state words. Native event: <code>OnItemDropped</code> with the drag. Derives from the plate tile below.</p>
+
+<h3>FNVSViewItemSubject</h3>
+<p>Not a widget. The struct the item menu and inspect window receive, describing the item as its tile or slot showed it. <code>Place</code> is a tag under <code>NVS.View.Place</code>: <code>Stash</code>, <code>Pack</code>, <code>Rig</code>, <code>Pockets</code>, <code>Secure</code>, <code>Loot</code>, <code>Trader</code>, <code>Worn</code>, <code>Crew</code>, <code>Attached</code> or <code>Wardrobe</code>. The item menu matches each Item Action Definition's queries against the item's tags plus its place and state, which <em>Get Item Tag Set</em> in the screen library returns. See <a href="context-menu.html">Context menu</a>.</p>
+
+<h2>Record rows and cards</h2>
+<p>These are list entries. Each borrows a record viewmodel from a list and rewrites every field on arrival, so a recycled widget shows nothing of its last row. Screens fill them from <code>RailBindings</code>.</p>
+<h3>UNVSViewListEntry</h3>
+<p>The base, implementing <code>IUserObjectListEntry</code>. <code>PrimaryText</code>, <code>SecondaryText</code> and <code>bShowSecondaryText</code>. Blueprint pure: <code>GetBoundViewModel</code>.</p>
+<h3>Record row, W_LoadoutRow</h3>
+<p><code>UNVSViewRecordRow</code> is a four-field row with a rule on its left edge. Adds <code>StatusText</code>, <code>DetailText</code>, <code>bLocked</code>, <code>LockedCountText</code>, <code>RowInset</code>, <code>bDrawsHairline</code>, <code>bShowIconPlate</code> and <code>Icon</code>. Native event: <code>OnChosen()</code> after a click selects the row. Screens use it for loadouts, jobs, recipes and power loads.</p>
+<h3>Record card, W_RecordCard, and perk card, W_PerkCard</h3>
+<p><code>UNVSViewRecordCard</code> is a record as a card with a status, a paragraph and a foot line, tinted by state. Adds <code>StatusText</code>, <code>BodyText</code>, <code>DetailText</code> and <code>CardPadding</code>. <code>UNVSViewPerkCard</code> adds the link from the tier above (<code>bShowLink</code>, <code>bLinkTaken</code>), a ring when chosen (<code>bChosen</code>) and a native <code>OnChosen()</code> event.</p>
+<h3>Figure row, W_FigureRow, and meter row, W_MeterRow</h3>
+<p><code>UNVSViewFigureRow</code> is a caption on the left and a figure on the right. Adds <code>bDrawsDot</code>, <code>DotSize</code>, <code>RowPadding</code>, <code>bDrawsRule</code> and <code>bFigurePlated</code>. <code>UNVSViewMeterRow</code> adds a bar from the meter with the row's own id (<code>bShowMeter</code>, <code>MeterValue</code>, <code>MeterMax</code>) and two more lines, <code>DetailText</code> and <code>NoteText</code>.</p>
+<h3>HUD row, W_ExfilRow and W_CrewRow</h3>
+<p><code>UNVSViewHudRow</code> is a record drawn bare over gameplay. <code>bDrawsAccentEdge</code> and <code>bDrawsBox</code>.</p>
+<h3>Objective row, W_ObjectiveRow</h3>
+<p><code>UNVSViewObjectiveRow</code> is a task step with a box and its state. <code>bBoxFilled</code> and <code>bStruck</code> mark a done step.</p>
+<h3>Chat line, W_ChatLine</h3>
+<p><code>UNVSViewChatLine</code> is a time column, then the speaker and the message. An empty <code>SpeakerText</code> marks a system line. <code>TimeWidth</code> sets the time column.</p>
+<h3>Standing, W_Standing</h3>
+<p><code>UNVSViewStanding</code> stacks caption, figure and <code>NoteText</code>, with no plate unless <code>bDrawsPlate</code> is set.</p>
+<h3>Crew card, W_CrewCard</h3>
+<p><code>UNVSViewCrewCard</code> is a lobby seat with the name over a state line, and a lock-in effect when a match is found. <code>RecordId</code>, <code>PingText</code>, <code>MetaText</code>, <code>KitLines</code> (the first three <code>FNVSViewCrewKitLine</code> are drawn), <code>bOwnSeat</code>, <code>SeatIndex</code>, <code>bLockingIn</code> and the sweep, charge and glow timings. Native event: <code>OnChosen()</code>.</p>
+
+<h2>Meters and readouts</h2>
+<h3>Stat meter, W_StatMeter, W_LimbBar and W_LoadBar</h3>
+<p><code>UNVSViewStatMeter</code> is a label, a value, a bar and threshold colouring. The band reads the unclamped ratio and the bar fills from the clamped one, so an over-capacity meter turns red while its bar is full. Three assets share this class.</p>
+<ul>
+<li><code>Label</code>, <code>ValueText</code>. The caption and the figure as you format it.</li>
+<li><code>Value</code>, <code>MaxValue</code>, <code>WarnFraction</code>, <code>CriticalFraction</code>, <code>bLowIsAdverse</code>.</li>
+<li><code>bStated</code>. One fixed colour, full, instead of banding.</li>
+<li><code>Icon</code>, <code>IconSize</code>, <code>BarThicknessOverride</code>.</li>
+</ul>
+<p>Blueprint callable: <code>SetValue</code>, <code>SetRange</code>, <code>SetLabel</code>, <code>SetValueText</code>. Blueprint pure: <code>GetValueFraction</code>, <code>GetFillFraction</code>, <code>GetBand</code>.</p>
+<h3>Encumbrance, W_Encumbrance</h3>
+<p><code>UNVSViewEncumbrance</code> is the load card with the tier, kilograms, a track of tier steps and what dropping weight would gain. Set <code>CarriedKg</code>, and optionally <code>Tiers</code> (ascending <code>FNVSViewLoadTier</code>, each a <code>Label</code> and <code>LimitKg</code>). With <code>Tiers</code> empty it uses the <em>Load Tiers</em> of the View Setup Definition. Every word comes from the formats it exposes, such as <code>TierAndLoadFormat</code> and <code>DropToFormat</code>.</p>
+<h3>Signature, W_Signature</h3>
+<p><code>UNVSViewSignature</code> shows how loudly the character moves and how well it hears, from three worn sockets and the load. Inputs <code>bWearsBoots</code>, <code>BootsWeightKg</code>, <code>bWearsHeadset</code>, <code>bWearsFaceCover</code> and <code>CarriedKg</code>, thresholds <code>HeavyBootsKg</code> and <code>NoisyLoadKg</code>, and the socket ids it reads, <code>BootsSlotId</code>, <code>EarsSlotId</code> and <code>FaceSlotId</code>.</p>
+<h3>Body zone, W_BodyZone</h3>
+<p><code>UNVSViewBodyZone</code> is one body zone with its name, hit points, a bar and a chip per state. <code>Label</code>, <code>HitPointsText</code>, <code>Fraction</code>, <code>StatesText</code> (each term becomes a chip), <code>NoteText</code>, <code>bChosen</code>, <code>bBlackedOut</code> and <code>bCard</code> for the larger form. Native event: <code>OnChosen()</code>.</p>
+<h3>Generator, W_Generator</h3>
+<p><code>UNVSViewGenerator</code> draws a generator's fuel slots and readout. <code>CanLevels</code> (one fraction per slot, zero or less is empty), <code>DrawKilowatts</code>, <code>CapacityKilowatts</code>, <code>HoursPerCan</code>, <code>LowCanFraction</code>, <code>LowFuelFraction</code> and <code>CansInStash</code>. Native events: <code>OnCanDropped</code> with the slot index and the drag, and <code>OnEmptySlotPressed</code>. On the generator screen, a can dropped on an empty slot raises <code>Station.Feed</code>, the same request as <em>Add fuel</em>, and the player's Inventory component moves the can from the stash into the tank. See <a href="hideout-and-crafting.html#the-generator">The generator</a>.</p>
+
+<h2>Cards and tiles</h2>
+<h3>UNVSViewPlateTile</h3>
+<p>The base for flat cards with a square plate, a state badge, an eyebrow, a name and a foot line. <code>EyebrowText</code>, <code>Art</code>, <code>GlyphArt</code>, <code>TileWidth</code> and layout padding. Subclasses say what each state paints.</p>
+<h3>Catalogue tile, W_CatalogueTile</h3>
+<p><code>UNVSViewCatalogueTile</code> is a wardrobe or shop tile. <code>State</code> is <code>Locked</code>, <code>Owned</code>, <code>Worn</code> or <code>Selected</code>, with <code>ItemName</code>, <code>PriceText</code> and the state words. Native events: <code>OnChosen()</code> and <code>OnInspect()</code> on a double-click.</p>
+<figure class="shot"><img src="img/features/wardrobe-buy.png" alt="Catalogue tiles in the wardrobe"><figcaption>W_CatalogueTile in the character screen's wardrobe.</figcaption></figure>
+<h3>Station card, W_StationCard</h3>
+<p><code>UNVSViewStationCard</code> is a hideout station. <code>State</code> is <code>Ready</code>, <code>Working</code>, <code>Idle</code> or <code>NotBuilt</code>, with <code>NameText</code>, <code>LevelText</code>, <code>LineText</code>, <code>DrawText</code>, <code>ActionText</code>, <code>Progress</code> and <code>Art</code>. Native event: <code>OnChosen()</code>.</p>
+<h3>Trader card, W_TraderCard</h3>
+<p><code>UNVSViewTraderCard</code> is a trader with a portrait plate, name, loyalty, description and standing bar. <code>NameText</code>, <code>TradeText</code>, <code>PlaceText</code>, <code>LoyaltyText</code>, <code>BlurbText</code>, <code>RateText</code>, <code>StandingFraction</code>, <code>bChosen</code> and <code>CardSize</code>. Native event: <code>OnChosen()</code>.</p>
+<h3>Upgrade row, W_UpgradeRow</h3>
+<p><code>UNVSViewUpgradeRow</code> is one level of an upgrade path. <code>State</code> is <code>Installed</code>, <code>Next</code> or <code>Later</code>, with <code>CostText</code>, <code>LevelText</code> and <code>GainText</code>. Levels past the next are hatched.</p>
+
+<h2>Market</h2>
+<p>These three are filled by the market screen from C++ and expose few editable properties. See <a href="market-and-trading.html">Market and trading</a>.</p>
+<h3>Listing row, W_ListingRow</h3>
+<p><code>UNVSViewListingRow</code> is one market row, or one of the player's own listings. Fill it with <code>SetListing</code> or <code>SetOwnListing</code>. <code>PinArt</code> sets the pin icon. Native events: <code>OnChosen</code>, <code>OnPinned</code> and <code>OnAction</code>, each with the listing id.</p>
+<h3>Catalogue row, W_CatalogueRow</h3>
+<p><code>UNVSViewCatalogueRow</code> is one item type with how many are listed and the lowest price. Native event: <code>OnChosen</code> with the type id.</p>
+<h3>Bid row, W_BidRow</h3>
+<p><code>UNVSViewBidRow</code> is one bid in a listing's history. Yours draw in the accent.</p>
+
+<h2>Settings rows</h2>
+<p>The rows show values the host writes. They hold no registry and save nothing. See <a href="settings.html">Settings</a>.</p>
+<h3>UNVSViewSettingRow</h3>
+<p>The base, a list entry with a label, an optional description and one value readout.</p>
+<h3>Bool row, W_SettingRowBool</h3>
+<p><code>UNVSViewSettingRowBool</code> is an on and off toggle. <code>bValue</code>, <code>OnText</code>, <code>OffText</code> and the track and knob sizes. Blueprint callable: <code>SetValue</code>, <code>ToggleValue</code>, <code>GetValue</code>.</p>
+<h3>Choice row, W_SettingRowEnum</h3>
+<p><code>UNVSViewSettingRowEnum</code> is a one-of-several row with options as text. <code>Options</code>, <code>SelectedIndex</code>, <code>Presentation</code> (<code>Auto</code> uses chips for up to four choices and a stepper beyond) and <code>DropdownClass</code> with <code>DropdownRowClass</code>. Blueprint callable: <code>SetSelectedIndex</code>, <code>SetOptions</code>, <code>SelectNext</code>, <code>SelectPrevious</code>.</p>
+<h3>Slider row, W_SettingRowSlider</h3>
+<p><code>UNVSViewSettingRowSlider</code> is a ranged row that clamps and snaps what it is given. <code>MinValue</code>, <code>MaxValue</code>, <code>StepSize</code> (zero is continuous), <code>Value</code>, <code>ValueSuffix</code> and <code>DisplayFractionalDigits</code>. Blueprint callable: <code>SetValue</code>, <code>SetRange</code>.</p>
+<h3>Key-bind row, W_SettingRowKeybind</h3>
+<p><code>UNVSViewSettingRowKeybind</code> captures a key when its chip is clicked, with held modifiers joining it. A clash offers Swap or Clear. <code>UnboundText</code>, <code>ListeningText</code> and <code>ConflictFormat</code>. The player's key profile stores the binding.</p>
+<h3>UNVSViewSettingDropdown</h3>
+<p>The choice list a choice row opens under its value chip, as a Slate menu so the settings list cannot clip it. It has no Widget Blueprint. Native events: <code>OnChosen</code> with the index, and <code>OnClosed</code>.</p>
+<h3>Input test strip, W_InputTestStrip</h3>
+<p><code>UNVSViewInputTestStrip</code> lights each bindable action as Enhanced Input fires it, so a rebinding can be checked with no character in the level. The settings screen shows it on the Controls category. From C++, <code>Start(ULocalPlayer* Player)</code> and <code>Stop()</code>.</p>
+
+<h2>Notifications</h2>
+<h3>Toast, W_Toast</h3>
+<p><code>UNVSViewToast</code> is one rendered notification. Repeats, timing and holding back belong to <code>UNVSNotifySubsystem</code>. <code>Payload</code>, <code>bBare</code> for the HUD form, <code>bDrawsEdge</code>, <code>bTitleIsStatus</code>, <code>ActionText</code> and <code>DismissText</code>. Blueprint callable: <code>SetPayload</code>. The colours come from the Notification Kind Definition whose tag matches the payload's most closely, then from the plugin's built-in kinds. A payload with an <code>ActionTag</code> draws an action button and a dismiss button. The action raises the <code>Notify.Act</code> request and dismisses the toast. See <a href="notifications.html">Notifications</a>.</p>

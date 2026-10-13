@@ -1,0 +1,100 @@
+<!--meta {"title": "Hideout and crafting", "section": "Guides", "order": 120, "summary": "Make hideout stations as data assets, craft from parts dropped into recipe slots, collect finished crafts, upgrade benches and run the generator."} -->
+<p class="lead">The hideout is a set of stations, each a data asset with levels and recipes. The player drags parts from the stash into a recipe's slots, starts the craft, and collects the result when the timer runs out. This guide makes a station, runs a craft through the workbench and covers upgrades and the generator.</p>
+
+<h2>Make a station</h2>
+<p>Create a <em>Station Definition</em> data asset per station. The hideout, the workbench screen and the generator read them with no configuration.</p>
+<dl class="api">
+<dt>Display Name, Description</dt><dd>Shown on the station's card and at the top of its bench.</dd>
+<dt>Icon</dt><dd>The art its card shows, by name.</dd>
+<dt>Power Draw</dt><dd>The kilowatts it pulls from the generator while a craft runs.</dd>
+<dt>Start Level</dt><dd>The level a new player has. Zero means it is not built yet.</dd>
+<dt>Levels</dt><dd>One entry per level, the first being the build itself. Each has a <em>Gain</em> line, a cash <em>Cost</em>, a <em>Parts</em> list and a <em>Downtime</em> line. See <a href="#upgrade-a-station">Upgrade a station</a>.</dd>
+<dt>Recipes</dt><dd>What the station makes, described below.</dd>
+</dl>
+<p>Each recipe has these fields:</p>
+<dl class="api">
+<dt>Id</dt><dd>Unique within the station. Requests about the recipe carry it.</dd>
+<dt>Output, Output Count</dt><dd>The Item Definition it makes and how many.</dd>
+<dt>Display Name, Description</dt><dd>Empty uses the output item's.</dd>
+<dt>Craft Time</dt><dd>How long it takes, written as text such as <code>22 m</code>, <code>40 s</code> or <code>1 h 35 m</code>.</dd>
+<dt>Required Level</dt><dd>The station level it needs.</dd>
+<dt>Requirement</dt><dd>An extra line such as <code>LOYALTY 3</code>. While it is set the recipe stays locked, so leave it empty on any recipe the player should be able to make.</dd>
+<dt>Parts</dt><dd>The items it needs, each an Item Definition and a count.</dd>
+</dl>
+<p>The demo's workbench, from <code>make_content.py</code>:</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Recipe</th><th>Makes</th><th>Time</th><th>Parts</th><th>Level</th></tr></thead>
+<tbody>
+<tr><td>AR4Mag</td><td>3 AR-4 magazines</td><td>30 s</td><td>2 copper spools, 1 fuel can</td><td>1</td></tr>
+<tr><td>Scope</td><td>4x scope</td><td>45 s</td><td>4 copper spools</td><td>1</td></tr>
+<tr><td>KA47</td><td>KA-47 rifle</td><td>1 m 30 s</td><td>6 copper spools, 1 fuel can, 1 KA-47 magazine</td><td>3</td></tr>
+</tbody></table></div>
+<p>It starts at level 2 of 4 and draws 1.2 kW. Its levels cost 6,000, then 9,000, then 18,000 and 2 copper spools, then 32,000, 4 copper spools and a KA-47 magazine.</p>
+
+<h2>The hideout screen</h2>
+<p>The hideout (<code>W_Hideout</code>) shows every station as a card under a generator header. Cards are sorted by what needs the player: ready to collect first, then running, idle, and not built. Choosing a card opens that station's bench.</p>
+<figure class="shot"><img src="img/screens/hideout.png" alt="The hideout with station cards under the generator header"><figcaption>The hideout. The action bar's button collects everything that is ready.</figcaption></figure>
+<p>The action bar's button reads <em>Collect all · 2</em> when two stations have finished crafts, and <em>Nothing to collect</em> otherwise. Pressing it raises <code>Station.Collect</code> for each ready station.</p>
+
+<h2>Craft on the workbench</h2>
+<p>The bench screen (<code>W_BenchScreen</code>) shows one station: its recipes, the chosen recipe's part slots, the stash beside them, and in Upgrade mode the station's levels.</p>
+<figure class="shot"><img src="img/screens/workbench.png" alt="The workbench with a recipe list, part slots and the stash grid"><figcaption>The workbench. Each part slot shows the item it wants.</figcaption></figure>
+<ol class="flow">
+<li data-title="Pick a recipe">The player picks a recipe. Each part slot shows a picture of the exact item it needs, its category and how many, and reads <code>EMPTY</code>.</li>
+<li data-title="Drop the parts">The player drags the item from the stash onto its slot. The screen raises <code>Bench.LoadPart</code>, and the Inventory component moves as many as the slot still needs out of the stash and onto the bench. A slot part way there reads, for example, <code>1 / 2</code>.</li>
+<li data-title="Start">Once every slot is full the button reads <em>Start craft</em>. Pressing it raises <code>Bench.Start</code> and the timer begins. The parts are used up. If the generator is out of fuel, the bench reads <code>NO POWER</code>, the button reads <em>No power</em>, and nothing starts.</li>
+<li data-title="Wait">The bench reads <code>ON THE BENCH</code>. The timer keeps running while the player is in a raid or on another screen, as long as the generator has fuel. If the fuel runs out, the bench reads <code>NO POWER</code> and the timer waits until you add more.</li>
+<li data-title="Collect">When the timer runs out the bench reads <code>READY</code> and the button <em>Collect it</em>. Collecting puts the output in the stash. Nothing comes off the bench until the stash has room.</li>
+</ol>
+<p>A recipe above the station's level, or with a <em>Requirement</em>, reads <code>LOCKED</code>.</p>
+<div class="callout warn">Loaded parts, running crafts and station levels last for the play session. They are not written to a save game.</div>
+
+<h2>Upgrade a station</h2>
+<p>Each entry in a station's <em>Levels</em> is one upgrade. Fill these on each level:</p>
+<dl class="api">
+<dt>Gain</dt><dd>What reaching the level gives, such as <code>Faster jobs and the tier 2 recipes</code>.</dd>
+<dt>Cost</dt><dd>The cash the upgrade takes from the session wallet. Zero costs nothing.</dd>
+<dt>Parts</dt><dd>The items the player loads before paying, each an Item Definition and a count, the same as a recipe's parts. The upgrade uses them up. Leave the list empty for an upgrade that costs only cash.</dd>
+<dt>Downtime</dt><dd>Text such as <code>1 h 30 m</code>, shown on the next level.</dd>
+<dt>Kilowatts, Fuel Slots</dt><dd>Used only on the generator. See <a href="#the-generator">The generator</a>.</dd>
+</dl>
+<p>The bench's Upgrade tab lists the levels as <code>INSTALLED</code>, <code>NEXT</code> or <code>LATER</code>. The next level shows its gain, cash cost, part count and downtime, with one drop slot per part under them. Each slot shows the item it wants and how many. The generator screen's Upgrade tab works the same way.</p>
+<ol class="flow">
+<li data-title="Load the parts">The player drags each item from the stash onto its slot. The screen raises <code>Bench.LoadPart</code>, and the Inventory component moves as many as the slot still needs out of the stash. Until every slot is full, the button reads <em>Load the parts · 1 / 2</em> and does nothing.</li>
+<li data-title="Pay">With every part loaded, the button reads <em>Upgrade · €18,000</em>, or <em>Not enough cash · €18,000</em> while the wallet is short. Pressing <em>Upgrade</em> raises <code>Bench.Upgrade</code> with the station as its subject.</li>
+<li data-title="Installed">The cash is spent, the loaded parts are used up, and the next level is installed at once. Recipes that need the new level unlock.</li>
+</ol>
+<p>Each upgrade has an id made from the station asset's name and the level's index in <em>Levels</em>, such as <code>PDA_Workbench.Upgrade2</code> for the demo workbench's third level. Its part slots are named like a recipe's, <code>PDA_Workbench.Upgrade2.Part0</code> and so on. <code>UNVSViewRecipePartSlots</code> publishes them under <code>ContextForRecipe</code> of the upgrade id, so a screen of your own can show the same slots.</p>
+<p>An upgraded bench is down for its level's <em>Downtime</em>, such as <code>1 m 30 s</code>. The level is installed at once, but the bench starts no craft until it is back. The bench screen and its hideout card read <code>UPGRADING</code> with the time left. A craft already running carries on. The generator never goes down, because the whole hideout would lose power.</p>
+<div class="callout important">Parts loaded for an upgrade stay loaded until the upgrade uses them. They do not go back to the stash.</div>
+
+<h2>The generator</h2>
+<p>The generator is a Station Definition with <em>Generator</em> ticked. It makes nothing. It powers every other station, and crafts only run while it has fuel. Its extra fields are:</p>
+<dl class="api">
+<dt>Hours Per Can</dt><dd>Hours of crafting one full can powers. Zero never burns fuel, so the hideout always has power and the tank shows cans rather than hours.</dd>
+<dt>Starting Fuel</dt><dd>How full each fuel slot starts for a new player, from 0 to 1, one entry per slot. <code>1</code> and <code>0.45</code> start one full can and one under half. Slots past the end of the list start empty.</dd>
+<dt>Fuel Item</dt><dd>The Item Definition it burns. The power station counts these in the stash, and only this item goes into the tank.</dd>
+<dt>Fuel Note</dt><dd>How fuel goes in, shown over the tank.</dd>
+</dl>
+<p>Each level's <em>Kilowatts</em> sets the power ceiling and <em>Fuel Slots</em> how many cans it holds. The draw is the <em>Power Draw</em> of every station with a craft running, drawn green under the ceiling and red over it. A draw over the ceiling only shows red. It does not stop a craft or burn fuel faster.</p>
+<p>The demo's generator has <em>Hours Per Can</em> 0.5, the fuel can as its <em>Fuel Item</em>, and <em>Starting Fuel</em> of one full can. Level 1 gives 4 kW and 2 slots. Level 2 costs 9,000 and 2 copper spools for 6 kW and 3 slots. Level 3 costs 24,000, 4 copper spools and a fuel can for 8 kW and 4 slots.</p>
+<figure class="shot"><img src="img/screens/generator.png" alt="The power station with fuel cans, the tank and the power draw"><figcaption>The generator. The fuel slots and the draw against the ceiling.</figcaption></figure>
+<ol class="flow">
+<li data-title="Idle">While no craft is running, no fuel burns.</li>
+<li data-title="Burning">While any craft runs, one can burns at a time, the first slot with fuel first. A full can lasts <em>Hours Per Can</em> of crafting, however many stations are working.</li>
+<li data-title="Dry">When every can is empty, the hideout has no power. Running crafts pause where they are, and benches read <code>NO POWER</code> and refuse to start new ones.</li>
+<li data-title="Feed">On the power station's Fuel tab, <em>Add fuel</em> raises <code>Station.Feed</code> naming a fuel can from the stash. Dropping a can from the stash onto an empty slot of the tank does the same. The player's Inventory component takes one can of the <em>Fuel Item</em> out of the stash and puts a full can in the first empty slot. Paused crafts carry on.</li>
+</ol>
+<p>The button reads <em>No fuel in the stash</em> when the stash has no <em>Fuel Item</em>, and <em>Every slot is full</em> when no slot is empty. A slot with some fuel left counts as full, so a part can cannot be topped up.</p>
+<p>The tank reads meters named <code>Generator.Can.1</code>, <code>Generator.Can.2</code> and so on, each from 0 to 1, from <code>UNVSViewGeneratorMeters</code>. It follows your generator definition's live level and cans as they upgrade, burn and fill. From C++, <code>NVSViewHideoutState::IsPowered()</code>, <code>GetCans(Generator)</code> and <code>AddCan(Generator)</code> read and feed the same state.</p>
+<div class="callout warn">Fuel levels last for the play session, like loaded parts and running crafts. They are not written to a save game.</div>
+
+<h2>Result</h2>
+<p>In the demo, open the hideout and choose the workbench. Pick the AR4Mag recipe, drag two copper spools and a fuel can from the stash into its slots, and press <em>Start craft</em>. After thirty seconds the hideout's button reads <em>Collect all · 1</em>. Press it, and three AR-4 magazines appear in your stash.</p>
+<p>Then open the generator. One slot holds the starting can, a little lower after the craft, and the other is empty. Drag a fuel can from the stash onto the empty slot. It fills, and the stash has one can fewer.</p>
+
+<div class="cards">
+<a class="card" href="market-and-trading.html"><span class="card-tag">Guide</span><strong>Market and trading</strong>Where the cash for upgrades comes from.</a>
+<a class="card" href="items.html"><span class="card-tag">Guide</span><strong>Items</strong>The items recipes need and make.</a>
+<a class="card" href="requests.html"><span class="card-tag">Reference</span><strong>Requests</strong>The bench and station requests.</a>
+</div>

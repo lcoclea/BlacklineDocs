@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Viewmodels · Blackline for Unreal Engine</title>
+<meta name="description" content="How screens resolve context-keyed viewmodels from their sources, publish fields to widgets, decide when to show an empty state, and how to read a viewmodel from your own widgets.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="icon" href="assets/mark.svg" type="image/svg+xml">
+<script>try{var t=localStorage.getItem("bl-theme");if(t)document.documentElement.dataset.theme=t;}catch(e){}</script>
+</head>
+<body class="layout-doc">
+<header class="topbar">
+  <button class="menu-toggle" aria-label="Open navigation">☰</button>
+  <a class="brand" href="index.html"><img src="assets/mark.svg" alt=""><span>Blackline</span><em>v1.0.0</em></a>
+  <button class="search-open" aria-label="Search"><span>Search the docs</span><kbd>/</kbd></button>
+  <nav class="top-links">
+    <a href="getting-started.html">Get started</a>
+    <a href="screens.html">Screens</a>
+    <a href="https://github.com/lcoclea/blackline-docs/issues">Support</a>
+    <button class="theme-toggle" aria-label="Switch light or dark theme">◐</button>
+  </nav>
+</header>
+<div class="shell">
+  <aside class="sidebar"><div class="nav-section"><div class="nav-title">Start here</div>
+<a href="index.html">Blackline</a>
+<a href="getting-started.html">Getting started</a>
+<a href="architecture.html">Architecture</a>
+</div>
+<div class="nav-section"><div class="nav-title">Guides</div>
+<a href="interfaces.html">Connecting your game</a>
+<a href="items.html">Items</a>
+<a href="weapons.html">Weapons</a>
+<a href="placing-weapon-parts.html">Placing weapon parts</a>
+<a href="containers.html">Containers</a>
+<a href="context-menu.html">Context menu</a>
+<a href="drag-and-drop.html">Drag and drop</a>
+<a href="equipment.html">Equipment</a>
+<a href="inspect.html">Inspect</a>
+<a href="character-looks.html">Character looks</a>
+<a href="market-and-trading.html">Market and trading</a>
+<a href="raid-loop.html">The raid loop</a>
+<a href="health-and-vitals.html">Health and vitals</a>
+<a href="hideout-and-crafting.html">Hideout and crafting</a>
+<a href="tasks-and-loadouts.html">Tasks and loadouts</a>
+</div>
+<div class="nav-section"><div class="nav-title">Systems</div>
+<a href="layers-and-screens.html">Layers and screens</a>
+<a href="viewmodels.html" class="active">Viewmodels</a>
+<a href="theming.html">Theming</a>
+<a href="settings.html">Settings</a>
+<a href="notifications.html">Notifications</a>
+<a href="rendering.html">Rendering</a>
+</div>
+<div class="nav-section"><div class="nav-title">Reference</div>
+<a href="screens.html">Screens</a>
+<a href="components.html">Components</a>
+<a href="source-interfaces.html">Source interfaces</a>
+<a href="requests.html">Requests</a>
+<a href="project-settings.html">Project settings</a>
+</div>
+<div class="nav-section"><div class="nav-title">Help</div>
+<a href="faq.html">FAQ</a>
+<a href="troubleshooting.html">Troubleshooting</a>
+</div></aside>
+  <main class="content">
+    <article>
+      <div class="eyebrow">Systems</div>
+      <h1>Viewmodels</h1>
+      <p class="lead">A viewmodel holds what one part of a screen shows. The screen asks a source for data, the viewmodel keeps it and publishes each field, and the widgets redraw when a field changes. This page explains how viewmodels are keyed, which ones exist, how a screen ties them to widgets, and when a screen shows its empty state.</p>
+
+<h2 id="where-viewmodels-sit">Where viewmodels sit<a class="anchor" href="#where-viewmodels-sit" aria-label="Link to this section">#</a></h2>
+<ol class="flow">
+<li data-title="Source">An object that answers one of the nine source interfaces, such as a built-in source or your own Blueprint component. See <a href="interfaces.html">Connecting your game</a>.</li>
+<li data-title="Viewmodel">A <code>UNVSViewModel</code> subclass that reads the source through its interface and publishes the result as <code>FieldNotify</code> properties.</li>
+<li data-title="Screen">The screen resolves one viewmodel per binding when it opens and releases them when it closes.</li>
+<li data-title="Widgets">Grids, rails and text blocks named in the screen's binding tables draw the published fields.</li>
+</ol>
+<p>Most games never touch a viewmodel directly. You change the source, and the viewmodel and widgets follow. Read on when you build your own screen or widget.</p>
+
+<h2 id="domain-and-context-keys">Domain and context keys<a class="anchor" href="#domain-and-context-keys" aria-label="Link to this section">#</a></h2>
+<p>Every viewmodel is resolved under an <code>FNVSViewModelKey</code>:</p>
+<pre><code class="lang-cpp">USTRUCT(BlueprintType)
+struct FNVSViewModelKey
+{
+	/** What kind of viewmodel this is. */
+	FGameplayTag Domain;
+
+	/** Which one. An unset Guid is legal and names the single instance of its domain. */
+	FGuid Context;
+};</code></pre>
+<p>The context is what lets a stash, a backpack and a looted crate each have their own container viewmodel at the same time. Unreal's MVVM collection keys on class and name alone, so <code>UNVSViewModelRegistry</code>, a local player subsystem, folds both halves into one name and counts holders on each key.</p>
+<dl class="api">
+<dt>UNVSViewModel* Resolve(const FNVSViewModelKey&amp; Key, TSubclassOf&lt;UNVSViewModel&gt; ViewModelClass)</dt>
+<dd>Returns the instance for the key, creating it the first time. Pair every call with one <code>Release</code>. Null for an invalid key, a null class, or a key already resolved as another class.</dd>
+<dt>bool Release(const FNVSViewModelKey&amp; Key)</dt>
+<dd>Drops one holder. True only when this released the last holder and destroyed the viewmodel.</dd>
+</dl>
+<p>Screens call these for you. You only call the registry when you hold a viewmodel outside a screen.</p>
+
+<h3 id="where-a-screen-s-context-comes-from">Where a screen's context comes from<a class="anchor" href="#where-a-screen-s-context-comes-from" aria-label="Link to this section">#</a></h3>
+<p>The shipped screens build each binding with <code>UNVSViewScreen::MakeBinding</code>, which derives the context from the binding id. A reopened screen therefore gets the same key, and two screens that name the same binding id share one viewmodel. The raid HUD, the raid inventory and the loadout library all bind <code>Vitals</code>, for example.</p>
+<p>When the player picks a record, such as a trader, the screen asks the binding again under that record's context, made from the record id. Your source receives these ids as its <code>SetId</code>, <code>ContainerId</code> or <code>RecordId</code> argument.</p>
+
+<h2 id="the-viewmodel-classes">The viewmodel classes<a class="anchor" href="#the-viewmodel-classes" aria-label="Link to this section">#</a></h2>
+<p>All derive from <code>UNVSViewModel</code>, which derives from <code>UMVVMViewModelBase</code>. Domain tags sit under <code>NVS.View.ViewModel</code>.</p>
+<table>
+<thead><tr><th>Class</th><th>Domain tag</th><th>Reads</th><th>Has content when</th></tr></thead>
+<tbody>
+<tr><td><code>UNVSViewContainerViewModel</code></td><td><code>Container</code></td><td><code>INVSViewContainerSource</code></td><td>It holds at least one item</td></tr>
+<tr><td><code>UNVSViewSlotSetViewModel</code></td><td><code>SlotSet</code></td><td><code>INVSViewSlotSetSource</code></td><td>At least one slot is filled</td></tr>
+<tr><td><code>UNVSViewRecordViewModel</code></td><td><code>Record</code></td><td><code>INVSViewRecordSource</code></td><td>It holds a record</td></tr>
+<tr><td><code>UNVSViewRecordListViewModel</code></td><td><code>RecordList</code></td><td><code>INVSViewRecordSource</code></td><td>It holds at least one row</td></tr>
+<tr><td><code>UNVSViewMeterSetViewModel</code></td><td><code>MeterSet</code></td><td><code>INVSViewMeterSource</code></td><td>It holds at least one meter</td></tr>
+<tr><td><code>UNVSViewFilterViewModel</code></td><td><code>Filter</code></td><td><code>INVSViewFilterSource</code></td><td>Always</td></tr>
+<tr><td><code>UNVSViewMapMarkerListViewModel</code></td><td><code>MapMarkerList</code></td><td><code>INVSViewMapMarkerSource</code></td><td>It holds at least one marker</td></tr>
+<tr><td><code>UNVSViewMarketViewModel</code></td><td><code>Market</code></td><td><code>INVSViewMarketSource</code></td><td>It has listings or a catalogue</td></tr>
+<tr><td><code>UNVSViewSettingListViewModel</code></td><td><code>SettingList</code></td><td><code>INVSViewSettingValueSource</code></td><td>Always</td></tr>
+<tr><td><code>UNVSViewNotifyQueueViewModel</code></td><td><code>NotifyQueue</code></td><td>The notification subsystem, through <code>SetQueue</code></td><td>Always</td></tr>
+</tbody>
+</table>
+<p>Three more are rows that a list viewmodel fills, so they have no source of their own: <code>UNVSViewMapMarkerViewModel</code>, <code>UNVSViewNotifyEntryViewModel</code> and <code>UNVSViewSettingRowViewModel</code>. A record list fills <code>UNVSViewRecordViewModel</code> rows the same way.</p>
+<p>Each sourced viewmodel has the same entry points:</p>
+<dl class="api">
+<dt>bool SetSource(const TScriptInterface&lt;Interface&gt;&amp; InSource, const FGuid&amp; Context)</dt>
+<dd>Points the viewmodel at a source and a context, then reads it. The settings list takes a source only.</dd>
+<dt>bool BindSourceObject(UObject* SourceObject, const FGuid&amp; ContextId)</dt>
+<dd>The same without naming the interface, which is what screens call. It checks <code>ImplementsInterface</code>, so Blueprint implementations work. False for an object that does not implement the interface. Blueprint callable.</dd>
+<dt>bool Refresh()</dt>
+<dd>Asks the current source again and publishes what changed. A selection held on the viewmodel survives.</dd>
+</dl>
+<p><code>SetSource</code> and <code>Refresh</code> are Blueprint callable on every class except the market viewmodel.</p>
+
+<h2 id="empty-states">Empty states<a class="anchor" href="#empty-states" aria-label="Link to this section">#</a></h2>
+<p>A fresh install with no definition assets has nothing for most screens to list. Instead of drawing blank panels, fourteen screens show an empty state: a title, a sentence for the player, and a setup hint that names what to add.</p>
+<p>The decision comes from the viewmodels. <code>UNVSViewModel::HasContent()</code> returns false while the source has given the viewmodel nothing to show, as the table above lists. A screen names the bindings that matter in its <code>EmptyWhenBindings</code> array, and when every one of them comes up empty it lays its empty state over its content. The text comes from three more class defaults:</p>
+<dl class="api">
+<dt>EmptyTitle</dt><dd>The title, such as "No traders yet".</dd>
+<dt>EmptyBody</dt><dd>One or two sentences the player reads under the title.</dd>
+<dt>EmptySetupHint</dt><dd>What a developer needs to add for the screen to fill, such as which data assets to create. Shown in the editor and development builds, never in a shipped game.</dd>
+</dl>
+<p>Leave <code>EmptyWhenBindings</code> empty and a screen never shows one. The screens that do, and what each asks for, are listed on <a href="screens.html#empty-states">Screens</a>.</p>
+
+<h2 id="how-widgets-get-the-data">How widgets get the data<a class="anchor" href="#how-widgets-get-the-data" aria-label="Link to this section">#</a></h2>
+<p>The shipped screens author no Blueprint graph. A screen fills its widgets from tables on its class defaults, each naming widgets in its tree:</p>
+<dl class="api">
+<dt>ViewModelBindings</dt>
+<dd>One <code>FNVSViewScreenBinding</code> per viewmodel: <code>BindingId</code>, <code>Domain</code>, <code>Context</code>, <code>ViewModelClass</code>, and the source, as <code>SourceObject</code> or the built-in <code>SourceClass</code>.</dd>
+<dt>ContentBindings</dt>
+<dd>Which viewmodel fills which grid, socket or container block. <code>ElementId</code> picks one element of a set, such as one meter.</dd>
+<dt>RailBindings</dt>
+<dd>Which repeated rail, a Dynamic Entry Box, gets one entry per published row.</dd>
+<dt>ReadoutBindings</dt>
+<dd>Which text block shows which published field, looked up by name, so a custom viewmodel's fields work too. <code>MeterId</code> reads a field of one meter in a meter set.</dd>
+</dl>
+<p>The screen subscribes to the <code>FieldNotify</code> field behind every readout, so text redraws on its own when a viewmodel publishes a new value. Grids and rails redraw when the screen pushes its content again, which <code>RefreshViewModels</code> and <strong>Refresh Source</strong> both do.</p>
+
+<h3 id="reading-a-viewmodel-from-your-own-widget">Reading a viewmodel from your own widget<a class="anchor" href="#reading-a-viewmodel-from-your-own-widget" aria-label="Link to this section">#</a></h3>
+<p>Call <code>FindViewModel</code> on the screen. It is Blueprint pure, and its output type follows the class you pass:</p>
+<pre><code class="lang-cpp">if (UNVSViewMeterSetViewModel* Vitals = Screen-&gt;FindViewModel&lt;UNVSViewMeterSetViewModel&gt;(UNVSViewRaidHUD::VitalsBindingId()))
+{
+	FNVSViewMeter Health;
+	if (Vitals-&gt;FindMeter(TEXT("Vitals.Health"), Health))
+	{
+		HealthLabel-&gt;SetText(Health.ValueText);
+	}
+}</code></pre>
+<p>It returns null while the screen is closed, because the screen has released its viewmodels.</p>
+
+<h2 id="keeping-them-current">Keeping them current<a class="anchor" href="#keeping-them-current" aria-label="Link to this section">#</a></h2>
+<p>Viewmodels read their source when they bind and when asked. They do not poll, except the market screen, which asks once a second. When your values change, call <strong>Refresh Source</strong> with the object that changed. Every open screen that reads it refreshes the bindings that read it and redraws them.</p>
+<div class="callout warn">Screens that share a binding id share the viewmodel, and each screen binds its own source to it when it opens. If you point one open screen at your object with <code>SetBindingSource</code>, a second screen naming the same binding rebinds the shared viewmodel to its own source when it opens. Register live sources with <strong>Set Screen Source</strong> instead. Every screen then resolves the same object and the shared viewmodel never switches.</div>
+
+<h2 id="what-you-see">What you see<a class="anchor" href="#what-you-see" aria-label="Link to this section">#</a></h2>
+<p>Open the demo's raid HUD with <code>BPC_Vitals</code> on the player controller. The health, food and water readouts are text blocks reading the <code>Vitals</code> binding's meter set, and they change on screen four times a second as the component redraws.</p>
+<figure class="shot"><img src="img/screens/raid-hud.png" alt="The raid HUD showing vitals readouts"><figcaption>Each HUD readout is a text block bound to one field of one meter in the <code>Vitals</code> meter set.</figcaption></figure>
+      <nav class="pager"><a class="prev" href="layers-and-screens.html"><span>Previous</span>Layers and screens</a><a class="next" href="theming.html"><span>Next</span>Theming</a></nav>
+    </article>
+  </main>
+  <aside class="toc"><div class="toc-title">On this page</div><nav></nav></aside>
+</div>
+<div class="search-panel" hidden>
+  <div class="search-box">
+    <input type="search" placeholder="Search guides, screens, classes…" aria-label="Search">
+    <div class="search-results"></div>
+    <div class="search-hint"><kbd>↑</kbd><kbd>↓</kbd> to move, <kbd>Enter</kbd> to open, <kbd>Esc</kbd> to close</div>
+  </div>
+</div>
+<div class="lightbox" hidden><img alt=""><div class="lightbox-caption"></div></div>
+<script src="assets/search-index.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

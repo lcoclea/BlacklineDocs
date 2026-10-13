@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Architecture · Blackline for Unreal Engine</title>
+<meta name="description" content="How Blackline is put together: layers, screens, data assets, sources, requests, empty states and modules.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="icon" href="assets/mark.svg" type="image/svg+xml">
+<script>try{var t=localStorage.getItem("bl-theme");if(t)document.documentElement.dataset.theme=t;}catch(e){}</script>
+</head>
+<body class="layout-doc">
+<header class="topbar">
+  <button class="menu-toggle" aria-label="Open navigation">☰</button>
+  <a class="brand" href="index.html"><img src="assets/mark.svg" alt=""><span>Blackline</span><em>v1.0.0</em></a>
+  <button class="search-open" aria-label="Search"><span>Search the docs</span><kbd>/</kbd></button>
+  <nav class="top-links">
+    <a href="getting-started.html">Get started</a>
+    <a href="screens.html">Screens</a>
+    <a href="https://github.com/lcoclea/blackline-docs/issues">Support</a>
+    <button class="theme-toggle" aria-label="Switch light or dark theme">◐</button>
+  </nav>
+</header>
+<div class="shell">
+  <aside class="sidebar"><div class="nav-section"><div class="nav-title">Start here</div>
+<a href="index.html">Blackline</a>
+<a href="getting-started.html">Getting started</a>
+<a href="architecture.html" class="active">Architecture</a>
+</div>
+<div class="nav-section"><div class="nav-title">Guides</div>
+<a href="interfaces.html">Connecting your game</a>
+<a href="items.html">Items</a>
+<a href="weapons.html">Weapons</a>
+<a href="placing-weapon-parts.html">Placing weapon parts</a>
+<a href="containers.html">Containers</a>
+<a href="context-menu.html">Context menu</a>
+<a href="drag-and-drop.html">Drag and drop</a>
+<a href="equipment.html">Equipment</a>
+<a href="inspect.html">Inspect</a>
+<a href="character-looks.html">Character looks</a>
+<a href="market-and-trading.html">Market and trading</a>
+<a href="raid-loop.html">The raid loop</a>
+<a href="health-and-vitals.html">Health and vitals</a>
+<a href="hideout-and-crafting.html">Hideout and crafting</a>
+<a href="tasks-and-loadouts.html">Tasks and loadouts</a>
+</div>
+<div class="nav-section"><div class="nav-title">Systems</div>
+<a href="layers-and-screens.html">Layers and screens</a>
+<a href="viewmodels.html">Viewmodels</a>
+<a href="theming.html">Theming</a>
+<a href="settings.html">Settings</a>
+<a href="notifications.html">Notifications</a>
+<a href="rendering.html">Rendering</a>
+</div>
+<div class="nav-section"><div class="nav-title">Reference</div>
+<a href="screens.html">Screens</a>
+<a href="components.html">Components</a>
+<a href="source-interfaces.html">Source interfaces</a>
+<a href="requests.html">Requests</a>
+<a href="project-settings.html">Project settings</a>
+</div>
+<div class="nav-section"><div class="nav-title">Help</div>
+<a href="faq.html">FAQ</a>
+<a href="troubleshooting.html">Troubleshooting</a>
+</div></aside>
+  <main class="content">
+    <article>
+      <div class="eyebrow">Start here</div>
+      <h1>Architecture</h1>
+      <p class="lead">Read this page to decide whether Blackline fits your game. It covers the pieces the plugin is made of, where a screen gets what it shows, and how a screen asks your game to change something.</p>
+
+<h2 id="the-short-version">The short version<a class="anchor" href="#the-short-version" aria-label="Link to this section">#</a></h2>
+<ul>
+  <li><strong>Layers</strong> stack screens by purpose: the HUD, menus over play, full menus, dialogs and toasts.</li>
+  <li><strong>Screens</strong> are CommonUI widgets. Each screen class names the layer it opens on, and a screen registry maps a tag to each one.</li>
+  <li><strong>Data assets</strong> hold your content, one asset per item, trader, task, station, raid map and so on. The plugin finds them by itself.</li>
+  <li><strong>Sources</strong> hand live game state to the screens, such as health or the raid clock. The plugin has a built-in source for every screen, and you can swap any of them for a Blueprint of your own.</li>
+  <li><strong>Requests</strong> are how a screen asks for a change, such as Buy or Heal all. The plugin answers many of them itself.</li>
+  <li><strong>Empty states</strong> tell the player, and you, when a screen has nothing to show yet.</li>
+</ul>
+
+<h2 id="layers">Layers<a class="anchor" href="#layers" aria-label="Link to this section">#</a></h2>
+<p>Every local player has one layer stack, held by <code>UNVSViewLayerSubsystem</code>. Which layers exist, their draw order and the input each takes come from a layout asset. The plugin ships <code>DA_BlacklineLayout</code> with five layers.</p>
+<table>
+  <thead><tr><th>Tag</th><th>Holds</th></tr></thead>
+  <tbody>
+    <tr><td><code>NVS.View.Layer.Game</code></td><td>The raid HUD</td></tr>
+    <tr><td><code>NVS.View.Layer.GameMenu</code></td><td>Screens over live play, such as the raid inventory and the task log</td></tr>
+    <tr><td><code>NVS.View.Layer.Menu</code></td><td>Full screen menus, such as the hub, stash, lobby and settings</td></tr>
+    <tr><td><code>NVS.View.Layer.Modal</code></td><td>The debrief, item windows, the match found banner and the drop countdown</td></tr>
+    <tr><td><code>NVS.View.Layer.Notification</code></td><td>Toasts and the item context menu</td></tr>
+  </tbody>
+</table>
+<p>The highest occupied layer that decides input sets the input mode. You never build the stack yourself: <em>Show Screen By Tag</em>, <em>Show Screen</em> and <em>Open Loot Screen</em> build it the first time they run. See <a href="layers-and-screens.html">Layers and screens</a>.</p>
+
+<h2 id="screens-and-the-screen-registry">Screens and the screen registry<a class="anchor" href="#screens-and-the-screen-registry" aria-label="Link to this section">#</a></h2>
+<p>Every screen derives from <code>UNVSViewScreen</code>, a CommonUI activatable widget. The plugin ships 21 screens and six windows and overlays, each a <code>W_</code> Widget Blueprint under <code>/NVSBlackline/Screens/</code> over a C++ class in <code>NVSViewWidgets</code>. They are listed on <a href="screens.html">Screens</a>.</p>
+<p>The screen registry <code>DA_BlacklineScreenRegistry</code> maps each <code>NVS.View.Screen.*</code> tag to the Widget Blueprint that opens for it, with an optional layer override. Screens open each other through it. To restyle or extend a screen, make a Blueprint child of its <code>W_</code> asset, then point the registry row at your child. Everything that opens that screen now opens yours.</p>
+
+<h2 id="content">Content is data<a class="anchor" href="#content" aria-label="Link to this section">#</a></h2>
+<p>You create content in the Content Browser with <em>right-click &gt; Miscellaneous &gt; Data Asset</em>. The plugin registers every one of these types with the Asset Manager when it starts, under every content root, so a new asset shows up in the screens with nothing to configure.</p>
+<table>
+  <thead><tr><th>Data asset</th><th>One asset is</th></tr></thead>
+  <tbody>
+    <tr><td>Item Definition</td><td>One item: name, footprint in cells, weight, price, category, a type and any traits. See <a href="items.html">Items</a>.</td></tr>
+    <tr><td>Item Category Definition</td><td>A tab on the stash filter and the trade and market rails, such as Weapons or Medical.</td></tr>
+    <tr><td>Item Action Definition</td><td>One row an item's context menu can offer, with the click or key that does it. See <a href="context-menu.html">Context menu</a>.</td></tr>
+    <tr><td>Trader Definition</td><td>A trader, with their shelf, prices, barter costs and what they buy.</td></tr>
+    <tr><td>Task Definition</td><td>A job a trader gives, with the items to hand in and the reward.</td></tr>
+    <tr><td>Station Definition</td><td>A hideout station, with its levels, upgrade costs and recipes.</td></tr>
+    <tr><td>Raid Map Definition</td><td>A raid map: its level, briefing, conditions, insertion points, exits, raid time and its point on the region map.</td></tr>
+    <tr><td>Loadout Definition</td><td>A named kit: what is worn, what is fitted to the guns and what is packed where.</td></tr>
+    <tr><td>Skill Definition, Perk Definition, Perk Branch Definition</td><td>The skills screen and the skill tree.</td></tr>
+    <tr><td>Wardrobe Piece Definition</td><td>A cosmetic piece for one wardrobe slot, with its price. See <a href="character-looks.html">Character looks</a>.</td></tr>
+    <tr><td>Notification Kind Definition</td><td>A kind of toast, with its colour and how long it stays.</td></tr>
+    <tr><td>Screen Source Definition</td><td>Swaps one built-in source for yours, either a filled-in data asset or a class.</td></tr>
+    <tr><td>View Setup Definition</td><td>The theme, layer table, screen registry, icon rendering, money format and load tiers.</td></tr>
+    <tr><td>Engine Settings Setup Definition</td><td>The sound classes, input actions and other assets the settings screen drives.</td></tr>
+  </tbody>
+</table>
+<p>The two setup definitions replace what older versions kept in Project Settings. See <a href="project-settings.html">Project settings</a>.</p>
+
+<h2 id="sources">Sources: live game state<a class="anchor" href="#sources" aria-label="Link to this section">#</a></h2>
+<p>Data assets describe things that do not change while the game runs. Values that do change, such as health, wind or the raid clock, come from <em>sources</em>. A source is any object that answers one of the plugin's interfaces. Each interface can be implemented in a Blueprint class or component.</p>
+<table>
+  <thead><tr><th>Interface</th><th>Supplies</th></tr></thead>
+  <tbody>
+    <tr><td><code>NVS View Record Source</code></td><td>Named records and lists of records</td></tr>
+    <tr><td><code>NVS View Meter Source</code></td><td>Figures with a range, such as health, wind or a wallet</td></tr>
+    <tr><td><code>NVS View Container Source</code></td><td>A grid's size and the items in it</td></tr>
+    <tr><td><code>NVS View Slot Set Source</code></td><td>A set of worn slots</td></tr>
+    <tr><td><code>NVS View Filter Source</code></td><td>The options on a filter rail</td></tr>
+    <tr><td><code>NVS View Map Marker Source</code></td><td>Points on a map</td></tr>
+    <tr><td><code>NVS View Market Source</code></td><td>The player market</td></tr>
+    <tr><td><code>NVS View Setting Value Source</code></td><td>Setting values, read and written</td></tr>
+    <tr><td><code>NVS View Look Source</code></td><td>What items and characters look like, for the icon renderer</td></tr>
+    <tr><td><code>NVS View Item Holder</code></td><td>A whole inventory, as the Inventory component holds one</td></tr>
+  </tbody>
+</table>
+<p>Every screen binding names a built-in source class, such as <code>UNVSViewVitals</code> for the HUD's vitals. Most built-in sources read the data assets or the player's Inventory component. When a screen opens, it picks each binding's source in this order:</p>
+<ol>
+  <li>An object given to that one screen with <code>SetBindingSource</code>.</li>
+  <li>The binding's <code>SourceObject</code>, set in the Widget Blueprint.</li>
+  <li>An object given to every screen with <em>Set Screen Source</em>, from <em>NVS View Definition Library</em>, naming the built-in source it replaces.</li>
+  <li>A Screen Source Definition data asset that replaces that built-in source.</li>
+  <li>The built-in source itself.</li>
+</ol>
+<p>The usual Blueprint pattern is a component on the player that implements an interface, calls <em>Set Screen Source</em> on Begin Play, and calls <em>Refresh Source</em> whenever its values change. The demo's <code>BPC_Vitals</code> and <code>BPC_RaidClock</code> work this way. See <a href="interfaces.html">Interfaces</a>.</p>
+
+<h3 id="how-data-reaches-a-widget">How data reaches a widget<a class="anchor" href="#how-data-reaches-a-widget" aria-label="Link to this section">#</a></h3>
+<ol class="flow">
+  <li data-title="Screen opens">A screen is pushed onto its layer and activates. It walks its list of bindings.</li>
+  <li data-title="Viewmodel resolves">For each binding, the player's viewmodel registry hands back a viewmodel keyed by a domain tag and a context id. Two screens naming the same binding share one.</li>
+  <li data-title="Source is chosen">The screen picks the binding's source in the order above.</li>
+  <li data-title="Viewmodel reads">The viewmodel asks the source for its rows and writes its fields. Each changed field notifies the widgets that watch it.</li>
+  <li data-title="Widgets fill">The screen fills its grids, rails and text from the viewmodels. When every binding the screen names for its empty state came up empty, it shows the empty state card.</li>
+</ol>
+<p>Details are on <a href="viewmodels.html">Viewmodels</a>.</p>
+
+<h2 id="requests">Requests<a class="anchor" href="#requests" aria-label="Link to this section">#</a></h2>
+<p>A screen never writes your game's data directly. When the player presses Buy, Start craft or Heal all, the screen raises an <code>FNVSViewRequest</code> tagged <code>NVS.View.Request.*</code> on the local player's <code>UNVSViewRequestSubsystem</code>. Your game binds its <em>On Request</em> event in Blueprint and switches on the tag.</p>
+<p>The built-in sources answer many requests themselves, including cash, crafting, healing and tasks, which is why the demo has no request code. After a request, the screen reads its sources again so the change shows. If your game answers later, call <em>Refresh Source</em> or <em>Refresh View Models</em> on the open screen. See <a href="requests.html">Requests</a>.</p>
+<ol class="flow">
+  <li data-title="Player presses">The player presses Heal all on the health screen.</li>
+  <li data-title="Screen raises">The screen raises <code>NVS.View.Request.Health.HealAll</code> on the request subsystem, which broadcasts <em>On Request</em>.</li>
+  <li data-title="Sources apply">The screen offers the request to the sources it holds. The built-in health source treats every zone and the wallet pays for it.</li>
+  <li data-title="Screen re-reads">The screen reads its sources again and the bars refill.</li>
+</ol>
+
+<h2 id="empty-states">Empty states<a class="anchor" href="#empty-states" aria-label="Link to this section">#</a></h2>
+<p>A screen can name the bindings that decide whether it has anything to show. When all of them come up empty, it lays a small card over its content with a title, a line for the player and, outside Shipping builds, a hint for you naming the data assets to create. Fourteen of the shipped screens have one. See <a href="screens.html#empty-states">Empty states</a>.</p>
+
+<h2 id="modules">Modules<a class="anchor" href="#modules" aria-label="Link to this section">#</a></h2>
+<p>The plugin descriptor is <code>NVSBlackline</code>. It holds five modules.</p>
+<dl class="api">
+  <dt>NVSView (Runtime)</dt>
+  <dd>Everything without a widget in it: the layer subsystem and layout asset, the viewmodels and their registry, the interfaces and built-in sources, the data asset types, the Inventory component, the raid session, deploy queue, request and notification subsystems, the style asset and the native gameplay tags.</dd>
+  <dt>NVSViewWidgets (Runtime)</dt>
+  <dd>Every screen class, the components (buttons, tiles, rows, toasts, grids), drag and drop, the item windows and <code>UNVSViewScreenLibrary</code>.</dd>
+  <dt>NVSViewRender (Runtime)</dt>
+  <dd>The icon renderer, which captures item looks into cached icons in an isolated studio world, and the character preview. See <a href="rendering.html">Rendering</a>.</dd>
+  <dt>NVSViewSettings (Runtime)</dt>
+  <dd>The engine-backed settings, saved values, key binding profiles and the field of view modifier. See <a href="settings.html">Settings</a>.</dd>
+  <dt>NVSViewEditor (Editor)</dt>
+  <dd>The plugin icon and the class icons for Blackline data assets in the editor.</dd>
+</dl>
+<p>A Blueprint project needs none of this. A C++ game that calls the screen library links <code>NVSView</code> and <code>NVSViewWidgets</code>, and adds <code>NVSViewSettings</code> to read saved settings from code.</p>
+
+<h2 id="what-it-does-not-do">What it does not do<a class="anchor" href="#what-it-does-not-do" aria-label="Link to this section">#</a></h2>
+<ul>
+  <li>It does not replicate. The Inventory component and every subsystem are local to one player, so it is a single player kit as shipped. A networked game can supply its own inventory through the item holder and container interfaces.</li>
+  <li>It does not load levels. The deploy queue starts the raid session, and your game opens the raid map's level.</li>
+  <li>It ships no character art. The example characters come with the free Blackline Demo project. Without wardrobe pieces, the figure is a mannequin of basic shapes.</li>
+</ul>
+      <nav class="pager"><a class="prev" href="getting-started.html"><span>Previous</span>Getting started</a><a class="next" href="interfaces.html"><span>Next</span>Connecting your game</a></nav>
+    </article>
+  </main>
+  <aside class="toc"><div class="toc-title">On this page</div><nav></nav></aside>
+</div>
+<div class="search-panel" hidden>
+  <div class="search-box">
+    <input type="search" placeholder="Search guides, screens, classes…" aria-label="Search">
+    <div class="search-results"></div>
+    <div class="search-hint"><kbd>↑</kbd><kbd>↓</kbd> to move, <kbd>Enter</kbd> to open, <kbd>Esc</kbd> to close</div>
+  </div>
+</div>
+<div class="lightbox" hidden><img alt=""><div class="lightbox-caption"></div></div>
+<script src="assets/search-index.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

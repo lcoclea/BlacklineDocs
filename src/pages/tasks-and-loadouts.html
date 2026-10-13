@@ -1,0 +1,89 @@
+<!--meta {"title": "Tasks and loadouts", "section": "Guides", "order": 130, "summary": "Write trader tasks as data assets, take and hand them in, follow them in the task log, and kit the player up from saved loadouts."} -->
+<p class="lead">Tasks are jobs a trader gives, such as bringing back an item for a reward. Loadouts are named kits the player can put on in one click. Both are data assets, and with an Inventory component on the player's pawn both work with no code.</p>
+
+<h2>Write a task</h2>
+<p>Create a <em>Task Definition</em> data asset per task. It shows among its giver's jobs on the trade screen and in the task log.</p>
+<dl class="api">
+<dt>Title, Description</dt><dd>The task's name and its paragraph.</dd>
+<dt>Giver</dt><dd>The Trader Definition that offers it. A task with no giver is listed under the settlement and is not offered by any trader.</dd>
+<dt>Requirement</dt><dd>A line shown before the player takes it, such as <code>LOYALTY 2</code>. It is shown only, and does not stop the player taking the task.</dd>
+<dt>Objectives</dt><dd>The steps. Each has <em>Text</em>, and optionally an <em>Item</em> and a <em>Count</em>.</dd>
+<dt>Reward Cash, Reward Xp</dt><dd>What handing in pays and the experience shown.</dd>
+<dt>Reward Lines, Unlocks, Fails If</dt><dd>Further lines for the task sheet, such as <code>Brigitte +2 standing</code>. Empty <em>Fails If</em> reads as no time limit.</dd>
+</dl>
+<p>A step that names an item is met when the player's inventory holds <em>Count</em> of it, stash included. Steps are met in order, and a closing step with no item, such as <em>Hand it to Brigitte</em>, is the hand in itself. A task is ready once every item it asks for is in hand.</p>
+<p>The demo's Black box task, given by Brigitte:</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Field</th><th>Value</th></tr></thead>
+<tbody>
+<tr><td>Requirement</td><td>LOYALTY 2</td></tr>
+<tr><td>Objectives</td><td>Find the flight recorder in the tail section (Flight recorder ×1), then Hand it to Brigitte at the yard</td></tr>
+<tr><td>Reward</td><td>8,400 cash and 1,200 XP</td></tr>
+<tr><td>Reward Lines</td><td>Brigitte +2 standing</td></tr>
+<tr><td>Unlocks</td><td>Workbench tier 2, Task: Quiet as you can</td></tr>
+<tr><td>Fails If</td><td>You die carrying the recorder</td></tr>
+</tbody></table></div>
+<div class="callout important">Blackline pays only the cash. The experience, reward lines, unlocks and fail conditions are text on the task sheet for your game to act on.</div>
+<h3>Steps your game reports</h3>
+<p>A step with no <em>Item</em> is something the player does in the game, such as surviving a run. Blackline cannot see that happen, so your game reports it with <strong>Advance Task Step</strong> (Task Id, Step Index, Amount). The step is done once it reaches its <em>Count</em>, and the task log shows progress such as <code>1 / 2</code>. Steps count from 0. Only a task the player has taken moves. <strong>Get Task Step Progress</strong> reads how far a step has got.</p>
+<p>The last step, when it has no item, is the hand-in itself and needs no report. The demo's <em>Quiet as you can</em> works this way: its extract event calls Advance Task Step for step 0 each time the player gets out of Silt Yards, and after two runs the job reads <code>READY TO HAND IN</code>.</p>
+
+<h2>Take and hand in</h2>
+<p>The player deals with tasks in the jobs view of the giver's trade screen. A job moves through these states:</p>
+<ol class="flow">
+<li data-title="On offer">The job reads <code>ON OFFER</code>. The action button raises <code>Job.Take</code>.</li>
+<li data-title="In progress">Once taken it reads <code>IN PROGRESS</code>, with a progress meter for its counted item, such as 0 / 1.</li>
+<li data-title="Ready">When the player holds every item it asks for, it reads <code>READY TO HAND IN</code>. The button now raises <code>Job.HandIn</code>.</li>
+<li data-title="Handed in">Handing in takes the items out of the player's inventory, pays <em>Reward Cash</em> once, and the job reads <code>TURNED IN</code>.</li>
+</ol>
+<p>A job taken while the items are already in hand is ready at once. Every screen that shows the task hears the request, and it is applied only once. Task state lasts for the play session and is not written to a save game.</p>
+
+<h2>The task log</h2>
+<p>The task log (<code>W_TaskLog</code>) lists every task with its state: <code>IN PROGRESS</code> once taken, <code>READY</code> whenever the items it asks for are in hand, and <code>HANDED IN</code> at the end. Choosing one shows its steps, each <code>DONE</code>, active with its count such as <code>0 / 3</code>, or <code>LOCKED</code>, and its sheet with the giver, reward, unlocks and fail conditions.</p>
+<figure class="shot"><img src="img/screens/tasks.png" alt="The task log with the task list, the chosen task's steps and its sheet"><figcaption>The task log. The sheet's columns come from the task's reward, unlock and fail lines.</figcaption></figure>
+<p>Two buttons act on the task in focus:</p>
+<dl class="api">
+<dt>Track</dt><dd>Raises <code>Task.Track</code>. The task becomes the tracked one, which the raid HUD's navigation group shows with its next step.</dd>
+<dt>Show on map</dt><dd>Raises <code>Task.ShowOnMap</code>. Blackline does not answer it, so your game decides what the map shows.</dd>
+</dl>
+<p>Handing in happens at the trader, not in the log.</p>
+
+<h2>Loadouts</h2>
+<p>A <em>Loadout Definition</em> is a named kit. The loadout library lists every one in sort order.</p>
+<dl class="api">
+<dt>Display Name, Description</dt><dd>The kit's name and the line under it.</dd>
+<dt>Items</dt><dd>What the kit holds. Each item has a <em>Count</em> and says where it goes.</dd>
+</dl>
+<p>Where each item goes is set by the first of these that applies:</p>
+<dl class="api">
+<dt>Equip Slot</dt><dd>Worn in that slot, such as <code>NVS.View.Slot.Primary</code>.</dd>
+<dt>Fitted To Slot</dt><dd>Fitted to the weapon the kit wears in that slot, such as a magazine in the primary.</dd>
+<dt>Packed In Slot, Packed Grid</dt><dd>Packed inside what the kit wears in that slot, such as <code>NVS.View.Slot.Pack</code>. <em>Packed Grid</em> picks a rig's pouch, counted from zero.</dd>
+<dt>Container</dt><dd>A base container of the inventory, such as <code>Stash</code>. None takes the first with room.</dd>
+</dl>
+<p>The editor flags a packed item with nothing worn to go in, or one too big for the grid it names. The demo's Scav run wears an AR-4, a rig, a pack, a secure case and boots, fits an AR-4 magazine, packs three more magazines in the rig's first pouch and a splint in its third, and puts bandages, rations and water in the pack.</p>
+<p>The Inventory component's <em>Starting Loadout</em> gives a kit when play begins, on top of its <em>Starting Items</em>. The demo starts the player with its Starter kit.</p>
+
+<h3>Kit up</h3>
+<p>In the loadout library (<code>W_LoadoutLibrary</code>), the player picks a kit and presses <em>Kit up with this</em>. The screen raises <code>Loadout.Apply</code>, and the Inventory component kits the player up from what they own:</p>
+<ul>
+<li>Each worn piece is taken from the stash and put on. Whatever was worn in that slot goes back to the stash.</li>
+<li>Each fitted part is taken from the stash and fitted.</li>
+<li>Each packed item is moved from the stash into its bag or pouch until the count is met.</li>
+</ul>
+<p>Nothing is bought. A toast reads <em>Kitted up</em> with the kit's name, and says how many pieces were not in the stash. In Blueprint, <strong>Kit Up</strong> on the Inventory component does the same and returns that count.</p>
+<figure class="shot"><img src="img/screens/loadouts.png" alt="The loadout library with the list of kits, the chosen kit's manifest and its packed containers"><figcaption>The loadout library. The chosen kit shows its worn pieces, its packed bags and its weight.</figcaption></figure>
+
+<h3>Saved kits</h3>
+<p>The stash screen's save button raises <code>Loadout.Save</code>, which adds <em>Saved kit 1</em>, <em>Saved kit 2</em> and so on to the library and opens it. Each one records what the player wears at that moment: the worn pieces, the parts fitted to worn weapons and what is packed in worn bags. Kit up on a saved kit puts the same kit back on from the stash.</p>
+<p>In Blueprint, <strong>Capture Loadout</strong> on the Inventory component writes the worn kit into any Loadout Definition you pass it.</p>
+<div class="callout warn">Saved kits last for the play session. Save them with your game's own save system if they should survive a restart.</div>
+
+<h2>Result</h2>
+<p>In the demo, open Traders, choose Brigitte and open her jobs. Take Black box. The starter kit already put a flight recorder in your stash, so the job reads <code>READY TO HAND IN</code> straight away. Hand it in: the recorder leaves your inventory, 8,400 is added to your cash and the task log reads <code>HANDED IN</code>. Then open Loadouts, pick Heavy kit and press <em>Kit up with this</em>. The KA-47 from your stash goes on in the primary slot with a KA-47 magazine fitted, the carbine goes back to the stash, and the toast says how many pieces your stash did not have.</p>
+
+<div class="cards">
+<a class="card" href="market-and-trading.html"><span class="card-tag">Guide</span><strong>Market and trading</strong>Traders, their jobs and the cash.</a>
+<a class="card" href="raid-loop.html"><span class="card-tag">Guide</span><strong>The raid loop</strong>Deploy, loot and extract.</a>
+<a class="card" href="containers.html"><span class="card-tag">Guide</span><strong>Containers</strong>Bags, rigs and their pouches.</a>
+</div>
